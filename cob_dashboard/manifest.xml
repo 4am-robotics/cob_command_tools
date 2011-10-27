@@ -12,7 +12,6 @@
   <depend package="rospy"/>
   <depend package="cob_script_server"/>
   <depend package="cob_relayboard"/>
-  <depend package="cob_default_config"/>
   
   <python path="${prefix}/ros/src"/>
 
