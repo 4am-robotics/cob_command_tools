@@ -96,18 +96,18 @@ class buttons:
 					return False
 			group = (group_name,buttons)
 			
-			# add nav buttons
+			# add nav buttons (optional)
 			if component_name == "base": # \todo get base name from robot_components.yaml
 				param_prefix = "/dashboard/nav_buttons"
-				if not rospy.has_param(param_prefix):
-					rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",param_prefix)
-					return False
-				nav_buttons_param = rospy.get_param(param_prefix)
-				nav_button_list = nav_buttons_param["buttons"]
-				#print nav_button_list
-				for button in nav_button_list:
-					#print "button = ",button
-					buttons.append(self.CreateButton(button[0],self.sss.move,component_name,button[2]))
+				if rospy.has_param(param_prefix):
+					nav_buttons_param = rospy.get_param(param_prefix)
+					nav_button_list = nav_buttons_param["buttons"]
+					#print nav_button_list
+					for button in nav_button_list:
+						#print "button = ",button
+						buttons.append(self.CreateButton(button[0],self.sss.move,component_name,button[2]))
+				else:
+					rospy.logwarn("parameter %s does not exist on ROS Parameter Server, no nav buttons will be available.",param_prefix)
 			self.panels.append(group)
 	
 	## Creates one button with functionality
