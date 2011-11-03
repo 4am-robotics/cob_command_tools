@@ -159,7 +159,7 @@ void TeleopCOB::waitForParameters()
 {
 	while(!n_.hasParam("/robot_config/robot_modules"))
 	{
-		sleep(1); // sleep 1 s while waiting for parameter to be loaded
+		ros::Duration(1).sleep(); // sleep 1 s while waiting for parameter to be loaded
 		ROS_WARN("no robot_module list loaded");
 	} // block until robot modules are loded
 
@@ -175,10 +175,11 @@ void TeleopCOB::waitForParameters()
 		ROS_DEBUG("searching for module = %s", s.c_str());
 
 		// block until required module is loaded
+		ros::Rate r(1); // 1 hz
 		while(!n_.hasParam("modules/"+s))
 		{
-			sleep(1); // sleep 1 s while waiting for parameter to be loaded
-			ROS_WARN("required module not loaded");
+			ROS_WARN("required module not loaded: %s",s.c_str());
+			r.sleep(); // sleep while waiting for parameter to be loaded
 		}
 	}
 
