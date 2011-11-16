@@ -1,13 +1,12 @@
 <package>
-    <description brief="PR2 Dashboard">
+    <description brief="Care-O-bot Dashboard">
     
-      pr2_dashboard is a GUI for debugging and controlling low-level state of the PR2.  It shows things like battery status and breaker states, as well as integrating tools like rxconsole and robot_monitor.
+      cob_dashboard is a modified version of [[pr2_dashboard]].
     
     </description>
-    <author>Josh Faust</author>
-    <license>BSD</license>
-    <review status="Doc reviewed" notes=""/>
-    <url>http://ros.org/wiki/pr2_dashboard</url>
+    <author>Alexander Bubeck</author>
+    <license>LGPL</license>
+    <url>http://ros.org/wiki/cob_dashboard</url>
     <depend package="rxtools"/>
     <depend package="robot_monitor"/>
     <depend package="rospy"/>
