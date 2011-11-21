@@ -69,7 +69,7 @@ class buttons:
 
 	## Creates the control panel out of configuration from ROS parameter server
 	def CreateControlPanel(self):
-		param_prefix = "/dashboard/control_buttons"
+		param_prefix = "/command_gui/control_buttons"
 		if not rospy.has_param(param_prefix):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",param_prefix)
 			return False
@@ -98,7 +98,7 @@ class buttons:
 			
 			# add nav buttons (optional)
 			if component_name == "base": # \todo get base name from robot_components.yaml
-				param_prefix = "/dashboard/nav_buttons"
+				param_prefix = "/command_gui/nav_buttons"
 				if rospy.has_param(param_prefix):
 					nav_buttons_param = rospy.get_param(param_prefix)
 					nav_button_list = nav_buttons_param["buttons"]

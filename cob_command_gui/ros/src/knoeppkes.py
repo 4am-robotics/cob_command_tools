@@ -58,7 +58,7 @@
 #################################################################
 
 import roslib
-roslib.load_manifest('cob_dashboard')
+roslib.load_manifest('cob_command_gui')
 from cob_relayboard.msg import EmergencyStopState
 from buttons import *
 import thread
