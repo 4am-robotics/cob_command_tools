@@ -14,7 +14,7 @@
 # \note
 #   ROS stack name: cob_apps
 # \note
-#   ROS package name: cob_dashboard
+#   ROS package name: cob_command_gui
 #
 # \author
 #   Author: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
@@ -24,7 +24,7 @@
 # \date Date of creation: Aug 2010
 #
 # \brief
-#   Implementation of ROS node for dashboard.
+#   Implementation of ROS node for command_gui.
 #
 #################################################################
 #
@@ -101,7 +101,7 @@ class GtkGeneralPanel(gtk.Frame):
     global initialized
     self.sss = simple_script_server()
     gtk.Frame.__init__(self)
-    if not pynotify.init ("cob_dashboard"):
+    if not pynotify.init ("cob_command_gui"):
       sys.exit (1)
     self.em_stop = False
     self.set_label("general")
@@ -110,14 +110,14 @@ class GtkGeneralPanel(gtk.Frame):
     self.add(self.vbox)
     #hbox=gtk.HBox(True, 0)
     #image = gtk.Image()
-    #image.set_from_file(roslib.packages.get_pkg_dir("cob_dashboard") + "/common/files/icons/batti-040.png")
+    #image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/batti-040.png")
     #hbox.pack_start(image, False, False, 0)
     #label = gtk.Label("40 %")
     #hbox.pack_start(label, False, False, 0)
     #self.vbox.pack_start(hbox, False, False, 5)    
     hbox=gtk.HBox(True, 0)
     self.status_image = gtk.Image()
-    #self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_dashboard") + "/common/files/icons/weather-clear.png")
+    #self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/weather-clear.png")
     hbox.pack_start(self.status_image, False, False, 0)
     self.status_label = gtk.Label("Status OK")
     hbox.pack_start(self.status_label, False, False, 0)
@@ -147,7 +147,7 @@ class GtkGeneralPanel(gtk.Frame):
   def setEMStop(self, em):
     if(em):
       #print "Emergency Stop Active"
-      self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_dashboard") + "/common/files/icons/weather-storm.png")
+      self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/weather-storm.png")
       self.status_label.set_text("EM Stop !")
       if(self.em_stop == False):
         self.em_stop = True
@@ -156,7 +156,7 @@ class GtkGeneralPanel(gtk.Frame):
         n.show()
     else:
       #print "Status OK"
-      #self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_dashboard") + "/common/files/icons/weather-clear.png")
+      #self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/weather-clear.png")
       self.status_label.set_text("Status OK")
       if(self.em_stop == True):
         self.em_stop = False
@@ -194,7 +194,7 @@ class GtkPanel(gtk.Frame):
     #but.set_size_request(120,-1)
     self.vbox.pack_start(but, False, False, 5)
         
-## Implementation of knoeppkes dashboard
+## Implementation of knoeppkes command gui
 class Knoeppkes():
   def delete_event(self, widget, event, data=None):
     gtk.main_quit()
@@ -212,7 +212,7 @@ class Knoeppkes():
   
     self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
     self.window.connect("delete_event", self.delete_event)
-    self.window.set_title("cob_dashboard")	
+    self.window.set_title("cob_command_gui")	
     self.window.set_size_request(1000, 500)
     vbox = gtk.VBox(False, 1)
     self.hbox = gtk.HBox(True, 10)

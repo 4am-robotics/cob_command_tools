@@ -14,7 +14,7 @@
 # \note
 #   ROS stack name: cob_apps
 # \note
-#   ROS package name: cob_dashboard
+#   ROS package name: cob_command_gui
 #
 # \author
 #   Author: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
@@ -24,7 +24,7 @@
 # \date Date of creation: Aug 2010
 #
 # \brief
-#   Implementation of ROS node for dashboard.
+#   Implementation of ROS node for command gui.
 #
 #################################################################
 #
@@ -92,7 +92,7 @@ class buttons:
 				elif button[1] == "mode":
 					buttons.append(self.CreateButton(button[0],self.sss.set_operation_mode,component_name,button[2]))
 				else:
-					rospy.logerr("Function <<%s>> not known to dashboard",button[1])
+					rospy.logerr("Function <<%s>> not known to command gui",button[1])
 					return False
 			group = (group_name,buttons)
 			
