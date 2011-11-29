@@ -212,7 +212,7 @@ class Knoeppkes():
   
     self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
     self.window.connect("delete_event", self.delete_event)
-    self.window.set_title("cob_command_gui")	
+    self.window.set_title("cob command gui")	
     self.window.set_size_request(1000, 500)
     vbox = gtk.VBox(False, 1)
     self.hbox = gtk.HBox(True, 10)

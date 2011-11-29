@@ -62,7 +62,7 @@ class PR2Frame(wx.Frame):
     _CONFIG_WINDOW_X="/Window/X"
     _CONFIG_WINDOW_Y="/Window/Y"
     
-    def __init__(self, parent, id=wx.ID_ANY, title='CoB3 Dashboard', pos=wx.DefaultPosition, size=(400, 50), style=wx.CAPTION|wx.CLOSE_BOX|wx.STAY_ON_TOP):
+    def __init__(self, parent, id=wx.ID_ANY, title='cob dashboard', pos=wx.DefaultPosition, size=(400, 50), style=wx.CAPTION|wx.CLOSE_BOX|wx.STAY_ON_TOP):
         wx.Frame.__init__(self, parent, id, title, pos, size, style)
         
         wx.InitAllImageHandlers()
@@ -74,7 +74,7 @@ class PR2Frame(wx.Frame):
         except AttributeError:
             pass
         
-        self.SetTitle('CoB3 Dashboard (%s)'%rosenv.get_master_uri())
+        self.SetTitle('cob dashboard (%s)'%rosenv.get_master_uri())
         
         icons_path = path.join(roslib.packages.get_pkg_dir('pr2_dashboard'), "icons/")
         
