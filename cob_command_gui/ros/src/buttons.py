@@ -14,7 +14,7 @@
 # \note
 #   ROS stack name: cob_apps
 # \note
-#   ROS package name: cob_dashboard
+#   ROS package name: cob_command_gui
 #
 # \author
 #   Author: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
@@ -24,7 +24,7 @@
 # \date Date of creation: Aug 2010
 #
 # \brief
-#   Implementation of ROS node for dashboard.
+#   Implementation of ROS node for command gui.
 #
 #################################################################
 #
@@ -69,7 +69,7 @@ class buttons:
 
 	## Creates the control panel out of configuration from ROS parameter server
 	def CreateControlPanel(self):
-		param_prefix = "/dashboard/control_buttons"
+		param_prefix = "/command_gui/control_buttons"
 		if not rospy.has_param(param_prefix):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",param_prefix)
 			return False
@@ -92,13 +92,13 @@ class buttons:
 				elif button[1] == "mode":
 					buttons.append(self.CreateButton(button[0],self.sss.set_operation_mode,component_name,button[2]))
 				else:
-					rospy.logerr("Function <<%s>> not known to dashboard",button[1])
+					rospy.logerr("Function <<%s>> not known to command gui",button[1])
 					return False
 			group = (group_name,buttons)
 			
 			# add nav buttons (optional)
 			if component_name == "base": # \todo get base name from robot_components.yaml
-				param_prefix = "/dashboard/nav_buttons"
+				param_prefix = "/command_gui/nav_buttons"
 				if rospy.has_param(param_prefix):
 					nav_buttons_param = rospy.get_param(param_prefix)
 					nav_button_list = nav_buttons_param["buttons"]
