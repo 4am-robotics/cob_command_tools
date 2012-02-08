@@ -15,6 +15,7 @@
   <depend stack="common_msgs" /> <!-- sensor_msgs, actionlib_msgs, trajectory_msgs, geometry_msgs -->
   <depend stack="diagnostics_monitors" /> <!-- robot_monitor -->
   <depend stack="geometry" /> <!-- tf -->
+  <depend stack="joystick_drivers" /> <!-- joy -->
   <depend stack="navigation" /> <!-- move_base_msgs -->
   <depend stack="pr2_apps" /> <!-- pr2_teleop -->
   <depend stack="pr2_common" /> <!-- pr2_msgs -->
