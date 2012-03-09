@@ -12,7 +12,7 @@
 # \note
 #   Project name: care-o-bot
 # \note
-#   ROS stack name: cob_apps
+#   ROS stack name: cob_command_tools
 # \note
 #   ROS package name: cob_script_server
 #
@@ -78,6 +78,7 @@ from move_base_msgs.msg import *
 from arm_navigation_msgs.msg import *
 from tf.transformations import *
 from std_msgs.msg import String
+from kinematics_msgs.srv import *
 
 # care-o-bot includes
 from cob_light.msg import *
@@ -165,10 +166,14 @@ class simple_script_server:
 		self.ns_global_prefix = "/script_server"
 		self.wav_path = ""
 		self.parse = parse
+		self.arm_joint_positions = []
 		
-		# init light publisher
+		# init publishers
 		self.pub_light = rospy.Publisher('/light_controller/command', Light)
-
+		
+		# init subscribers
+		rospy.Subscriber("/arm_controller/state", JointTrajectoryControllerState, self.sub_arm_joint_states_cb)
+		
 		rospy.sleep(1) # we have to wait here until publishers are ready, don't ask why
 
     #------------------- Init section -------------------#
@@ -669,182 +674,6 @@ class simple_script_server:
 		ah.wait_inside()
 		return ah
 		
-	def move_cart(self, component_name, parameter_name=["/base_link",[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]], blocking=True):
-		ah = action_handle("move_cart", component_name, parameter_name, blocking, self.parse)
-		if(self.parse):
-			return ah
-		else:
-			ah.set_active()
-		
-		rospy.loginfo("Move <<%s>> to <<%s>>",component_name,parameter_name)
-			
-		pose = PoseStamped()
-		pose.header.stamp = rospy.Time.now()
-		pose.header.frame_id = parameter_name[0]
-		param = parameter_name[1:]
-		pose.pose.position.x = param[0][0]
-		pose.pose.position.y = param[0][1]
-		pose.pose.position.z = param[0][2]
-		q = quaternion_from_euler(param[1][0], param[1][1], param[1][2])
-		pose.pose.orientation.x = q[0]
-		pose.pose.orientation.y = q[1]
-		pose.pose.orientation.z = q[2]
-		pose.pose.orientation.w = q[3]
-		
-		# call action server
-		action_server_name = "/" + component_name + '_controller/move_cart'
-		rospy.logdebug("calling %s action server",action_server_name)
-		client = actionlib.SimpleActionClient(action_server_name, MoveCartAction)
-		# trying to connect to server
-		rospy.logdebug("waiting for %s action server to start",action_server_name)
-		if not client.wait_for_server(rospy.Duration(5)):
-			# error: server did not respond
-			rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
-			ah.set_failed(4)
-			return ah
-		else:
-			rospy.logdebug("%s action server ready",action_server_name)
-
-		# sending goal
-		client_goal = MoveCartGoal()
-		client_goal.goal_pose = pose
-		#print client_goal
-		client.send_goal(client_goal)
-		ah.set_client(client)
-
-		ah.wait_inside()
-		return ah
-
-	def move_cart_rel(self, component_name, parameter_name=[[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]], blocking=True):
-		return move_cart(self, component_name, ["/arm_7_joint"]+parameter_name, blocking)
-		
-	## Move to a simple pose goal - planned
-	# 
-	# - recieves a cartesian pose (position, orientation) for 'arm_7_link' given in 'base_footprint' reference coordinate system
-	# - sends the goal to move_arm
-	# - move_arm will call the IK-solver
-	# - if configuration is found, the specified planner is called to find a collision-free trajectory
-	# - if successful the motion is executed
-	#
-	# ADD-ON: use another parameter to specify the reference frame and do transformation in cob_script_server::move_cart_planned
-	##	
-	def move_cart_planned(self, component_name, parameter_name=[[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]], blocking=True):
-#		if component_name != "arm":
-#			print "ERROR: You can only use move_cart_planned for 'arm'"
-#		else:
-#			
-		ah = action_handle("move_cart_planned", component_name, "cartesian", blocking, self.parse)
-		if(self.parse):
-			return ah
-		else:
-			ah.set_active()
-
-		# convert to ROS Move arm message
-		motion_plan = MotionPlanRequest()
-		motion_plan.group_name = "arm"
-		motion_plan.num_planning_attempts = 1
-		motion_plan.planner_id= ""
-		motion_plan.allowed_planning_time = rospy.Duration(5.0)
-
-		pose_constraint = SimplePoseConstraint()
-		pose_constraint.header.stamp = rospy.Time.now()
-		pose_constraint.header.frame_id = "base_footprint"
-		pose_constraint.link_name = "arm_7_link"
-		
-		pose_constraint.absolute_position_tolerance.x = 0.1;
-		pose_constraint.absolute_position_tolerance.y = 0.1;
-		pose_constraint.absolute_position_tolerance.z = 0.1;
-
-		pose_constraint.absolute_roll_tolerance = 0.1;
-		pose_constraint.absolute_pitch_tolerance = 0.1;
-		pose_constraint.absolute_yaw_tolerance = 0.1;
-		
-		# convert to Pose message
-		pose = PoseStamped()
-		pose.header.stamp = rospy.Time.now()
-		pose.header.frame_id = "base_footprint"
-		pose.pose.position.x = parameter_name[0][0]
-		pose.pose.position.y = parameter_name[0][1]
-		pose.pose.position.z = parameter_name[0][2]
-		q = quaternion_from_euler(parameter_name[1][0], parameter_name[1][1], parameter_name[1][2])
-		pose.pose.orientation.x = q[0]
-		pose.pose.orientation.y = q[1]
-		pose.pose.orientation.z = q[2]
-		pose.pose.orientation.w = q[3]
-		pose_constraint.pose = pose.pose
-		
-		### can't use this in python
-		###move_arm_msgs.addGoalConstraintToMoveArmGoal(pose_constraint, motion_plan)
-		
-		#convert to PositionConstraint
-		position_constraint = PositionConstraint()
-		position_constraint.header = pose_constraint.header
-		position_constraint.link_name = pose_constraint.link_name
-		position_constraint.position = pose_constraint.pose.position
-		
-		position_constraint.constraint_region_shape.type = 1	#geometric_shapes_msgs.Shape.Box
-		position_constraint.constraint_region_shape.dimensions.append(2*pose_constraint.absolute_position_tolerance.x)
-		position_constraint.constraint_region_shape.dimensions.append(2*pose_constraint.absolute_position_tolerance.y)
-		position_constraint.constraint_region_shape.dimensions.append(2*pose_constraint.absolute_position_tolerance.z)
-		
-		position_constraint.constraint_region_orientation.x = 0.0
-		position_constraint.constraint_region_orientation.y = 0.0
-		position_constraint.constraint_region_orientation.z = 0.0
-		position_constraint.constraint_region_orientation.w = 1.0
-		
-		position_constraint.weight = 1.0
-		
-		
-		#convert to OrientationConstraint
-		orientation_constraint = OrientationConstraint()
-		orientation_constraint.header = pose_constraint.header
-		orientation_constraint.link_name = pose_constraint.link_name
-		orientation_constraint.orientation = pose_constraint.pose.orientation
-		#orientation_constraint.type = pose_constraint.orientation_constraint_type
-		
-		orientation_constraint.absolute_roll_tolerance = pose_constraint.absolute_roll_tolerance
-		orientation_constraint.absolute_pitch_tolerance = pose_constraint.absolute_pitch_tolerance
-		orientation_constraint.absolute_yaw_tolerance = pose_constraint.absolute_yaw_tolerance
-		
-		orientation_constraint.weight = 1.0
-		
-		#append()
-		motion_plan.goal_constraints.joint_constraints = []
-		motion_plan.goal_constraints.position_constraints = []
-		motion_plan.goal_constraints.position_constraints.append(position_constraint)
-		motion_plan.goal_constraints.orientation_constraints = []
-		motion_plan.goal_constraints.orientation_constraints.append(orientation_constraint)	
-		motion_plan.goal_constraints.visibility_constraints = []
-		
-
-		# call action server
-		action_server_name = "/move_arm"
-		rospy.logdebug("calling %s action server",action_server_name)
-		client = actionlib.SimpleActionClient(action_server_name, MoveArmAction)
-		# trying to connect to server
-		rospy.logdebug("waiting for %s action server to start",action_server_name)
-		if not client.wait_for_server(rospy.Duration(5)):
-			# error: server did not respond
-			rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
-			ah.set_failed(4)
-			return ah
-		else:
-			rospy.logdebug("%s action server ready",action_server_name)
-		
-		# sending goal
-		client_goal = MoveArmGoal()
-		client_goal.planner_service_name = "ompl_planning/plan_kinematic_path"		#choose planner
-		#client_goal.planner_service_name = "cob_prmce_planner/plan_kinematic_path"
-		client_goal.motion_plan_request = motion_plan
-		client_goal.disable_ik = False
-		#print client_goal
-		client.send_goal(client_goal)
-		ah.set_client(client)
-
-		ah.wait_inside()
-		return ah
-		
-	
 	## Set the operation mode for different components.
 	#
 	# Based on the component, the corresponding set_operation_mode service will be called.
@@ -1087,6 +916,52 @@ class simple_script_server:
 		rospy.loginfo("...got string <<%s>>",retVal)
 		ah.set_succeeded()
 		return retVal
+
+#------------------- Helper section -------------------#
+	## Calculates a joint configuration for a given pose
+	#
+	# The reference system is "arm_7_link"
+	#
+	# \param parameter_name List, which consists of [reference system, [x,y,z],[roll,pitch,yaw]]
+	def calculate_ik(self, parameter_name=["base_link",[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]], blocking=True):
+		
+		# parse parameters
+		pose = PoseStamped()
+		pose.header.stamp = rospy.Time.now()
+		pose.header.frame_id = parameter_name[0]
+		param = parameter_name[1:]
+		pose.pose.position.x = param[0][0]
+		pose.pose.position.y = param[0][1]
+		pose.pose.position.z = param[0][2]
+		q = quaternion_from_euler(param[1][0], param[1][1], param[1][2])
+		pose.pose.orientation.x = q[0]
+		pose.pose.orientation.y = q[1]
+		pose.pose.orientation.z = q[2]
+		pose.pose.orientation.w = q[3]
+		
+		#check if actual arm positions were received
+		if len(self.arm_joint_positions) == 0:
+			rospy.logwarn("no actual arm joint positions received yet, using [0,0,0,0,0,0,0] as seed state")
+			self.arm_joint_positions = [0,0,0,0,0,0,0]
+		
+		# fill ik request message
+		req = GetPositionIKRequest()
+		req.ik_request.ik_link_name = "arm_7_link"
+		req.ik_request.ik_seed_state.joint_state.name = rospy.get_param("/arm_controller/joint_names")
+		req.ik_request.ik_seed_state.joint_state.position = self.arm_joint_positions
+		req.ik_request.pose_stamped = pose
+		
+		# call ik service
+		iks = rospy.ServiceProxy('/arm_kinematics/get_ik', GetPositionIK)
+		resp = iks(req)
+		result = []
+		for o in resp.solution.joint_state.position:
+			result.append(o)
+		return (result, resp.error_code)
+	
+	## Subscribes to /arm_controller/state to get actual joint positions
+	def sub_arm_joint_states_cb(self,msg):
+		self.arm_joint_positions = msg.actual.positions
 
 #------------------- action_handle section -------------------#	
 ## Action handle class.
