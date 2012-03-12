@@ -103,6 +103,7 @@ public:
 		std::vector<double> max_vel_; //max_vx_,max_vy_,max_vth_;
 		std::vector<double> max_acc_; //max_ax_,max_ay_,max_ath_;
 		ros::Publisher base_publisher_;
+		ros::Publisher base_safety_publisher_;
 	} base_module_;
 
 	bool has_base_module_;
@@ -118,8 +119,8 @@ public:
 	int up_down_, left_right_;   //sign for movements of upper_neck and tray
 
 	//common
-	int deadman_button_, run_button_, stop_base_button_, recover_base_button_;
-	bool joy_active_, stopped_;
+	int deadman_button_, run_button_, base_safety_button_, stop_base_button_, recover_base_button_;
+	bool joy_active_, stopped_, base_safety_;
 	double run_factor_, run_factor_param_;
 
 
@@ -350,7 +351,8 @@ bool TeleopCOB::assign_base_module(XmlRpc::XmlRpcValue mod_struct)
 	// issued if max value arrays has the wrong length
 	base_module_.req_vel_.resize(base_module_.max_acc_.size());
 	base_module_.vel_old_.resize(base_module_.max_acc_.size());
-	base_module_.base_publisher_ = n_.advertise<geometry_msgs::Twist>("/base_controller/command",1);
+	base_module_.base_publisher_ = n_.advertise<geometry_msgs::Twist>("/cmd_vel",1);
+	base_module_.base_safety_publisher_ = n_.advertise<geometry_msgs::Twist>("/cmd_vel_safety",1);
 	ROS_DEBUG("base module stored");
 	has_base_module_ = true;
 	return true;
@@ -406,6 +408,7 @@ void TeleopCOB::init()
 	n_.param("arm_joint7_button",arm_joint7_button_,3);
 	n_.param("deadman_button",deadman_button_,5);
 	n_.param("run_button",run_button_,7);
+	n_.param("base_safety_button",base_safety_button_,4);
 	n_.param("stop_base_button",stop_base_button_,8);
 	n_.param("recover_base_button",recover_base_button_,9);
 
@@ -532,6 +535,16 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 	else //button release
 	{
 		run_factor_ = 1.0;
+	}
+	
+	// base safety button
+	if(base_safety_button_>=0 && base_safety_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[base_safety_button_]==1)
+	{
+		base_safety_ = true;
+	}
+	else //button release
+	{
+		base_safety_ = false;
 	}
 	
 	// recover base button
@@ -953,7 +966,14 @@ void TeleopCOB::update_base()
 	cmd.linear.y = v[1]; //vy;
 	cmd.angular.z = v[2]; //vth;
 
-	base_module_.base_publisher_.publish(cmd);
+	if (base_safety_)
+	{
+		base_module_.base_safety_publisher_.publish(cmd);
+	}
+	else
+	{
+		base_module_.base_publisher_.publish(cmd);
+	}
 }
 
 /*!
