@@ -540,11 +540,11 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 	// base safety button
 	if(base_safety_button_>=0 && base_safety_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[base_safety_button_]==1)
 	{
-		base_safety_ = true;
+		base_safety_ = false;
 	}
 	else //button release
 	{
-		base_safety_ = false;
+		base_safety_ = true;
 	}
 	
 	// recover base button
