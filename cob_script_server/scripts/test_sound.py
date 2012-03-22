@@ -7,7 +7,7 @@ roslib.load_manifest('cob_script_server')
 import rospy
 
 from simple_script_server import *
-from script_utils import *
+#from script_utils import *
 
 
 class Test_Sound(script):
