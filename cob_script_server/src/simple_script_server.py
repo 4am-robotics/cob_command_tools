@@ -676,27 +676,36 @@ class simple_script_server:
 		return ah
 	
 
+	## Relative movement of the base
+	#
+	# \param component_name Name of component; here always "base".
+	# \param parameter_name List of length 3: (item 1 & 2) relative x and y translation [m]; (item 3) relative rotation about z axis [rad].
+	# \param blocking Bool value to specify blocking behaviour.
+	# 
+	# # throws error code 3 in case of invalid parameter_name vector 
 	def move_base_rel(self, component_name, parameter_name=[0,0,0], blocking=True):	
-		# parameter_name = list of length 3: (item 1 & 2) relative x and y translation [m]; (item 3) relative rotation about z axis [rad]
-		# throws error code 3 in case of invalid parameter_name vector 
 		ah = action_handle("move_base_rel", component_name, parameter_name, blocking, self.parse)
 		if(self.parse):
 			return ah
 		else:
 			ah.set_active()
 
+		rospy.loginfo("Move base relatively by <<%s>>", parameter_name)
+
 		# step 0: check validity of parameters:
 		if not len(parameter_name) == 3 or not isinstance(parameter_name[0], (int, float)) or not isinstance(parameter_name[1], (int, float)) or not isinstance(parameter_name[2], (int, float)):
-			rospy.logerr("parameter_name must be numeric list of length 3; (relative x and y transl [m], relative rotation [rad])")
+			rospy.logerr("Non-numeric parameter_name list, aborting move_base_rel")
 			print("parameter_name must be numeric list of length 3; (relative x and y transl [m], relative rotation [rad])")
 			ah.set_failed(3)
 			return ah
 		if math.sqrt(parameter_name[0]**2 + parameter_name[1]**2) > 0.1:
-			rospy.logerr("maximal relative translation step is 0.1 m")
+			rospy.logerr("Maximal relative translation step exceeded, aborting move_base_rel")
+			print("Maximal relative translation step is 0.1 m")
 			ah.set_failed(3)
 			return(ah)
 		if abs(parameter_name[2]) > math.pi/2:
-			rospy.logerr("maximal relative rotation step is pi/2")
+			rospy.logerr("Maximal relative rotation step exceeded, aborting move_base_rel")
+			print("Maximal relative rotation step is pi/2")
 			ah.set_failed(3)
 			return(ah)
 
