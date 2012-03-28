@@ -63,6 +63,7 @@ import sys
 import types
 import thread
 import commands
+import math
 
 # ROS imports
 import roslib
@@ -673,7 +674,70 @@ class simple_script_server:
 
 		ah.wait_inside()
 		return ah
-		
+	
+
+	## Relative movement of the base
+	#
+	# \param component_name Name of component; here always "base".
+	# \param parameter_name List of length 3: (item 1 & 2) relative x and y translation [m]; (item 3) relative rotation about z axis [rad].
+	# \param blocking Bool value to specify blocking behaviour.
+	# 
+	# # throws error code 3 in case of invalid parameter_name vector 
+	def move_base_rel(self, component_name, parameter_name=[0,0,0], blocking=True):	
+		ah = action_handle("move_base_rel", component_name, parameter_name, blocking, self.parse)
+		if(self.parse):
+			return ah
+		else:
+			ah.set_active()
+
+		rospy.loginfo("Move base relatively by <<%s>>", parameter_name)
+
+		# step 0: check validity of parameters:
+		if not len(parameter_name) == 3 or not isinstance(parameter_name[0], (int, float)) or not isinstance(parameter_name[1], (int, float)) or not isinstance(parameter_name[2], (int, float)):
+			rospy.logerr("Non-numeric parameter_name list, aborting move_base_rel")
+			print("parameter_name must be numeric list of length 3; (relative x and y transl [m], relative rotation [rad])")
+			ah.set_failed(3)
+			return ah
+		if math.sqrt(parameter_name[0]**2 + parameter_name[1]**2) > 0.1:
+			rospy.logerr("Maximal relative translation step exceeded, aborting move_base_rel")
+			print("Maximal relative translation step is 0.1 m")
+			ah.set_failed(3)
+			return(ah)
+		if abs(parameter_name[2]) > math.pi/2:
+			rospy.logerr("Maximal relative rotation step exceeded, aborting move_base_rel")
+			print("Maximal relative rotation step is pi/2")
+			ah.set_failed(3)
+			return(ah)
+
+		# step 1: determine duration of motion so that upper thresholds for both translational as well as rotational velocity are not exceeded
+		max_trans_vel = 0.05 # [m/s]
+		max_rot_vel = 0.2 # [rad/s]
+		duration_trans_sec = math.sqrt(parameter_name[0]**2 + parameter_name[1]**2) / max_trans_vel
+		duration_rot_sec = abs(parameter_name[2] / max_rot_vel)
+		duration_sec = max(duration_trans_sec, duration_rot_sec)
+		duration_ros = rospy.Duration.from_sec(duration_sec) # duration of motion in ROS time
+
+		# step 2: determine actual velocities based on calculated duration
+		x_vel = parameter_name[0] / duration_sec
+		y_vel = parameter_name[1] / duration_sec
+		rot_vel = parameter_name[2] / duration_sec
+
+		# step 3: send constant velocity command to base_controller for the calculated duration of motion
+		pub = rospy.Publisher('/base_controller/command', Twist)  # todo: use Matthias G.'s safe_command
+		twist = Twist()
+		twist.linear.x = x_vel
+		twist.linear.y = y_vel
+		twist.angular.z = rot_vel
+		r = rospy.Rate(10) # send velocity commands at 10 Hz
+		end_time = rospy.Time.now() + duration_ros
+		while not rospy.is_shutdown() and rospy.Time.now() < end_time:
+			pub.publish(twist)
+			r.sleep()
+
+		ah.set_succeeded()
+		return ah
+
+	
 	## Set the operation mode for different components.
 	#
 	# Based on the component, the corresponding set_operation_mode service will be called.
