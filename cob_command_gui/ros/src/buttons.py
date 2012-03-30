@@ -87,6 +87,8 @@ class buttons:
 				#print "button = ",button
 				if button[1] == "move":
 					buttons.append(self.CreateButton(button[0],self.sss.move,component_name,button[2]))
+				elif button[1] == "move_base_rel":
+					buttons.append(self.CreateButton(button[0],self.sss.move_base_rel,component_name,button[2]))
 				elif button[1] == "trigger":
 					buttons.append(self.CreateButton(button[0],self.sss.trigger,component_name,button[2]))
 				elif button[1] == "mode":
