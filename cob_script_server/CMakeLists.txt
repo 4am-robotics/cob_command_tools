@@ -38,5 +38,5 @@ rosbuild_genmsg()
 #target_link_libraries(example ${PROJECT_NAME})
 
 # rostest
-rosbuild_add_roslaunch_check(launch/script_server.launch)
+rosbuild_add_roslaunch_check(launch)
 rosbuild_add_rostest(launch/script_server.launch TIMEOUT 100.0)
