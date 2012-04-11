@@ -175,6 +175,8 @@ class simple_script_server:
 		# init subscribers
 		rospy.Subscriber("/arm_controller/state", JointTrajectoryControllerState, self.sub_arm_joint_states_cb)
 		
+                self.iks = rospy.ServiceProxy('/cob_arm_kinematics/get_ik', GetPositionIK)
+		
 		rospy.sleep(1) # we have to wait here until publishers are ready, don't ask why
 
     #------------------- Init section -------------------#
@@ -987,7 +989,7 @@ class simple_script_server:
 	# The reference system is "arm_7_link"
 	#
 	# \param parameter_name List, which consists of [reference system, [x,y,z],[roll,pitch,yaw]]
-	def calculate_ik(self, parameter_name=["base_link",[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]], blocking=True):
+	def calculate_ik(self, parameter_name=["base_footprint",[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]], blocking=True):
 		
 		# parse parameters
 		pose = PoseStamped()
@@ -1014,14 +1016,15 @@ class simple_script_server:
 		req.ik_request.ik_seed_state.joint_state.name = rospy.get_param("/arm_controller/joint_names")
 		req.ik_request.ik_seed_state.joint_state.position = self.arm_joint_positions
 		req.ik_request.pose_stamped = pose
+		req.timeout = rospy.Duration(5)
 		
 		# call ik service
-		iks = rospy.ServiceProxy('/arm_kinematics/get_ik', GetPositionIK)
-		resp = iks(req)
-		result = []
-		for o in resp.solution.joint_state.position:
-			result.append(o)
-		return (result, resp.error_code)
+                try:
+		    resp = self.iks(req)
+		    return (list(resp.solution.joint_state.position), resp.error_code)
+                except:
+                    rospy.logwarn("Could not call service cob_arm_kinematics/get_ik! Is cob_arm_navigation started?")
+                    return ([],-1)
 	
 	## Subscribes to /arm_controller/state to get actual joint positions
 	def sub_arm_joint_states_cb(self,msg):
