@@ -168,6 +168,7 @@ class simple_script_server:
 		self.wav_path = ""
 		self.parse = parse
 		self.arm_joint_positions = []
+		self.arm_joint_names = []
 		
 		# init publishers
 		self.pub_light = rospy.Publisher('/light_controller/command', Light)
@@ -1009,11 +1010,13 @@ class simple_script_server:
 		if len(self.arm_joint_positions) == 0:
 			rospy.logwarn("no actual arm joint positions received yet, using [0,0,0,0,0,0,0] as seed state")
 			self.arm_joint_positions = [0,0,0,0,0,0,0]
+ 			self.arm_joint_names = rospy.get_param("/arm_controller/joint_names") #TODO: switch to /arm_controller/names for compatibility with simulation
 		
 		# fill ik request message
 		req = GetPositionIKRequest()
-		req.ik_request.ik_link_name = "arm_7_link"
-		req.ik_request.ik_seed_state.joint_state.name = rospy.get_param("/arm_controller/joint_names")
+
+		req.ik_request.ik_link_name = "arm_7_link" #ToDo: get from tip_link parameter
+		req.ik_request.ik_seed_state.joint_state.name = self.arm_joint_names
 		req.ik_request.ik_seed_state.joint_state.position = self.arm_joint_positions
 		req.ik_request.pose_stamped = pose
 		req.timeout = rospy.Duration(5)
@@ -1029,6 +1032,7 @@ class simple_script_server:
 	## Subscribes to /arm_controller/state to get actual joint positions
 	def sub_arm_joint_states_cb(self,msg):
 		self.arm_joint_positions = msg.actual.positions
+		self.arm_joint_names = msg.joint_names
 
 #------------------- action_handle section -------------------#	
 ## Action handle class.
