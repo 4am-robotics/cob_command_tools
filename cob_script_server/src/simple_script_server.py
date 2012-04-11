@@ -1015,7 +1015,7 @@ class simple_script_server:
 		# fill ik request message
 		req = GetPositionIKRequest()
 
-		req.ik_request.ik_link_name = "arm_7_link" #ToDo: get from tip_link parameter
+		req.ik_request.ik_link_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
 		req.ik_request.ik_seed_state.joint_state.name = self.arm_joint_names
 		req.ik_request.ik_seed_state.joint_state.position = self.arm_joint_positions
 		req.ik_request.pose_stamped = pose
