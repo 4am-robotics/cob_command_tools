@@ -533,8 +533,11 @@ class simple_script_server:
 		ah.wait_inside()
 		return ah
 		
-	def move_planned(self, component_name, parameter_name, blocking=True):
-		ah = action_handle("move_planned", component_name, parameter_name, blocking, self.parse)
+	def move_planned(self, component_name, parameter_name, blocking=True): # for backward compatibility
+		return self.move_joint_goal_planned(component_name, parameter_name, blocking)
+	
+	def move_joint_goal_planned(self, component_name, parameter_name, blocking=True):
+		ah = action_handle("move_joint_goal_planned", component_name, parameter_name, blocking, self.parse)
 		if(self.parse):
 			return ah
 		else:
@@ -664,7 +667,7 @@ class simple_script_server:
 		motion_plan.goal_constraints = parameter_name
 
 		# call action server
-		action_server_name = "move_"+component_name
+		action_server_name = "/move_"+component_name
 		rospy.logdebug("calling %s action server",action_server_name)
 		client = actionlib.SimpleActionClient(action_server_name, MoveArmAction)
 		# trying to connect to server
