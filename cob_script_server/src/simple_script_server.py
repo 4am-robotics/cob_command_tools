@@ -625,15 +625,9 @@ class simple_script_server:
 			traj.append(point)
 
 		rospy.logdebug("accepted trajectory for %s",component_name)
-		
-		# convert to ROS Move arm message
-		motion_plan = MotionPlanRequest()
-		motion_plan.group_name = "arm"
-		motion_plan.num_planning_attempts = 1
-		motion_plan.allowed_planning_time = rospy.Duration(5.0)
 
-		motion_plan.planner_id= ""
-		motion_plan.goal_constraints.joint_constraints=[]
+		goal_constraints = Constraints() #arm_navigation_msgs/Constraints
+		goal_constraints.joint_constraints=[]
 		
 		for i in range(len(joint_names)):
 			new_constraint = JointConstraint()
@@ -641,16 +635,36 @@ class simple_script_server:
 			new_constraint.position = 0.0
 			new_constraint.tolerance_below = 0.4
 			new_constraint.tolerance_above = 0.4
-			motion_plan.goal_constraints.joint_constraints.append(new_constraint)
+			goal_constraints.joint_constraints.append(new_constraint)
 		#no need for trajectories anymore, since planning (will) guarantee collision-free motion!
 		traj_endpoint = traj[len(traj)-1]
 		for k in range(len(traj_endpoint)):
 			#print "traj_endpoint[%d]: %f", k, traj_endpoint[k]
-			motion_plan.goal_constraints.joint_constraints[k].position = traj_endpoint[k]
+			goal_constraints.joint_constraints[k].position = traj_endpoint[k]
 
+
+		return self.move_constrained_planned(component_name, goal_constraints, blocking, ah)
+
+	def move_constrained_planned(self, component_name, parameter_name, blocking=True, ah=None):
+		if ah is None:
+		    ah = action_handle("move_constrained_planned", component_name, "constraint_goal", blocking, self.parse)
+		    if(self.parse):
+			    return ah
+		    else:
+			    ah.set_active()
+		
+
+		# convert to ROS Move arm message
+		motion_plan = MotionPlanRequest()
+		motion_plan.group_name = component_name
+		motion_plan.num_planning_attempts = 1
+		motion_plan.allowed_planning_time = rospy.Duration(5.0)
+
+		motion_plan.planner_id= ""
+		motion_plan.goal_constraints = parameter_name
 
 		# call action server
-		action_server_name = "/move_arm"
+		action_server_name = "move_"+component_name
 		rospy.logdebug("calling %s action server",action_server_name)
 		client = actionlib.SimpleActionClient(action_server_name, MoveArmAction)
 		# trying to connect to server
@@ -677,8 +691,6 @@ class simple_script_server:
 
 		ah.wait_inside()
 		return ah
-	
-
 	## Relative movement of the base
 	#
 	# \param component_name Name of component; here always "base".
