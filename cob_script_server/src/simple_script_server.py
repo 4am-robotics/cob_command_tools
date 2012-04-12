@@ -648,6 +648,47 @@ class simple_script_server:
 
 		return self.move_constrained_planned(component_name, goal_constraints, blocking, ah)
 
+	def move_pose_goal_planned(self, component_name, parameter_name, blocking=True):
+		pose_link, pose = parameter_name
+		ah = action_handle("move_pose_goal_planned", component_name, pose, blocking, self.parse)
+		if(self.parse):
+			return ah
+		else:
+			ah.set_active()
+			
+		goal_constraints = Constraints() #arm_navigation_msgs/Constraints
+		
+		new_position_constraint = PositionConstraint()
+		new_orientation_constraint = OrientationConstraint()
+
+		new_position_constraint.header.stamp = rospy.Time.now()
+		new_position_constraint.header.frame_id = pose_link
+		    
+		new_position_constraint.link_name = "arm_7_link"
+		new_position_constraint.position = pose.position
+		    
+		new_position_constraint.constraint_region_shape.type = Shape.BOX
+		new_position_constraint.constraint_region_shape.dimensions = [0.02] *3
+
+		new_position_constraint.constraint_region_orientation.w = 1.0
+		new_position_constraint.weight = 1.0
+
+		new_orientation_constraint.header.stamp = rospy.Time.now()
+		new_orientation_constraint.header.frame_id = pose_link
+		new_orientation_constraint.link_name = "arm_7_link"
+		new_orientation_constraint.orientation = pose.orientation
+		    
+		new_orientation_constraint.absolute_roll_tolerance = 0.04
+		new_orientation_constraint.absolute_pitch_tolerance = 0.04
+		new_orientation_constraint.absolute_yaw_tolerance = 0.04
+
+		new_orientation_constraint.weight = 1.0
+
+		goal_constraints.position_constraints=[new_position_constraint]
+		goal_constraints.orientation_constraints=[new_orientation_constraint]
+
+		return self.move_constrained_planned(component_name, goal_constraints, blocking, ah)
+
 	def move_constrained_planned(self, component_name, parameter_name, blocking=True, ah=None):
 		if ah is None:
 		    ah = action_handle("move_constrained_planned", component_name, "constraint_goal", blocking, self.parse)
