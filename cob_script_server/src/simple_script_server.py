@@ -86,6 +86,7 @@ from cob_light.msg import *
 from cob_sound.msg import *
 from cob_script_server.msg import *
 from cob_srvs.srv import *
+from cob_manipulator.srv import *
 
 # graph includes
 import pygraphviz as pgv
@@ -177,6 +178,7 @@ class simple_script_server:
 		rospy.Subscriber("/arm_controller/state", JointTrajectoryControllerState, self.sub_arm_joint_states_cb)
 		
                 self.iks = rospy.ServiceProxy('/cob_arm_kinematics/get_ik', GetPositionIK)
+                self.pose_transformer = rospy.ServiceProxy('/cob_pose_transform/get_pose_stamped_transformed', GetPoseStampedTransformed)
 		
 		rospy.sleep(1) # we have to wait here until publishers are ready, don't ask why
 
@@ -649,22 +651,34 @@ class simple_script_server:
 		return self.move_constrained_planned(component_name, goal_constraints, blocking, ah)
 
 	def move_pose_goal_planned(self, component_name, parameter_name, blocking=True):
-		pose_link, pose = parameter_name
-		ah = action_handle("move_pose_goal_planned", component_name, pose, blocking, self.parse)
+		ah = action_handle("move_pose_goal_planned", component_name, 'pose_goal', blocking, self.parse)
 		if(self.parse):
 			return ah
 		else:
 			ah.set_active()
+		
+		req = GetPoseStampedTransformedRequest()
+		req.tip_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
+		req.root_name = rospy.get_param("/cob_arm_kinematics/arm/root_name")
+		req.target, req.origin = parameter_name       
+                
+		res = self.pose_transformer(req)
+		if not res.success:
+			rospy.logerr("Pose transformer failed")
+			ah.set_failed(4)
+			return ah
 			
+		pose = res.result.pose
+
 		goal_constraints = Constraints() #arm_navigation_msgs/Constraints
 		
 		new_position_constraint = PositionConstraint()
 		new_orientation_constraint = OrientationConstraint()
 
 		new_position_constraint.header.stamp = rospy.Time.now()
-		new_position_constraint.header.frame_id = pose_link
+		new_position_constraint.header.frame_id = rospy.get_param("/cob_arm_kinematics/arm/root_name")
 		    
-		new_position_constraint.link_name = "arm_7_link"
+		new_position_constraint.link_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
 		new_position_constraint.position = pose.position
 		    
 		new_position_constraint.constraint_region_shape.type = Shape.BOX
@@ -674,8 +688,8 @@ class simple_script_server:
 		new_position_constraint.weight = 1.0
 
 		new_orientation_constraint.header.stamp = rospy.Time.now()
-		new_orientation_constraint.header.frame_id = pose_link
-		new_orientation_constraint.link_name = "arm_7_link"
+		new_orientation_constraint.header.frame_id = rospy.get_param("/cob_arm_kinematics/arm/root_name")
+		new_orientation_constraint.link_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
 		new_orientation_constraint.orientation = pose.orientation
 		    
 		new_orientation_constraint.absolute_roll_tolerance = 0.04
