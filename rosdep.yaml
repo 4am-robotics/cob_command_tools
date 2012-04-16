@@ -1,2 +1,2 @@
-pygraphviz:
-  ubuntu: python-pygraphviz
+graphviz:
+  ubuntu: pygraphviz
