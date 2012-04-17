@@ -23,10 +23,11 @@
   <depend package="arm_navigation_msgs"/>
   <depend package="cob_light"/>
   <depend package="cob_sound"/>
+  <depend package="cob_manipulator"/>
 
   <depend package="rostest"/>
   
-  <rosdep name="pygraphviz"/>
+  <rosdep name="graphviz"/>
  
   <export>
     <cpp cflags="-I${prefix}/msg/cpp"/>

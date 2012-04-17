@@ -65,7 +65,7 @@
 
 #include "ros/ros.h"
 
-#include <joy/Joy.h>
+#include <sensor_msgs/Joy.h>
 
 
 
@@ -133,7 +133,7 @@ void quit(int sig)
 }
 
 
-void composeJoyMessage(joy::Joy &msg, char c)
+void composeJoyMessage(sensor_msgs::Joy &msg, char c)
 {
 	msg.buttons[5]=0;	
 	
@@ -376,14 +376,14 @@ int main(int argc, char **argv)
   fast_toggle=false;
   mode=false;
 
-  ros::Publisher keyboard_pub = n.advertise<joy::Joy>("joy", 1);
+  ros::Publisher keyboard_pub = n.advertise<sensor_msgs::Joy>("joy", 1);
   char c;
 
   while (ros::ok())
   {
     ros::spinOnce();  
   
-  	joy::Joy msg;
+  	sensor_msgs::Joy msg;
 	msg.axes.resize(6);
 	msg.buttons.resize(12);
   
