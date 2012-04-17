@@ -655,6 +655,37 @@ class simple_script_server:
 
 		return self.move_constrained_planned(component_name, goal_constraints, blocking, ah)
 
+	def move_cart_planned(self, component_name, parameter_name, blocking=True):
+		now = rospy.Time.now()
+	    
+		# parse pose_target
+		param = parameter_name[0] if type(parameter_name[0]) is list else parameter_name
+		ps = PoseStamped()
+		ps.header.stamp = now
+		ps.header.frame_id = param[0]
+		
+		ps.pose.position.x,ps.pose.position.y,ps.pose.position.z = param[1]
+	    
+		if len(param) > 2:
+		    ps.pose.orientation.x,ps.pose.orientation.y,ps.pose.orientation.z,ps.pose.orientation.w = quaternion_from_euler(*param[2])
+	    
+		pose_target = ps
+
+		# parse pose_origin
+		param = parameter_name[1] if type(parameter_name[0]) is list else None
+	    
+		ps = PoseStamped()
+	    
+		ps.header.stamp = now
+		ps.header.frame_id = param[0] if len(param) >=1 else "arm_7_link" # component_name+'_tcp_link'
+		if len(param) > 1:
+		    ps.pose.position.x,ps.pose.position.y,ps.pose.position.z = param[1]
+		if len(param) > 2:
+		    ps.pose.orientation.x,ps.pose.orientation.y,ps.pose.orientation.z,ps.pose.orientation.w = quaternion_from_euler(*param[2])
+		
+		return self.move_pose_goal_planned(component_name,[pose_target,ps],blocking)
+	
+	    
 	def move_pose_goal_planned(self, component_name, parameter_name, blocking=True):
 		ah = action_handle("move_pose_goal_planned", component_name, 'pose_goal', blocking, self.parse)
 		if(self.parse):
