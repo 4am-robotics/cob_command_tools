@@ -661,7 +661,9 @@ class simple_script_server:
 		req.tip_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
 		req.root_name = rospy.get_param("/cob_arm_kinematics/arm/root_name")
 		req.target, req.origin = parameter_name       
-                
+		
+		#res.result = req.target # if transformer server should not be used
+		#res.success = True                
 		res = self.pose_transformer(req)
 		if not res.success:
 			rospy.logerr("Pose transformer failed")
@@ -669,14 +671,14 @@ class simple_script_server:
 			return ah
 			
 		pose = res.result.pose
-
+		pose_link = res.result.header.frame_id
 		goal_constraints = Constraints() #arm_navigation_msgs/Constraints
 		
 		new_position_constraint = PositionConstraint()
 		new_orientation_constraint = OrientationConstraint()
 
 		new_position_constraint.header.stamp = rospy.Time.now()
-		new_position_constraint.header.frame_id = rospy.get_param("/cob_arm_kinematics/arm/root_name")
+		new_position_constraint.header.frame_id = pose_link
 		    
 		new_position_constraint.link_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
 		new_position_constraint.position = pose.position
@@ -688,7 +690,7 @@ class simple_script_server:
 		new_position_constraint.weight = 1.0
 
 		new_orientation_constraint.header.stamp = rospy.Time.now()
-		new_orientation_constraint.header.frame_id = rospy.get_param("/cob_arm_kinematics/arm/root_name")
+		new_orientation_constraint.header.frame_id = pose_link
 		new_orientation_constraint.link_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
 		new_orientation_constraint.orientation = pose.orientation
 		    
@@ -716,7 +718,7 @@ class simple_script_server:
 		motion_plan = MotionPlanRequest()
 		motion_plan.group_name = component_name
 		motion_plan.num_planning_attempts = 1
-		motion_plan.allowed_planning_time = rospy.Duration(5.0)
+		motion_plan.allowed_planning_time = rospy.Duration(50.0)
 
 		motion_plan.planner_id= ""
 		motion_plan.goal_constraints = parameter_name

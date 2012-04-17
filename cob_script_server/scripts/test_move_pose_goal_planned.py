@@ -60,12 +60,18 @@ class TestScript:
                 #    pass
             pose_target = PoseStamped()
             pose_origin = PoseStamped()
-            pose_target.header.frame_id = pose_origin.header.frame_id = "sdh_grasp_link"
             pose_target.header.stamp = pose_origin.header.stamp = rospy.Time.now()
-            pose_target.pose.orientation.w = pose_origin.pose.orientation.w = 1.0
-            pose_target.pose.position.x = -0.1
-            pose_target.pose.position.z = -0.1
+	        pose_origin.header.frame_id = "arm_7_link"
+            pose_origin.pose.orientation.w = 1.0
+            pose_target.pose.orientation.w = 1.0
+#            pose_target.header.frame_id = "base_laser_rear_link"
+#            pose_target.pose.position.x, pose_target.pose.position.y, pose_target.pose.position.z = [0.2,0.0,0.4]
+#            pose_target.pose.orientation.x,pose_target.pose.orientation.y, pose_target.pose.orientation.z, pose_target.pose.orientation.w = quaternion_from_euler(-1.57,0,-1.57)
+
+            pose_target.header.frame_id = "arm_7_link"
+            pose_target.pose.position.x, pose_target.pose.position.y, pose_target.pose.position.z = [-0.1,0.0,0]
             sss.move_pose_goal_planned('arm',[pose_target,pose_origin])
+            exit()
 		
 if __name__ == "__main__":
         rospy.init_node("TestIK")
