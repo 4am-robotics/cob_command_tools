@@ -545,6 +545,11 @@ class simple_script_server:
 		else:
 			ah.set_active()
 		
+		if component_name != "arm":
+			rospy.logerr("Only arm component is supported in move_joint_goal_planned.")
+			ah.set_failed(4)
+			return ah
+			
 		rospy.loginfo("Move planned <<%s>> to <<%s>>",component_name,parameter_name)
 		
 		# get joint_names from parameter server
@@ -657,6 +662,11 @@ class simple_script_server:
 		else:
 			ah.set_active()
 		
+		if component_name != "arm":
+			rospy.logerr("Only arm component is supported in move_pose_goal_planned.")
+			ah.set_failed(4)
+			return ah
+			
 		req = GetPoseStampedTransformedRequest()
 		req.tip_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
 		req.root_name = rospy.get_param("/cob_arm_kinematics/arm/root_name")
@@ -712,8 +722,12 @@ class simple_script_server:
 			    return ah
 		    else:
 			    ah.set_active()
+			    
+		if component_name != "arm":
+			rospy.logerr("Only arm component is supported in move_constrained_planned.")
+			ah.set_failed(4)
+			return ah
 		
-
 		# convert to ROS Move arm message
 		motion_plan = MotionPlanRequest()
 		motion_plan.group_name = component_name
