@@ -61,7 +61,7 @@ class TestScript:
             pose_target = PoseStamped()
             pose_origin = PoseStamped()
             pose_target.header.stamp = pose_origin.header.stamp = rospy.Time.now()
-	        pose_origin.header.frame_id = "arm_7_link"
+            pose_origin.header.frame_id = "arm_7_link"
             pose_origin.pose.orientation.w = 1.0
             pose_target.pose.orientation.w = 1.0
 #            pose_target.header.frame_id = "base_laser_rear_link"
