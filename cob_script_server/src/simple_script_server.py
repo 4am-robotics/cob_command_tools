@@ -80,7 +80,7 @@ from arm_navigation_msgs.msg import *
 from tf.transformations import *
 from std_msgs.msg import String
 from kinematics_msgs.srv import *
-from control_msgs.msg import FollowJointTrajectoryAction
+from control_msgs.msg import *
 
 # care-o-bot includes
 from cob_light.msg import *
@@ -499,11 +499,12 @@ class simple_script_server:
 			point_nr = point_nr + 1
 			point_msg = JointTrajectoryPoint()
 			point_msg.positions = point
+			point_msg.velocities = [0]*6
 			point_msg.time_from_start=rospy.Duration(3*point_nr) # this value is set to 3 sec per point. \todo TODO: read from parameter
 			traj_msg.points.append(point_msg)
 
 		# call action server
-		action_server_name = "/" + component_name + '_controller/follow_joint_trajectory_action'
+		action_server_name = "/" + component_name + '_controller/follow_joint_trajectory'
 		rospy.logdebug("calling %s action server",action_server_name)
 		client = actionlib.SimpleActionClient(action_server_name, FollowJointTrajectoryAction)
 		# trying to connect to server
