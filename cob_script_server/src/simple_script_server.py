@@ -86,7 +86,6 @@ from cob_light.msg import *
 from cob_sound.msg import *
 from cob_script_server.msg import *
 from cob_srvs.srv import *
-from cob_manipulator.srv import *
 
 # graph includes
 import pygraphviz as pgv
