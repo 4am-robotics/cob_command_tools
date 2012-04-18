@@ -3,7 +3,7 @@
    <include file="$(find cob_bringup_sim)/launch/robot.launch"/>
    <include file="$(find cob_2dnav)/ros/launch/2dnav.launch"/>
 
-   <node pkg="cob_interactive_teleop" type="but_cob_teleop" name="but_cob_teleop" />
+   <node pkg="cob_interactive_teleop" type="interactive_teleop" name="cob_interactive_teleop" />
 
    <!--node pkg="rviz" type="rviz" name="rviz" /-->
 </launch>

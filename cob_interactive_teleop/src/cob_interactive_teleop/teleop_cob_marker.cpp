@@ -32,7 +32,7 @@ namespace cob_interactive_teleop
 
 TeleopCOBMarker::TeleopCOBMarker()
 {
-  server_.reset(new InteractiveMarkerServer("but_cob_interactive_teleop", "", false));
+  server_.reset(new InteractiveMarkerServer("cob_interactive_teleop", "", false));
   pub_ = n_.advertise<geometry_msgs::Twist> ("base_controller/command", 1);
 
   initial_pose_ = geometry_msgs::Pose();

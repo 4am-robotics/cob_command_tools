@@ -27,8 +27,6 @@
 
 #include "rviz/plugin/type_registry.h"
 
-//#include "but_cob_display.h"
-
 extern "C" void rvizPluginInit(rviz::TypeRegistry* reg)
 {
 //    reg->registerDisplay<CButCobDisplay> ("CButCobDisplay");

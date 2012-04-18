@@ -1,7 +1,7 @@
 /******************************************************************************
  * \file
  *
- * $Id: but_cob_teleop.cpp 649 2012-04-18 06:48:09Z spanel $
+ * $Id: cob_interactive_teleop.cpp 649 2012-04-18 06:48:09Z spanel $
  *
  * Copyright (C) Brno University of Technology
  *
@@ -34,7 +34,7 @@ using namespace cob_interactive_teleop;
  */
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "but_cob_interactive_teleop");
+  ros::init(argc, argv, "cob_interactive_teleop");
 
   TeleopCOBMarker *cobTeleop = new TeleopCOBMarker();
 
