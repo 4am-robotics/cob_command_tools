@@ -1,7 +1,7 @@
 /******************************************************************************
  * \file
  *
- * $Id: teleop_cob_marker.h 649 2012-04-18 06:48:09Z spanel $
+ * $Id: teleop_cob_marker.h 650 2012-04-18 07:14:58Z spanel $
  *
  * Copyright (C) Brno University of Technology
  *
@@ -32,7 +32,8 @@
 #include <interactive_markers/interactive_marker_server.h>
 #include <geometry_msgs/Twist.h>
 #include <tf/transform_datatypes.h>
-#include <but_cob_teleop/interactive_markers_tools.h>
+
+#include <cob_interactive_teleop/interactive_markers_tools.h>
 
 using namespace interactive_markers;
 using namespace visualization_msgs;

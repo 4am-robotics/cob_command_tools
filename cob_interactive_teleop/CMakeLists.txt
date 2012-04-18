@@ -42,5 +42,5 @@ set( BUT_COB_TELEOP_SOURCE_FILES src/cob_interactive_teleop/interactive_markers_
 set( BUT_COB_TELEOP_PROJECT_NAME but_cob_interactive_teleop )
 rosbuild_add_library( ${BUT_COB_TELEOP_PROJECT_NAME} ${BUT_COB_TELEOP_SOURCE_FILES} )
 
-rosbuild_add_executable( but_cob_teleop src/but_cob_teleop/but_cob_teleop.cpp )
+rosbuild_add_executable( but_cob_teleop src/cob_interactive_teleop/but_cob_teleop.cpp )
 target_link_libraries( but_cob_teleop ${BUT_COB_TELEOP_PROJECT_NAME} )

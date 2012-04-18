@@ -1,7 +1,7 @@
 /******************************************************************************
  * \file
  *
- * $Id: interactive_markers_tools.cpp 624 2012-04-16 14:05:56Z spanel $
+ * $Id: interactive_markers_tools.cpp 650 2012-04-18 07:14:58Z spanel $
  *
  * Copyright (C) Brno University of Technology
  *
@@ -25,7 +25,7 @@
  * along with this file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <but_cob_teleop/interactive_markers_tools.h>
+#include <cob_interactive_teleop/interactive_markers_tools.h>
 
 namespace interactive_markers
 {
