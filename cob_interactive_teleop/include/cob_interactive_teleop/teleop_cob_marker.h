@@ -1,7 +1,7 @@
 /******************************************************************************
  * \file
  *
- * $Id: TeleopCOBMarker.h 624 2012-04-16 14:05:56Z spanel $
+ * $Id: teleop_cob_marker.h 649 2012-04-18 06:48:09Z spanel $
  *
  * Copyright (C) Brno University of Technology
  *
@@ -38,7 +38,7 @@ using namespace interactive_markers;
 using namespace visualization_msgs;
 using namespace std;
 
-namespace but_cob_teleop
+namespace cob_interactive_teleop
 {
 
 #define ANGULAR_SCALE 2.2

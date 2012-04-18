@@ -1,7 +1,7 @@
 /******************************************************************************
  * \file
  *
- * $Id: but_cob_teleop.cpp 624 2012-04-16 14:05:56Z spanel $
+ * $Id: but_cob_teleop.cpp 649 2012-04-18 06:48:09Z spanel $
  *
  * Copyright (C) Brno University of Technology
  *
@@ -25,9 +25,9 @@
  * along with this file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <but_cob_teleop/TeleopCOBMarker.h>
+#include <cob_interactive_teleop/teleop_cob_marker.h>
 
-using namespace but_cob_teleop;
+using namespace cob_interactive_teleop;
 
 /**
  * @brief Just a main function which runs COB marker teleop node

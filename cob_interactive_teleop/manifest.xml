@@ -1,9 +1,7 @@
 <package>
   <description brief="cob_ui_but">
 
-COB visualization tools provided by dcgm-robotics@FIT group:
-- RViz plugin for COB arm navigation
-- COB teleop interactive marker
+COB teleop interactive marker provided by dcgm-robotics@FIT group.
 
   </description>
   <author>Zdenek Materna/imaterna@fit.vutbr.cz, Tomas Lokaj, Michal Spanel/spanel@fit.vutbr.cz</author>
@@ -38,3 +36,4 @@ COB visualization tools provided by dcgm-robotics@FIT group:
   </export>
 
 </package>
+
