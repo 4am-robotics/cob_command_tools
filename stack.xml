@@ -12,7 +12,7 @@
   <depend stack="cob_common" /> <!-- cob_srvs, brics_actuator -->
   <depend stack="cob_driver" /> <!-- cob_relayboard, cob_light, cob_sound -->
   <depend stack="common" /> <!-- actionlib -->
-  <depend stack="common_msgs" /> <!-- sensor_msgs, actionlib_msgs, trajectory_msgs, geometry_msgs -->
+  <depend stack="common_msgs" /> <!-- sensor_msgs, actionlib_msgs, trajectory_msgs, geometry_msgs, visualization_msgs -->
   <depend stack="diagnostics_monitors" /> <!-- robot_monitor -->
   <depend stack="geometry" /> <!-- tf -->
   <depend stack="navigation" /> <!-- move_base_msgs -->
@@ -21,7 +21,9 @@
   <depend stack="pr2_controllers" /> <!-- pr2_controllers_msgs -->
   <depend stack="pr2_power_drivers" /> <!-- pr2_power_board -->
   <depend stack="ros" /> <!-- roslib -->
-  <depend stack="ros_comm" /> <!-- std_msgs, rostest, rospy, roscpp, std_srvs -->
+  <depend stack="ros_comm" /> <!-- std_srvs, roscpp, message_filters, std_msgs, rostest, rospy -->
   <depend stack="rx" /> <!-- rxtools -->
+  <depend stack="visualization" /> <!-- interactive_markers, rviz -->
+  <depend stack="visualization_common" /> <!-- ogre, ogre_tools -->
 
 </stack>
