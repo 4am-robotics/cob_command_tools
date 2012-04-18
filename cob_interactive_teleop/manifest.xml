@@ -1,0 +1,39 @@
+<package>
+  <description brief="cob_interactive_teleop">
+
+COB teleop interactive marker provided by dcgm-robotics@FIT group.
+
+  </description>
+  <author>Zdenek Materna/imaterna@fit.vutbr.cz, Tomas Lokaj, Michal Spanel/spanel@fit.vutbr.cz</author>
+  <license>LGPL</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_interactive_teleop</url>
+
+  <depend package="roscpp"/>
+  <depend package="visualization_msgs"/>
+  <depend package="interactive_markers"/>
+  <depend package="std_msgs"/>
+  <depend package="rviz"/>
+  <depend package="ogre"/>
+  <depend package="ogre_tools"/>
+  <depend package="tf"/>
+  <depend package="geometry_msgs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="message_filters"/>
+  <depend package="cob_script_server"/>
+  <depend package="actionlib"/>
+  <depend package="actionlib_msgs"/>
+
+<!--export>
+    <cpp cflags="-I${prefix}/include" lflags="-L${prefix}/lib -lros"/>
+    <cpp os="osx" cflags="-I${prefix}/include" lflags="-L${prefix}/lib -Wl,-rpath,-L${prefix}lib -lrosthread -framework CoreServices"/>
+  </export-->
+
+  <export>
+    <!--<cpp cflags="-I${prefix}/srv_gen/cpp/include" />-->
+    <rviz plugin="${prefix}/lib/cob_interactive_teleop.yaml"/>
+    <rosdoc config="rosdoc.yaml" />
+  </export>
+
+</package>
+

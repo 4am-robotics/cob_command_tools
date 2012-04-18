@@ -30,8 +30,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import roslib
-roslib.load_manifest('pr2_dashboard')
+import rospy
 
 import wx
 
@@ -46,7 +45,7 @@ class PowerStateControl(wx.Window):
     
     self._power_consumption = 0.0
     self._pct = 0
-    self._time_remaining = roslib.rostime.Duration(0)
+    self._time_remaining = rospy.rostime.Duration(0)
     self._ac_present = 0
     
     self._left_bitmap = wx.Bitmap(path.join(icons_path, "battery-minus.png"), wx.BITMAP_TYPE_PNG)
@@ -119,7 +118,7 @@ class PowerStateControl(wx.Window):
   def set_stale(self):
     self._plugged_in = 0
     self._pct = 0
-    self._time_remaining = roslib.rostime.Duration(0)
+    self._time_remaining = rospy.rostime.Duration(0)
     self._power_consumption = 0
     self.SetToolTip(wx.ToolTip("Battery: Stale"))
     
