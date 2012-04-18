@@ -11,6 +11,7 @@
   <depend stack="arm_navigation" /> <!-- kinematics_msgs, arm_navigation_msgs -->
   <depend stack="cob_common" /> <!-- cob_srvs, brics_actuator -->
   <depend stack="cob_driver" /> <!-- cob_relayboard, cob_light, cob_sound -->
+  <depend stack="cob_manipulation" /> <!-- cob_manipulator -->
   <depend stack="common" /> <!-- actionlib -->
   <depend stack="common_msgs" /> <!-- sensor_msgs, actionlib_msgs, trajectory_msgs, geometry_msgs -->
   <depend stack="diagnostics_monitors" /> <!-- robot_monitor -->
@@ -21,7 +22,7 @@
   <depend stack="pr2_controllers" /> <!-- pr2_controllers_msgs -->
   <depend stack="pr2_power_drivers" /> <!-- pr2_power_board -->
   <depend stack="ros" /> <!-- roslib -->
-  <depend stack="ros_comm" /> <!-- std_msgs, rostest, rospy, roscpp, std_srvs -->
+  <depend stack="ros_comm" /> <!-- std_msgs, std_srvs, rostest, rospy, roscpp -->
   <depend stack="rx" /> <!-- rxtools -->
 
 </stack>
