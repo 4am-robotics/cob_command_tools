@@ -23,7 +23,6 @@
   <depend package="arm_navigation_msgs"/>
   <depend package="cob_light"/>
   <depend package="cob_sound"/>
-  <depend package="cob_manipulator"/>
 
   <depend package="rostest"/>
   
