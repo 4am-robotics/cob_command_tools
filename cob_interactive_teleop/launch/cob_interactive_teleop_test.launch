@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+   <include file="$(find cob_bringup_sim)/launch/robot.launch"/>
+   <include file="$(find cob_2dnav)/ros/launch/2dnav.launch"/>
+
+   <node pkg="cob_interactive_teleop" type="but_cob_teleop" name="but_cob_teleop" />
+
+   <!--node pkg="rviz" type="rviz" name="rviz" /-->
+</launch>
+
