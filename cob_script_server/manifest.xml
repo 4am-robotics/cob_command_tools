@@ -26,7 +26,7 @@
 
   <depend package="rostest"/>
   
-  <rosdep name="graphviz"/>
+  <rosdep name="python-pygraphviz"/>
  
   <export>
     <cpp cflags="-I${prefix}/msg/cpp"/>
