@@ -8,14 +8,13 @@
   <license>LGPL</license>  
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_command_tools</url>
-  <depend stack="arm_navigation" /> <!-- arm_navigation_msgs -->
+  <depend stack="arm_navigation" /> <!-- kinematics_msgs, arm_navigation_msgs -->
   <depend stack="cob_common" /> <!-- cob_srvs, brics_actuator -->
   <depend stack="cob_driver" /> <!-- cob_relayboard, cob_light, cob_sound -->
   <depend stack="common" /> <!-- actionlib -->
   <depend stack="common_msgs" /> <!-- sensor_msgs, actionlib_msgs, trajectory_msgs, geometry_msgs -->
   <depend stack="diagnostics_monitors" /> <!-- robot_monitor -->
   <depend stack="geometry" /> <!-- tf -->
-  <depend stack="joystick_drivers" /> <!-- joy -->
   <depend stack="navigation" /> <!-- move_base_msgs -->
   <depend stack="pr2_apps" /> <!-- pr2_teleop -->
   <depend stack="pr2_common" /> <!-- pr2_msgs -->
