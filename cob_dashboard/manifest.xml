@@ -15,6 +15,7 @@
     <depend package="std_msgs"/>
     <depend package="pr2_power_board"/>
     <depend package="pr2_msgs"/>
+    <depend package="pr2_dashboard"/>
     
   <rosdep name="wxwidgets"/>
   <rosdep name="wxpython"/>
