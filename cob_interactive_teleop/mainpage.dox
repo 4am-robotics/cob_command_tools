@@ -2,9 +2,7 @@
 \mainpage
 \htmlinclude manifest.html
 
-COB visualization tools provided by dcgm-robotics@FIT group:
-- RViz plugin for COB arm navigation
-- COB teleop interactive marker
+COB interactive teleop for RViz provided by dcgm-robotics@FIT group.
 
 <!-- 
 Provide an overview of your package.
