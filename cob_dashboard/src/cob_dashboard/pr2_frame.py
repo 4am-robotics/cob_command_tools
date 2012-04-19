@@ -106,11 +106,11 @@ class PR2Frame(wx.Frame):
         # Breakers
         breaker_names = ["Peft Arm", "Base/Body", "Right Arm"]
         self._breaker_ctrls = []
-        for i in xrange(0, 3):
-          ctrl = BreakerControl(self, wx.ID_ANY, i, breaker_names[i], icons_path)
-          ctrl.SetToolTip(wx.ToolTip("Breaker %s"%(breaker_names[i])))
-          self._breaker_ctrls.append(ctrl)
-          static_sizer.Add(ctrl, 0)
+#        for i in xrange(0, 3):
+#          ctrl = BreakerControl(self, wx.ID_ANY, i, breaker_names[i], icons_path)
+#          ctrl.SetToolTip(wx.ToolTip("Breaker %s"%(breaker_names[i])))
+#          self._breaker_ctrls.append(ctrl)
+#          static_sizer.Add(ctrl, 0)
         
         static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "EM"), wx.HORIZONTAL)
         sizer.Add(static_sizer, 0)
