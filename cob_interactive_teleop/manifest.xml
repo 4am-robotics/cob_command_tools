@@ -1,5 +1,5 @@
 <package>
-  <description brief="cob_ui_but">
+  <description brief="cob_interactive_teleop">
 
 COB teleop interactive marker for RViz provided by dcgm-robotics@FIT group.
 
@@ -7,7 +7,7 @@ COB teleop interactive marker for RViz provided by dcgm-robotics@FIT group.
   <author>Tomas Lokaj, Michal Spanel/spanel@fit.vutbr.cz</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/cob_ui_but</url>
+  <url>http://ros.org/wiki/cob_interactive_teleop</url>
 
   <depend package="roscpp"/>
   <depend package="visualization_msgs"/>
@@ -31,7 +31,7 @@ COB teleop interactive marker for RViz provided by dcgm-robotics@FIT group.
 
   <export>
     <!--<cpp cflags="-I${prefix}/srv_gen/cpp/include" />-->
-    <rviz plugin="${prefix}/lib/but_cob_interactive_teleop.yaml"/>
+    <rviz plugin="${prefix}/lib/cob_interactive_teleop.yaml"/>
     <rosdoc config="rosdoc.yaml" />
   </export>
 
