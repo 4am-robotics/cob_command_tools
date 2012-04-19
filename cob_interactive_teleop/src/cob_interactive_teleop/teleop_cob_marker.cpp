@@ -1,7 +1,7 @@
 /******************************************************************************
  * \file
  *
- * $Id: teleop_cob_marker.cpp 649 2012-04-18 06:48:09Z spanel $
+ * $Id: teleop_cob_marker.cpp 665 2012-04-19 05:56:58Z spanel $
  *
  * Copyright (C) Brno University of Technology
  *
