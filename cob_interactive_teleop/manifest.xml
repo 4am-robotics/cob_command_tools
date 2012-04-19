@@ -1,10 +1,10 @@
 <package>
   <description brief="cob_interactive_teleop">
 
-COB teleop interactive marker provided by dcgm-robotics@FIT group.
+COB teleop interactive marker for RViz provided by dcgm-robotics@FIT group.
 
   </description>
-  <author>Zdenek Materna/imaterna@fit.vutbr.cz, Tomas Lokaj, Michal Spanel/spanel@fit.vutbr.cz</author>
+  <author>Tomas Lokaj, Michal Spanel/spanel@fit.vutbr.cz</author>
   <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_interactive_teleop</url>
@@ -36,4 +36,3 @@ COB teleop interactive marker provided by dcgm-robotics@FIT group.
   </export>
 
 </package>
-
