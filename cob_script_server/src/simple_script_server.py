@@ -203,8 +203,51 @@ class simple_script_server:
 	# Based on the component, the corresponding stop service will be called.
 	#
 	# \param component_name Name of the component.
-	def stop(self,component_name):
-		return self.trigger(component_name,"stop")
+	def stop(self,component_name,mode="omni"):
+		#return self.trigger(component_name,"stop")
+		if component_name == "base":
+			ah = action_handle("stop", component_name, "", False, self.parse)
+			if(self.parse):
+				return ah
+			else:
+				ah.set_active()
+	
+			rospy.loginfo("<<stop>> <<%s>>", component_name)
+	
+			# call action server
+			if(mode == None or mode == ""):
+				action_server_name = "/move_base"
+			elif(mode == "omni"):
+				action_server_name = "/move_base"
+			elif(mode == "diff"):
+				action_server_name = "/move_base_diff"
+			elif(mode == "linear"):
+				action_server_name = "/move_base_linear"
+			else:
+				rospy.logerr("no valid navigation mode given for %s, aborting...",component_name)
+				print "navigation mode is:",mode
+				ah.set_failed(33)
+				return ah
+
+			rospy.logdebug("calling %s action server",action_server_name)
+			client = actionlib.SimpleActionClient(action_server_name, MoveBaseAction)
+			# trying to connect to server
+			rospy.logdebug("waiting for %s action server to start",action_server_name)
+			if not client.wait_for_server(rospy.Duration(5)):
+				# error: server did not respond
+				rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
+				ah.set_failed(4)
+				return ah
+			else:
+				rospy.logdebug("%s action server ready",action_server_name)
+
+			# cancel all goals
+			client.cancel_all_goals()
+			
+			ah.set_succeeded() # full success
+			return ah	
+		else:
+			return self.trigger(component_name,"stop",blocking)
 
 	## Recovers different components.
 	#
@@ -1352,3 +1395,9 @@ class action_handle:
 			return
 			
 		self.set_succeeded() # full success
+	
+	## Cancel action
+	#
+	# Cancels action goal(s).
+	def cancel(self):
+		self.client.cancel_all_goals()
