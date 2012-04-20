@@ -247,7 +247,7 @@ class simple_script_server:
 			ah.set_succeeded() # full success
 			return ah	
 		else:
-			return self.trigger(component_name,"stop",blocking)
+			return self.trigger(component_name,"stop")
 
 	## Recovers different components.
 	#
