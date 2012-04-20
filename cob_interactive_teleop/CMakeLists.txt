@@ -36,8 +36,8 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 # BUT cob teleop
 set( COB_TELEOP_SOURCE_FILES src/cob_interactive_teleop/interactive_markers_tools.cpp
-                                 src/cob_interactive_teleop/teleop_cob_marker.cpp 
-                                 src/init.cpp )
+                             src/cob_interactive_teleop/teleop_cob_marker.cpp 
+                             src/init.cpp )
 
 set( COB_TELEOP_PROJECT_NAME cob_interactive_teleop )
 rosbuild_add_library( ${COB_TELEOP_PROJECT_NAME} ${COB_TELEOP_SOURCE_FILES} )

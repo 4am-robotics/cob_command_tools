@@ -1,7 +1,7 @@
 /******************************************************************************
  * \file
  *
- * $Id: teleop_cob_marker.h 650 2012-04-18 07:14:58Z spanel $
+ * $Id: teleop_cob_marker.h 670 2012-04-19 13:38:03Z xlokaj03 $
  *
  * Copyright (C) Brno University of Technology
  *
@@ -61,6 +61,8 @@ typedef boost::shared_ptr<InteractiveMarkerServer> InteractiveMarkerServerPtr;
 /**
  * @brief This class handles COB driving using Interactive Markers.
  * @author Tomas Lokaj
+ *
+ * @see http://www.ros.org/wiki/cob_interactive_teleop
  */
 class TeleopCOBMarker
 {
@@ -84,6 +86,7 @@ private:
    * @brief Markers feedback
    */
   void processFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
   /**
    * @brief Creates Interactive Markers
    */
