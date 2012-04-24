@@ -1,7 +1,7 @@
 /******************************************************************************
  * \file
  *
- * $Id: cob_interactive_teleop.cpp 649 2012-04-18 06:48:09Z spanel $
+ * $Id: cob_interactive_teleop.cpp 674 2012-04-19 13:59:19Z spanel $
  *
  * Copyright (C) Brno University of Technology
  *
