@@ -25,6 +25,5 @@
   <depend stack="ros_comm" /> <!-- std_srvs, roscpp, message_filters, std_msgs, rostest, rospy -->
   <depend stack="rx" /> <!-- rxtools -->
   <depend stack="visualization" /> <!-- interactive_markers, rviz -->
-  <depend stack="visualization_common" /> <!-- ogre, ogre_tools -->
 
 </stack>
