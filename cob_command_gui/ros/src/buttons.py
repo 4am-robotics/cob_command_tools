@@ -91,6 +91,8 @@ class buttons:
 					buttons.append(self.CreateButton(button[0],self.sss.move_base_rel,component_name,button[2]))
 				elif button[1] == "trigger":
 					buttons.append(self.CreateButton(button[0],self.sss.trigger,component_name,button[2]))
+				elif button[1] == "stop":
+					buttons.append(self.CreateButton(button[0],self.sss.stop,component_name,button[2]))
 				elif button[1] == "mode":
 					buttons.append(self.CreateButton(button[0],self.sss.set_operation_mode,component_name,button[2]))
 				else:
