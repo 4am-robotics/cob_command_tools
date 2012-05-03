@@ -204,7 +204,7 @@ class simple_script_server:
 	# Based on the component, the corresponding stop service will be called.
 	#
 	# \param component_name Name of the component.
-	def stop(self,component_name,mode="omni"):
+	def stop(self,component_name,mode="omni",blocking=True):
 		#return self.trigger(component_name,"stop")
 		if component_name == "base":
 			ah = action_handle("stop", component_name, "", False, self.parse)
