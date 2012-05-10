@@ -140,7 +140,6 @@ public:
 	std::vector<double> joint_init_values_;
 
 	TeleopCOB();
-	void waitForParameters();
 	void getConfigurationFromParameters();
 	void init();
 	void joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg);
@@ -155,37 +154,6 @@ private:
 	bool assign_joint_module(std::string,XmlRpc::XmlRpcValue);
 	bool assign_base_module(XmlRpc::XmlRpcValue);
 };
-
-void TeleopCOB::waitForParameters()
-{
-	while(!n_.hasParam("/robot_config/robot_modules"))
-	{
-		ros::Duration(1).sleep(); // sleep 1 s while waiting for parameter to be loaded
-		ROS_WARN("no robot_module list loaded");
-	} // block until robot modules are loded
-
-	// get the list with modules that should be loaded
-	XmlRpc::XmlRpcValue module_list;
-	n_.getParam("/robot_config/robot_modules",module_list);
-	ROS_ASSERT(module_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
-
-	for(int i=0;i<module_list.size();i++)
-	{
-		ROS_ASSERT(module_list[i].getType() == XmlRpc::XmlRpcValue::TypeString);
-		std::string s((std::string)module_list[i]);
-		ROS_DEBUG("searching for module = %s", s.c_str());
-
-		// block until required module is loaded
-		ros::Rate r(1); // 1 hz
-		while(!n_.hasParam("modules/"+s))
-		{
-			ROS_WARN("required module not loaded: %s",s.c_str());
-			r.sleep(); // sleep while waiting for parameter to be loaded
-		}
-	}
-
-	ROS_DEBUG("module list found");
-}
 
 void TeleopCOB::getConfigurationFromParameters()
 {
@@ -363,7 +331,6 @@ bool TeleopCOB::assign_base_module(XmlRpc::XmlRpcValue mod_struct)
  */
 TeleopCOB::TeleopCOB()
 {
-	waitForParameters();
 	getConfigurationFromParameters(); // assign configuration and subscribe to topics
 	got_init_values_ = false;
 	time_for_init_ = 0.0;
