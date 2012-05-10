@@ -65,6 +65,8 @@ class buttons:
 	def __init__(self):
 		self.sss = simple_script_server()
 		self.panels = []
+		self.init_buttons = []
+		self.recover_buttons = []
 		self.CreateControlPanel()
 
 	## Creates the control panel out of configuration from ROS parameter server
@@ -91,6 +93,10 @@ class buttons:
 					buttons.append(self.CreateButton(button[0],self.sss.move_base_rel,component_name,button[2]))
 				elif button[1] == "trigger":
 					buttons.append(self.CreateButton(button[0],self.sss.trigger,component_name,button[2]))
+					if button[2] == "init":
+						self.init_buttons.append(component_name)
+					if button[2] == "recover":
+						self.recover_buttons.append(component_name)
 				elif button[1] == "stop":
 					buttons.append(self.CreateButton(button[0],self.sss.stop,component_name,button[2]))
 				elif button[1] == "mode":

@@ -190,14 +190,6 @@ class simple_script_server:
 	def init(self,component_name,blocking=True):
 		return self.trigger(component_name,"init",blocking)
 
-	def initAll(self, blocking=True):
-		#FIXME: make this generic based on cob_default_configuration
-		self.trigger("base", "init", blocking)
-		self.trigger("torso", "init", blocking)
-		self.trigger("tray", "init", blocking)
-		self.trigger("sdh", "init", blocking)
-		return self.trigger("head", "init", blocking)
-
 	## Stops different components.
 	#
 	# Based on the component, the corresponding stop service will be called.
@@ -254,16 +246,8 @@ class simple_script_server:
 	# Based on the component, the corresponding recover service will be called.
 	#
 	# \param component_name Name of the component.
-	def recover(self,component_name):
+	def recover(self,component_name,blocking=True):
 		return self.trigger(component_name,"recover")
-
-	def recoverAll(self, blocking=True):
-		#FIXME: make this generic based on cob_default_configuration
-		self.trigger("base", "recover", blocking)
-		self.trigger("torso", "recover", blocking)
-		self.trigger("tray", "recover", blocking)
-		self.trigger("sdh", "init", blocking)
-		return self.trigger("head", "recover", blocking)
 
 	## Deals with all kind of trigger services for different components.
 	#

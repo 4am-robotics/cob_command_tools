@@ -97,7 +97,7 @@ def startGTK(widget, data):
 
 ## Class for general gtk panel implementation
 class GtkGeneralPanel(gtk.Frame):
-  def __init__(self):
+  def __init__(self,buttons):
     global initialized
     self.sss = simple_script_server()
     gtk.Frame.__init__(self)
@@ -121,14 +121,14 @@ class GtkGeneralPanel(gtk.Frame):
     hbox.pack_start(self.status_image, False, False, 0)
     self.status_label = gtk.Label("Status OK")
     hbox.pack_start(self.status_label, False, False, 0)
-    self.vbox.pack_start(hbox, False, False, 5)    
+    self.vbox.pack_start(hbox, False, False, 5)
 
     butinit = gtk.Button("Init all")
-    butinit.connect("clicked", lambda w: self.sss.initAll())
+    butinit.connect("clicked", lambda w: self.init_all(buttons.init_buttons))
     self.vbox.pack_start(butinit, False, False, 5)
 
     butrec = gtk.Button("Recover all")
-    butrec.connect("clicked", lambda w: self.sss.recoverAll())
+    butrec.connect("clicked", lambda w: self.recover_all(buttons.recover_buttons))
     self.vbox.pack_start(butrec, False, False, 5)
 
     plan_check = gtk.CheckButton("Planning")#
@@ -143,6 +143,14 @@ class GtkGeneralPanel(gtk.Frame):
     but.connect("clicked", lambda w: gtk.main_quit())
     self.vbox.pack_start(but, False, False, 5)
     initialized = True
+    
+  def init_all(self,component_names):
+    for component_name in component_names:
+      self.sss.init(component_name,False)
+
+  def recover_all(self,component_names):
+    for component_name in component_names:
+      self.sss.recover(component_name,False)
 
   def setEMStop(self, em):
     if(em):
@@ -217,9 +225,9 @@ class Knoeppkes():
     vbox = gtk.VBox(False, 1)
     self.hbox = gtk.HBox(True, 10)
     vbox.pack_start(self.hbox, True, True, 0)
-    self.gpanel = GtkGeneralPanel()
-    self.hbox.pack_start(self.gpanel,True, True, 3)
     b = buttons()
+    self.gpanel = GtkGeneralPanel(b)
+    self.hbox.pack_start(self.gpanel,True, True, 3)
     panels = b.panels
     for pname, actions in panels:
       panel = GtkPanel(self, pname)
