@@ -123,6 +123,10 @@ class GtkGeneralPanel(gtk.Frame):
     hbox.pack_start(self.status_label, False, False, 0)
     self.vbox.pack_start(hbox, False, False, 5)
 
+    butinit = gtk.Button("Stop all")
+    butinit.connect("clicked", lambda w: self.stop_all(buttons.stop_buttons))
+    self.vbox.pack_start(butinit, False, False, 5)
+
     butinit = gtk.Button("Init all")
     butinit.connect("clicked", lambda w: self.init_all(buttons.init_buttons))
     self.vbox.pack_start(butinit, False, False, 5)
@@ -143,6 +147,10 @@ class GtkGeneralPanel(gtk.Frame):
     but.connect("clicked", lambda w: gtk.main_quit())
     self.vbox.pack_start(but, False, False, 5)
     initialized = True
+
+  def stop_all(self,component_names):
+    for component_name in component_names:
+      self.sss.stop(component_name,blocking=False)
     
   def init_all(self,component_names):
     for component_name in component_names:
