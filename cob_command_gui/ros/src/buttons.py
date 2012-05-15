@@ -65,6 +65,9 @@ class buttons:
 	def __init__(self):
 		self.sss = simple_script_server()
 		self.panels = []
+		self.stop_buttons = []
+		self.init_buttons = []
+		self.recover_buttons = []
 		self.CreateControlPanel()
 
 	## Creates the control panel out of configuration from ROS parameter server
@@ -91,8 +94,15 @@ class buttons:
 					buttons.append(self.CreateButton(button[0],self.sss.move_base_rel,component_name,button[2]))
 				elif button[1] == "trigger":
 					buttons.append(self.CreateButton(button[0],self.sss.trigger,component_name,button[2]))
+					if button[2] == "stop":
+						self.stop_buttons.append(component_name)
+					if button[2] == "init":
+						self.init_buttons.append(component_name)
+					if button[2] == "recover":
+						self.recover_buttons.append(component_name)
 				elif button[1] == "stop":
 					buttons.append(self.CreateButton(button[0],self.sss.stop,component_name,button[2]))
+					self.stop_buttons.append(component_name)
 				elif button[1] == "mode":
 					buttons.append(self.CreateButton(button[0],self.sss.set_operation_mode,component_name,button[2]))
 				else:
@@ -113,6 +123,12 @@ class buttons:
 				else:
 					rospy.logwarn("parameter %s does not exist on ROS Parameter Server, no nav buttons will be available.",param_prefix)
 			self.panels.append(group)
+		
+		# uniqify lists to not have double entries
+		self.stop_buttons = self.uniqify_list(self.stop_buttons)
+		self.init_buttons = self.uniqify_list(self.init_buttons)
+		self.recover_buttons = self.uniqify_list(self.recover_buttons)
+		
 	
 	## Creates one button with functionality
 	def CreateButton(self,button_name,function,component_name,parameter_name):
@@ -127,3 +143,20 @@ class buttons:
 		#for key in keys:
 		#	print "values = ", dictionary[key]
 		return [[key,dictionary[key]] for key in keys]
+		
+	## Uniqifies a list to not have double entries
+	def uniqify_list(self,seq, idfun=None): 
+		# order preserving
+		if idfun is None:
+			def idfun(x): return x
+		seen = {}
+		result = []
+		for item in seq:
+			marker = idfun(item)
+			# in old Python versions:
+			# if seen.has_key(marker)
+			# but in new ones:
+			if marker in seen: continue
+			seen[marker] = 1
+			result.append(item)
+		return result
