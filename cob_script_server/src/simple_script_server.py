@@ -77,6 +77,7 @@ from geometry_msgs.msg import *
 from pr2_controllers_msgs.msg import *
 from move_base_msgs.msg import *
 from arm_navigation_msgs.msg import *
+from arm_navigation_msgs.srv import *
 from tf.transformations import *
 from std_msgs.msg import String
 from kinematics_msgs.srv import *
@@ -560,6 +561,94 @@ class simple_script_server:
 
 		ah.wait_inside()
 		return ah
+		
+	## Check if a trajectory to a specific goal exists
+	#
+	# The OMPL planner will check for a valid trajectory between
+	# a specific start and end position.  
+	# optional: Add start position in function call for planning if necessary.
+	#
+	# \param component_name Name of the component.
+	# \param parameter_name Name of the parameter on the ROS parameter server.
+	# \param blocking Bool value to specify blocking behaviour.
+	def check_plan(self, component_name, parameter_name, blocking=True):
+		
+		#get joint_names
+		param_string = self.ns_global_prefix + "/" + component_name + "/joint_names"
+		joint_names = rospy.get_param(param_string)
+		
+		#setting a planning scene for triggering
+		#ToDo: remove after setting up in cob_arm_navigation
+		rospy.wait_for_service("/environment_server/set_planning_scene_diff")
+		SetPlanningSceneDiff_ = rospy.ServiceProxy('/environment_server/set_planning_scene_diff', SetPlanningSceneDiff)
+		
+		#sending empty request for triggering planning scene 
+		planning_scene_request = SetPlanningSceneDiffRequest()
+		planning_scene_response = SetPlanningSceneDiff_(planning_scene_request)
+		
+		if not planning_scene_response:
+			print "Can't get planning scene!"
+		#planning scene end
+		
+		#defining motion plan
+		motion_plan = MotionPlanRequest()
+		motion_plan.group_name = component_name
+		motion_plan.num_planning_attempts = 1
+		motion_plan.allowed_planning_time = rospy.Duration(5.0)
+		motion_plan.planner_id= ""
+		
+		#defining start state
+		if len(parameter_name) == 2: #check if start position is given
+			motion_plan.start_state.joint_state.header.stamp = rospy.Time.now()
+			motion_plan.start_state.joint_state.header.frame_id = 'base_footprint'
+			motion_plan.start_state.joint_state.name = joint_names
+			motion_plan.start_state.joint_state.position = parameter_name[1][0]
+		if len(parameter_name) == 1: 
+			rospy.loginfo("No start position defined. Using actual joint state for planning.")
+		
+		#defining constraints
+		goal_constraints = Constraints() #arm_navigation_msgs/Constraints
+		goal_constraints.joint_constraints=[]
+		goal_pos = parameter_name[0][0]
+		
+		for i in range(len(joint_names)):
+			new_constraint = JointConstraint()
+			new_constraint.joint_name = joint_names[i]
+			new_constraint.position = goal_pos[i]
+			new_constraint.tolerance_below = 0.4
+			new_constraint.tolerance_above = 0.4
+			goal_constraints.joint_constraints.append(new_constraint)
+		
+		motion_plan.goal_constraints = goal_constraints
+		
+		rospy.wait_for_service('ompl_planning/plan_kinematic_path')
+		GetMotionPlan_ = rospy.ServiceProxy('ompl_planning/plan_kinematic_path', GetMotionPlan)
+		
+		req = GetMotionPlanRequest()
+		req.motion_plan_request = motion_plan
+		
+		#call service GetMotionPlan
+		resp = GetMotionPlan_(req)
+		
+		#print if a valid plan was found
+		if (resp.error_code.val == resp.error_code.SUCCESS):
+			rospy.loginfo("Motion planning succeeded.")
+		else:
+			rospy.logerr("Motion planning failed!")
+		
+		#display trajectory
+		display_trajectory = DisplayTrajectory()
+		display_trajectory_publisher = rospy.Publisher('joint_path_display', DisplayTrajectory)
+		display_trajectory.model_id = "arm"
+		display_trajectory.trajectory.joint_trajectory.header.frame_id = "base_link"
+		display_trajectory.trajectory.joint_trajectory.header.stamp = rospy.Time.now()
+		display_trajectory.robot_state.joint_state.name =  self.arm_joint_names
+		display_trajectory.robot_state.joint_state.position =  self.arm_joint_positions
+		display_trajectory.trajectory = resp.trajectory
+		rospy.loginfo("Publishing path for display")
+		display_trajectory_publisher.publish(display_trajectory)
+		
+		return resp.trajectory.joint_trajectory, resp.error_code	
 		
 	def move_planned(self, component_name, parameter_name, blocking=True): # for backward compatibility
 		return self.move_joint_goal_planned(component_name, parameter_name, blocking)
