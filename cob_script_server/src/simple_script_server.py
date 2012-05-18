@@ -276,13 +276,13 @@ class simple_script_server:
 	# \param component_name Name of the component.
 	# \param parameter_name Name of the parameter on the ROS parameter server.
 	# \param blocking Bool value to specify blocking behaviour.
-	def move(self,component_name,parameter_name,blocking=True, mode=None):
+	def move(self,component_name,parameter_name,blocking=True, mode=None, manipulation_duration=3.0):
 		if component_name == "base":
 			return self.move_base(component_name,parameter_name,blocking, mode)
 		elif component_name == "arm" and mode=="planned":
 			return self.move_planned(component_name,parameter_name,blocking)
 		else:
-			return self.move_traj(component_name,parameter_name,blocking)
+			return self.move_traj(component_name,parameter_name,blocking,manipulation_duration)
 
 	## Deals with movements of the base.
 	#
@@ -397,7 +397,7 @@ class simple_script_server:
 	# \param component_name Name of the component.
 	# \param parameter_name Name of the parameter on the ROS parameter server.
 	# \param blocking Bool value to specify blocking behaviour.
-	def move_traj(self,component_name,parameter_name,blocking):
+	def move_traj(self,component_name,parameter_name,blocking,manipulation_duration):
 		ah = action_handle("move", component_name, parameter_name, blocking, self.parse)
 		if(self.parse):
 			return ah
@@ -500,7 +500,7 @@ class simple_script_server:
 			point_msg = JointTrajectoryPoint()
 			point_msg.positions = point
 			point_msg.velocities = [0]*6
-			point_msg.time_from_start=rospy.Duration(3*point_nr) # this value is set to 3 sec per point. \todo TODO: read from parameter
+			point_msg.time_from_start=rospy.Duration(manipulation_duration*point_nr) # this value is set to 3 sec per point. \todo TODO: read from parameter
 			traj_msg.points.append(point_msg)
 
 		# call action server
