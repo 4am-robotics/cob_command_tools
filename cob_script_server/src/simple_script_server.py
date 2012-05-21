@@ -188,7 +188,7 @@ class simple_script_server:
 	#
 	# \param component_name Name of the component.
 	def init(self,component_name,blocking=True):
-		return self.trigger(component_name,"init",blocking)
+		return self.trigger(component_name,"init",blocking=blocking)
 
 	## Stops different components.
 	#
@@ -196,7 +196,7 @@ class simple_script_server:
 	#
 	# \param component_name Name of the component.
 	def stop(self,component_name,mode="omni",blocking=True):
-		#return self.trigger(component_name,"stop")
+		#return self.trigger(component_name,"stop",blocking=blocking)
 		if component_name == "base":
 			ah = action_handle("stop", component_name, "", False, self.parse)
 			if(self.parse):
@@ -223,15 +223,17 @@ class simple_script_server:
 
 			rospy.logdebug("calling %s action server",action_server_name)
 			client = actionlib.SimpleActionClient(action_server_name, MoveBaseAction)
-			# trying to connect to server
-			rospy.logdebug("waiting for %s action server to start",action_server_name)
-			if not client.wait_for_server(rospy.Duration(5)):
-				# error: server did not respond
-				rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
-				ah.set_failed(4)
-				return ah
-			else:
-				rospy.logdebug("%s action server ready",action_server_name)
+			
+			if blocking:
+				# trying to connect to server
+				rospy.logdebug("waiting for %s action server to start",action_server_name)
+				if not client.wait_for_server(rospy.Duration(5)):
+					# error: server did not respond
+					rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
+					ah.set_failed(4)
+					return ah
+				else:
+					rospy.logdebug("%s action server ready",action_server_name)
 
 			# cancel all goals
 			client.cancel_all_goals()
@@ -239,7 +241,7 @@ class simple_script_server:
 			ah.set_succeeded() # full success
 			return ah	
 		else:
-			return self.trigger(component_name,"stop")
+			return self.trigger(component_name,"stop",blocking=blocking)
 
 	## Recovers different components.
 	#
@@ -247,7 +249,7 @@ class simple_script_server:
 	#
 	# \param component_name Name of the component.
 	def recover(self,component_name,blocking=True):
-		return self.trigger(component_name,"recover")
+		return self.trigger(component_name,"recover",blocking=blocking)
 
 	## Deals with all kind of trigger services for different components.
 	#
@@ -264,38 +266,44 @@ class simple_script_server:
 			ah.set_active()
 
 		rospy.loginfo("<<%s>> <<%s>>", service_name, component_name)
-		rospy.loginfo("Wait for <<%s>> to <<%s>>...", component_name, service_name)
 		service_full_name = "/" + component_name + "_controller/" + service_name
 		
-		# check if service is available
-		try:
-			rospy.wait_for_service(service_full_name,rospy.get_param('server_timeout',3))
-		except rospy.ROSException, e:
-			error_message = "%s"%e
-			rospy.logerr("...<<%s>> service of <<%s>> not available, error: %s",service_name, component_name, error_message)
-			ah.set_failed(4)
-			return ah
-		
+		if blocking:
+			# check if service is available
+			try:
+				rospy.wait_for_service(service_full_name,rospy.get_param('server_timeout',3))
+			except rospy.ROSException, e:
+				error_message = "%s"%e
+				rospy.logerr("...<<%s>> service of <<%s>> not available, error: %s",service_name, component_name, error_message)
+				ah.set_failed(4)
+				return ah
+
 		# check if service is callable
 		try:
 			init = rospy.ServiceProxy(service_full_name,Trigger)
 			#print init()
-			resp = init()
+			#resp = init()
+			if blocking:
+				rospy.loginfo("Wait for <<%s>> to <<%s>>...", component_name, service_name)
+				resp = init()
+			else:
+				thread.start_new_thread(init,())
 		except rospy.ServiceException, e:
 			error_message = "%s"%e
 			rospy.logerr("...calling <<%s>> service of <<%s>> not successfull, error: %s",service_name, component_name, error_message)
 			ah.set_failed(10)
 			return ah
+
+		if blocking:
+			# evaluate sevice response
+			if not resp.success.data:
+				rospy.logerr("...<<%s>> <<%s>> not successfull, error: %s",service_name, component_name, resp.error_message.data) 
+				ah.set_failed(10)
+				return ah
 		
-		# evaluate sevice response
-		if not resp.success.data:
-			rospy.logerr("...<<%s>> <<%s>> not successfull, error: %s",service_name, component_name, resp.error_message.data) 
-			ah.set_failed(10)
-			return ah
-		
-		# full success
-		rospy.loginfo("...<<%s>> is <<%s>>", component_name, service_name)
-		ah.set_succeeded() # full success
+			# full success
+			rospy.loginfo("...<<%s>> is <<%s>>", component_name, service_name)
+			ah.set_succeeded() # full success
 		return ah
 
 #------------------- Move section -------------------#
