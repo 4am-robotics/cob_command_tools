@@ -31,7 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import roslib
-roslib.load_manifest('pr2_dashboard')
+roslib.load_manifest('cob_dashboard')
 
 import wx
 import wx.aui
@@ -67,10 +67,10 @@ class PR2Frame(wx.Frame):
         
         wx.InitAllImageHandlers()
         
-        rospy.init_node('cob3_dashboard', anonymous=True)
+        rospy.init_node('cob_dashboard', anonymous=True)
         try:
             getattr(rxtools, "initRoscpp")
-            rxtools.initRoscpp("cob3_dashboard_cpp", anonymous=True)
+            rxtools.initRoscpp("cob_dashboard_cpp", anonymous=True)
         except AttributeError:
             pass
         
@@ -100,17 +100,17 @@ class PR2Frame(wx.Frame):
         static_sizer.Add(self._motors_button, 0)
         self._motors_button.Bind(wx.EVT_LEFT_DOWN, self.on_motors_clicked)
         
-        static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "Motors"), wx.HORIZONTAL)
+        static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "Breakers"), wx.HORIZONTAL)
         sizer.Add(static_sizer, 0)
         
         # Breakers
-        breaker_names = ["Peft Arm", "Base/Body", "Right Arm"]
+        breaker_names = ["Left Arm", "Base/Body", "Right Arm"]
         self._breaker_ctrls = []
-        for i in xrange(0, 3):
-          ctrl = BreakerControl(self, wx.ID_ANY, i, breaker_names[i], icons_path)
-          ctrl.SetToolTip(wx.ToolTip("Breaker %s"%(breaker_names[i])))
-          self._breaker_ctrls.append(ctrl)
-          static_sizer.Add(ctrl, 0)
+#        for i in xrange(0, 3):
+#          ctrl = BreakerControl(self, wx.ID_ANY, i, breaker_names[i], icons_path)
+#          ctrl.SetToolTip(wx.ToolTip("Breaker %s"%(breaker_names[i])))
+#          self._breaker_ctrls.append(ctrl)
+#          static_sizer.Add(ctrl, 0)
         
         static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "EM"), wx.HORIZONTAL)
         sizer.Add(static_sizer, 0)
@@ -120,10 +120,10 @@ class PR2Frame(wx.Frame):
         self._runstop_ctrl.SetToolTip(wx.ToolTip("Physical Runstop: Unknown"))
         static_sizer.Add(self._runstop_ctrl, 0)
         
-        # Wireless run-stop
-        #self._wireless_runstop_ctrl = StatusControl(self, wx.ID_ANY, icons_path, "runstop-wireless", False)
-        #self._wireless_runstop_ctrl.SetToolTip(wx.ToolTip("Wireless Runstop: Unknown"))
-        #static_sizer.Add(self._wireless_runstop_ctrl, 0)
+        # Wireless run-stop ## for cob this is misused as Laser Stop
+        self._wireless_runstop_ctrl = StatusControl(self, wx.ID_ANY, icons_path, "runstop-wireless", False)
+        self._wireless_runstop_ctrl.SetToolTip(wx.ToolTip("Laser Runstop: Unknown"))
+        static_sizer.Add(self._wireless_runstop_ctrl, 0)
         
         static_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "Battery"), wx.HORIZONTAL)
         sizer.Add(static_sizer, 0)
@@ -133,7 +133,7 @@ class PR2Frame(wx.Frame):
         self._power_state_ctrl.SetToolTip(wx.ToolTip("Battery: Stale"))
         static_sizer.Add(self._power_state_ctrl, 1, wx.EXPAND)
         
-        self._config = wx.Config("pr2_dashboard")
+        self._config = wx.Config("cob_dashboard")
         
         self.Bind(wx.EVT_CLOSE, self.on_close)
         
@@ -165,7 +165,8 @@ class PR2Frame(wx.Frame):
         self._dashboard_agg_sub.unregister()
         
     def on_timer(self, evt):
-      level = self._diagnostics_frame._diagnostics_panel.get_top_level_state()
+#      level = self._diagnostics_frame._diagnostics_panel.get_top_level_state()
+      level = self._diagnostics_frame.get_top_level_state()
       if (level == -1 or level == 3):
         if (self._diagnostics_button.set_stale()):
             self._diagnostics_button.SetToolTip(wx.ToolTip("Diagnostics: Stale"))
@@ -186,8 +187,8 @@ class PR2Frame(wx.Frame):
           self._power_state_ctrl.set_stale()
           [ctrl.reset() for ctrl in self._breaker_ctrls]
           self._runstop_ctrl.set_stale()
-          #self._wireless_runstop_ctrl.set_stale()
-          ctrls = [self._motors_button, self._power_state_ctrl, self._runstop_ctrl]
+          self._wireless_runstop_ctrl.set_stale()
+          ctrls = [self._motors_button, self._power_state_ctrl, self._runstop_ctrl, self._wireless_runstop_ctrl]
           ctrls.extend(self._breaker_ctrls)
           for ctrl in ctrls:
               ctrl.SetToolTip(wx.ToolTip("No message received on dashboard_agg in the last 5 seconds"))
@@ -264,7 +265,7 @@ class PR2Frame(wx.Frame):
           # if the wireless stop is also off, we can't tell if the runstop is pressed or not
           if (not msg.power_board_state.wireless_stop):
             if (self._runstop_ctrl.set_warn()):
-                self._runstop_ctrl.SetToolTip(wx.ToolTip("Physical Runstop: Unknown (Wireless is Pressed)"))
+                self._runstop_ctrl.SetToolTip(wx.ToolTip("Physical Runstop: Unknown (Laser Stop is activated)"))
           else:
             if (self._runstop_ctrl.set_error()):
                 self._runstop_ctrl.SetToolTip(wx.ToolTip("Physical Runstop: Pressed"))
@@ -272,19 +273,18 @@ class PR2Frame(wx.Frame):
           if (self._runstop_ctrl.set_ok()):
               self._runstop_ctrl.SetToolTip(wx.ToolTip("Physical Runstop: OK"))
           
-        #if (not msg.power_board_state.wireless_stop):
-        #  pass
-	#  #if (self._wireless_runstop_ctrl.set_error()):
-        #  #    self._wireless_runstop_ctrl.SetToolTip(wx.ToolTip("Wireless Runstop: Pressed"))
-        #else:
-        #  if (self._wireless_runstop_ctrl.set_ok()):
-        #      self._wireless_runstop_ctrl.SetToolTip(wx.ToolTip("Wireless Runstop: OK"))
-      #else:
-      #  if (self._wireless_runstop_ctrl.SetToolTip(wx.ToolTip("Wireless Runstop: Stale"))):
-      #      self._runstop_ctrl.SetToolTip(wx.ToolTip("Physical Runstop: Stale"))
-      #      [ctrl.reset() for ctrl in self._breaker_ctrls]
-      #      self._runstop_ctrl.set_stale()
-      #       self._wireless_runstop_ctrl.set_stale()
+        if (not msg.power_board_state.wireless_stop):
+          if (self._wireless_runstop_ctrl.set_error()):
+              self._wireless_runstop_ctrl.SetToolTip(wx.ToolTip("Laser Stop: activated"))
+        else:
+          if (self._wireless_runstop_ctrl.set_ok()):
+              self._wireless_runstop_ctrl.SetToolTip(wx.ToolTip("Laser Stop: OK"))
+      else:
+        if (self._wireless_runstop_ctrl.SetToolTip(wx.ToolTip("Laser Stop: Stale"))):
+            self._runstop_ctrl.SetToolTip(wx.ToolTip("Physical Runstop: Stale"))
+            [ctrl.reset() for ctrl in self._breaker_ctrls]
+            self._runstop_ctrl.set_stale()
+            self._wireless_runstop_ctrl.set_stale()
           
     def update_rosout(self):
       summary_dur = 30.0

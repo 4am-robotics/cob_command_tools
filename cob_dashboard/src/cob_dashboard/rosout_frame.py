@@ -31,7 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import roslib
-roslib.load_manifest('pr2_dashboard')
+roslib.load_manifest('cob_dashboard')
 
 import wx
 # TODO: remove once 0.7.1 is released
