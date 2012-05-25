@@ -577,14 +577,14 @@ class simple_script_server:
 		param_string = self.ns_global_prefix + "/" + component_name + "/joint_names"
 		joint_names = rospy.get_param(param_string)
 		
-		#setting a planning scene for triggering
+		#setting a planning scene
 		#ToDo: remove after setting up in cob_arm_navigation
 		rospy.wait_for_service("/environment_server/set_planning_scene_diff")
-		SetPlanningSceneDiff_ = rospy.ServiceProxy('/environment_server/set_planning_scene_diff', SetPlanningSceneDiff)
+		SetPlanningSceneDiffService = rospy.ServiceProxy('/environment_server/set_planning_scene_diff', SetPlanningSceneDiff)
 		
 		#sending empty request for triggering planning scene 
 		planning_scene_request = SetPlanningSceneDiffRequest()
-		planning_scene_response = SetPlanningSceneDiff_(planning_scene_request)
+		planning_scene_response = SetPlanningSceneDiffService(planning_scene_request)
 		
 		if not planning_scene_response:
 			print "Can't get planning scene!"
@@ -598,37 +598,68 @@ class simple_script_server:
 		motion_plan.planner_id= ""
 		
 		#defining start state
+		start_position = parameter_name[1]
 		if len(parameter_name) == 2: #check if start position is given
 			motion_plan.start_state.joint_state.header.stamp = rospy.Time.now()
 			motion_plan.start_state.joint_state.header.frame_id = 'base_footprint'
 			motion_plan.start_state.joint_state.name = joint_names
-			motion_plan.start_state.joint_state.position = parameter_name[1][0]
+			motion_plan.start_state.joint_state.position = start_position
 		if len(parameter_name) == 1: 
 			rospy.loginfo("No start position defined. Using actual joint state for planning.")
 		
 		#defining constraints
-		goal_constraints = Constraints() #arm_navigation_msgs/Constraints
-		goal_constraints.joint_constraints=[]
-		goal_pos = parameter_name[0][0]
+		goal_constraints = Constraints()
+		goal_constraints.position_constraints=[]
+		new_position_constraints = PositionConstraint()
+		new_orientation_constraints = OrientationConstraint()
 		
-		for i in range(len(joint_names)):
-			new_constraint = JointConstraint()
-			new_constraint.joint_name = joint_names[i]
-			new_constraint.position = goal_pos[i]
-			new_constraint.tolerance_below = 0.4
-			new_constraint.tolerance_above = 0.4
-			goal_constraints.joint_constraints.append(new_constraint)
+		#position constraints
+		new_position_constraints.header.stamp = rospy.Time.now()
+		new_position_constraints.header.frame_id = rospy.get_param("/cob_arm_kinematics/arm/root_name")
+		new_position_constraints.link_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
 		
+		goal_position = parameter_name[0][0]
+		new_position_constraints.position.x = goal_position[0]
+		new_position_constraints.position.y = goal_position[1]
+		new_position_constraints.position.z = goal_position[2]
+			
+		new_position_constraints.constraint_region_shape.type = Shape.BOX
+		new_position_constraints.constraint_region_shape.dimensions = [0.02] *3
+
+		new_position_constraints.constraint_region_orientation.w = 1.0
+		new_position_constraints.weight = 1.0
+		
+		#orientation constraints
+		new_orientation_constraints.header.stamp = rospy.Time.now()
+		new_orientation_constraints.header.frame_id = rospy.get_param("/cob_arm_kinematics/arm/root_name")
+		new_orientation_constraints.link_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
+		
+		goal_orientation = parameter_name[0][1]
+		new_orientation_constraints.orientation.x = goal_orientation[0]
+		new_orientation_constraints.orientation.y = goal_orientation[1]
+		new_orientation_constraints.orientation.z = goal_orientation[2]
+		new_orientation_constraints.orientation.w = goal_orientation[3]
+		
+		new_orientation_constraints.absolute_roll_tolerance = 0.04
+		new_orientation_constraints.absolute_pitch_tolerance = 0.04
+		new_orientation_constraints.absolute_yaw_tolerance = 0.04
+
+		new_orientation_constraints.weight = 1.0
+		
+		#assign constraints 
+		goal_constraints.position_constraints.append(new_position_constraints)
+		goal_constraints.orientation_constraints.append(new_orientation_constraints)
+
 		motion_plan.goal_constraints = goal_constraints
 		
 		rospy.wait_for_service('ompl_planning/plan_kinematic_path')
-		GetMotionPlan_ = rospy.ServiceProxy('ompl_planning/plan_kinematic_path', GetMotionPlan)
+		GetMotionPlanService = rospy.ServiceProxy('ompl_planning/plan_kinematic_path', GetMotionPlan)
 		
 		req = GetMotionPlanRequest()
 		req.motion_plan_request = motion_plan
 		
 		#call service GetMotionPlan
-		resp = GetMotionPlan_(req)
+		resp = GetMotionPlanService(req)
 		
 		#print if a valid plan was found
 		if (resp.error_code.val == resp.error_code.SUCCESS):
@@ -637,6 +668,7 @@ class simple_script_server:
 			rospy.logerr("Motion planning failed!")
 		
 		#display trajectory
+		### FOR DEBUGGING ONLY
 		display_trajectory = DisplayTrajectory()
 		display_trajectory_publisher = rospy.Publisher('joint_path_display', DisplayTrajectory)
 		display_trajectory.model_id = "arm"
@@ -648,7 +680,7 @@ class simple_script_server:
 		rospy.loginfo("Publishing path for display")
 		display_trajectory_publisher.publish(display_trajectory)
 		
-		return resp.trajectory.joint_trajectory, resp.error_code	
+		return resp.trajectory.joint_trajectory, resp.error_code
 		
 	def move_planned(self, component_name, parameter_name, blocking=True): # for backward compatibility
 		return self.move_joint_goal_planned(component_name, parameter_name, blocking)
@@ -829,16 +861,16 @@ class simple_script_server:
 		pose = res.result.pose
 		pose_link = res.result.header.frame_id
 		goal_constraints = Constraints() #arm_navigation_msgs/Constraints
-		
+
 		new_position_constraint = PositionConstraint()
 		new_orientation_constraint = OrientationConstraint()
 
 		new_position_constraint.header.stamp = rospy.Time.now()
 		new_position_constraint.header.frame_id = pose_link
-		    
+
 		new_position_constraint.link_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
 		new_position_constraint.position = pose.position
-		    
+
 		new_position_constraint.constraint_region_shape.type = Shape.BOX
 		new_position_constraint.constraint_region_shape.dimensions = [0.02] *3
 
@@ -849,7 +881,7 @@ class simple_script_server:
 		new_orientation_constraint.header.frame_id = pose_link
 		new_orientation_constraint.link_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
 		new_orientation_constraint.orientation = pose.orientation
-		    
+
 		new_orientation_constraint.absolute_roll_tolerance = 0.04
 		new_orientation_constraint.absolute_pitch_tolerance = 0.04
 		new_orientation_constraint.absolute_yaw_tolerance = 0.04
