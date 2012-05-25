@@ -14,30 +14,25 @@ class TestScript(script):
 		self.sss.init("arm")
 		
 	def Run(self):
+		
 		#optional: start position of arm
-		pos_start = [-0.51, 0.14, 0.97]
-		quat_start= [0.32, -0.64, 0.29, 0.63]  
-		  
+		pos_start_joint = [-0.0134, 0.49, -0.01, -1.88, 0.0, 0.0, 0.0] #joint space 
+		
 		#end position of arm
-		pos_end = [-0.494, -0.772, 1.414] #[-0.494, -0.772, 1.414]
+		pos_end = [-0.494, -0.772, 1.414] 
 		quat_end = [0.291, -0.539, 0.593, 0.522]
 		
-		#ik of positions
-		start_pos = self.sss.calculate_ik(['base_footprint',pos_start, euler_from_quaternion(quat_start)])
-		end_pos = self.sss.calculate_ik(['base_footprint',pos_end, euler_from_quaternion(quat_end)])
 		
-		#check if ik was successful
-		if (start_pos[1].val==1 and end_pos[1].val==1):
-			err_code = self.sss.check_plan('arm',[list(end_pos),list(start_pos)])
-			
-			#print if valid motion plan available
-			if err_code[1].val == 1:
-				rospy.loginfo("Valid plan found.")
-			else:
-				rospy.logerr("No valid plan for given states.")
+		err_code = self.sss.check_plan('arm',[[list(pos_end),list(quat_end)], pos_start_joint])
+		##alternative function call using the actual position to start plan
+		#err_code = self.sss.check_plan('arm',[[list(pos_end),list(quat_end)]])
+		
+		
+		#print if valid motion plan available
+		if err_code[1].val == err_code[1].SUCCESS:
+			rospy.loginfo("Valid plan found.")
 		else:
-			rospy.logerr("IK was not successful. Check start or end position!")
-		
+			rospy.logerr("No valid plan for given states.")
 	
 if __name__ == "__main__":
 	SCRIPT = TestScript()
