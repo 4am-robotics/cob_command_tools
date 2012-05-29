@@ -810,35 +810,8 @@ class simple_script_server:
 
 		return self.move_constrained_planned(component_name, goal_constraints, blocking, ah)
 
-	def move_cart_planned(self, component_name, parameter_name, blocking=True):
-		now = rospy.Time.now()
-	    
-		# parse pose_target
-		param = parameter_name[0] if type(parameter_name[0]) is list else parameter_name
-		ps = PoseStamped()
-		ps.header.stamp = now
-		ps.header.frame_id = param[0]
-		
-		ps.pose.position.x,ps.pose.position.y,ps.pose.position.z = param[1]
-	    
-		if len(param) > 2:
-		    ps.pose.orientation.x,ps.pose.orientation.y,ps.pose.orientation.z,ps.pose.orientation.w = quaternion_from_euler(*param[2])
-	    
-		pose_target = ps
-
-		# parse pose_origin
-		param = parameter_name[1] if type(parameter_name[0]) is list else None
-	    
-		ps = PoseStamped()
-	    
-		ps.header.stamp = now
-		ps.header.frame_id = param[0] if len(param) >=1 else "arm_7_link" # component_name+'_tcp_link'
-		if len(param) > 1:
-		    ps.pose.position.x,ps.pose.position.y,ps.pose.position.z = param[1]
-		if len(param) > 2:
-		    ps.pose.orientation.x,ps.pose.orientation.y,ps.pose.orientation.z,ps.pose.orientation.w = quaternion_from_euler(*param[2])
-		
-		return self.move_pose_goal_planned(component_name,[pose_target,ps],blocking)
+	def move_cartesian_planned(self, component_name, parameter_name, blocking=True):
+		return self.move_pose_goal_planned(component_name,list(self.parse_cartesian_parameters(parameter_name)),blocking)
 	
 	    
 	def move_pose_goal_planned(self, component_name, parameter_name, blocking=True):
@@ -1262,22 +1235,21 @@ class simple_script_server:
 	# The reference system is "arm_7_link"
 	#
 	# \param parameter_name List, which consists of [reference system, [x,y,z],[roll,pitch,yaw]]
-	def calculate_ik(self, parameter_name=["base_footprint",[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]], blocking=True):
+	def calculate_ik(self, parameter_name=["base_footprint",[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]], joint_state=None, blocking=True):
+
+		req = GetPoseStampedTransformedRequest()
+		req.tip_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
+		req.root_name = rospy.get_param("/cob_arm_kinematics/arm/root_name")
+		req.target, req.origin = self.parse_cartesian_parameters(parameter_name)       
 		
-		# parse parameters
-		pose = PoseStamped()
-		pose.header.stamp = rospy.Time.now()
-		pose.header.frame_id = parameter_name[0]
-		param = parameter_name[1:]
-		pose.pose.position.x = param[0][0]
-		pose.pose.position.y = param[0][1]
-		pose.pose.position.z = param[0][2]
-		q = quaternion_from_euler(param[1][0], param[1][1], param[1][2])
-		pose.pose.orientation.x = q[0]
-		pose.pose.orientation.y = q[1]
-		pose.pose.orientation.z = q[2]
-		pose.pose.orientation.w = q[3]
-		
+		#res.result = req.target # if transformer server should not be used
+		#res.success = True                
+		res = self.pose_transformer(req)
+		if not res.success:
+			rospy.logerr("Pose transformer failed")
+			ah.set_failed(4)
+			return ah
+
 		#check if actual arm positions were received
 		if len(self.arm_joint_positions) == 0:
 			rospy.logwarn("no actual arm joint positions received yet, using [0,0,0,0,0,0,0] as seed state")
@@ -1288,15 +1260,18 @@ class simple_script_server:
 		req = GetPositionIKRequest()
 
 		req.ik_request.ik_link_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
-		req.ik_request.ik_seed_state.joint_state.name = self.arm_joint_names
-		req.ik_request.ik_seed_state.joint_state.position = self.arm_joint_positions
-		req.ik_request.pose_stamped = pose
+		if joins_state is not None:
+		    req.ik_request.ik_seed_state = joins_state
+		else:
+		    req.ik_request.ik_seed_state.joint_state.name = self.arm_joint_names
+		    req.ik_request.ik_seed_state.joint_state.position = self.arm_joint_positions
+		req.ik_request.pose_stamped = res.result
 		req.timeout = rospy.Duration(5)
 		
 		# call ik service
                 try:
 		    resp = self.iks(req)
-		    return (list(resp.solution.joint_state.position), resp.error_code)
+		    return (list(resp.solution.joint_state), resp.error_code)
                 except:
                     rospy.logwarn("Could not call service cob_arm_kinematics/get_ik! Is cob_arm_navigation started?")
                     return ([],-1)
@@ -1305,6 +1280,42 @@ class simple_script_server:
 	def sub_arm_joint_states_cb(self,msg):
 		self.arm_joint_positions = msg.actual.positions
 		self.arm_joint_names = msg.joint_names
+		
+	# parses two stamped poses from parameter list
+	def parse_cartesian_parameters(self, parameter_name):
+		now = rospy.Time.now()
+	    
+		# parse pose_target
+		param = parameter_name[0] if len(parameter_name) and type(parameter_name[0]) is list else parameter_name
+		ps = PoseStamped()
+		if type(param) is not PoseStamped:
+		    ps = PoseStamped()
+		    ps.header.stamp = now
+		    ps.header.frame_id = param[0]
+		    
+		    ps.pose.position.x,ps.pose.position.y,ps.pose.position.z = param[1]
+		
+		    if len(param) > 2:
+			ps.pose.orientation.x,ps.pose.orientation.y,ps.pose.orientation.z,ps.pose.orientation.w = quaternion_from_euler(*param[2])
+		else:
+		    ps = param
+		
+		pose_target = ps
+
+		# parse pose_origin
+		param = parameter_name[1] if len(parameter_name) and type(parameter_name[0]) is list else None
+		ps = PoseStamped()
+		if type(param) is not PoseStamped:
+		
+		    ps.header.stamp = now
+		    ps.header.frame_id = param[0] if len(param) >=1 else "arm_7_link" # component_name+'_tcp_link'
+		    if len(param) > 1:
+			ps.pose.position.x,ps.pose.position.y,ps.pose.position.z = param[1]
+		    if len(param) > 2:
+			ps.pose.orientation.x,ps.pose.orientation.y,ps.pose.orientation.z,ps.pose.orientation.w = quaternion_from_euler(*param[2])
+		else:
+		    ps = param
+		return pose_target,ps
 
 #------------------- action_handle section -------------------#	
 ## Action handle class.
