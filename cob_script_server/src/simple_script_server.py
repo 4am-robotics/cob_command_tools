@@ -1284,9 +1284,16 @@ class simple_script_server:
 	# parses two stamped poses from parameter list
 	def parse_cartesian_parameters(self, parameter_name):
 		now = rospy.Time.now()
-	    
+		
 		# parse pose_target
-		param = parameter_name[0] if len(parameter_name) and type(parameter_name[0]) is list else parameter_name
+		param = parameter_name
+		second_param = None
+		if type(parameter_name) is list and len(parameter_name) > 0:
+			if type(parameter_name[0]) is not string:
+				param = parameter_name[0]
+				if len(parameter_name) > 1:
+					second_param = parameter_name[1]
+
 		ps = PoseStamped()
 		if type(param) is not PoseStamped:
 		    ps = PoseStamped()
@@ -1303,12 +1310,12 @@ class simple_script_server:
 		pose_target = ps
 
 		# parse pose_origin
-		param = parameter_name[1] if len(parameter_name) and type(parameter_name[0]) is list else None
+		param = second_param
 		ps = PoseStamped()
 		if type(param) is not PoseStamped:
 		
 		    ps.header.stamp = now
-		    ps.header.frame_id = param[0] if len(param) >=1 else "arm_7_link" # component_name+'_tcp_link'
+		    ps.header.frame_id = param[0] if param is not None and len(param) >=1 else "arm_7_link" # component_name+'_tcp_link'
 		    if len(param) > 1:
 			ps.pose.position.x,ps.pose.position.y,ps.pose.position.z = param[1]
 		    if len(param) > 2:
