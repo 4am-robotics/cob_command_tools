@@ -837,7 +837,7 @@ class simple_script_server:
 		
 		try:
 			get_planning_scene_res = get_planning_scene(get_planning_scene_req)
-			#print get_planning_scene_res
+			print get_planning_scene_res
 		except rospy.ServiceException, e:
 			print "Service did not process request: %s"%str(e)
 		
@@ -862,7 +862,7 @@ class simple_script_server:
 
 		
 		
-		#print client_goal
+		print client_goal
 		client.send_goal(client_goal)
 		ah.set_client(client)
 
