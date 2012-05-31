@@ -177,8 +177,8 @@ class simple_script_server:
 		# init subscribers
 		rospy.Subscriber("/arm_controller/state", JointTrajectoryControllerState, self.sub_arm_joint_states_cb)
 		
-                self.iks = rospy.ServiceProxy('/cob_arm_kinematics/get_ik', GetPositionIK)
-                self.pose_transformer = rospy.ServiceProxy('/cob_pose_transform/get_pose_stamped_transformed', GetPoseStampedTransformed)
+		self.iks = rospy.ServiceProxy('/cob_arm_kinematics/get_ik', GetPositionIK)
+		self.pose_transformer = rospy.ServiceProxy('/cob_pose_transform/get_pose_stamped_transformed', GetPoseStampedTransformed)
 		
 		rospy.sleep(1) # we have to wait here until publishers are ready, don't ask why
 
@@ -807,7 +807,6 @@ class simple_script_server:
 			#print "traj_endpoint[%d]: %f", k, traj_endpoint[k]
 			goal_constraints.joint_constraints[k].position = traj_endpoint[k]
 
-
 		return self.move_constrained_planned(component_name, goal_constraints, blocking, ah)
 
 	def move_cartesian_planned(self, component_name, parameter_name, blocking=True):
@@ -877,12 +876,12 @@ class simple_script_server:
 
 	def move_constrained_planned(self, component_name, parameter_name, blocking=True, ah=None):
 		if ah is None:
-		    ah = action_handle("move_constrained_planned", component_name, "constraint_goal", blocking, self.parse)
-		    if(self.parse):
-			    return ah
-		    else:
-			    ah.set_active()
-			    
+			ah = action_handle("move_constrained_planned", component_name, "constraint_goal", blocking, self.parse)
+			if(self.parse):
+				return ah
+			else:
+				ah.set_active()
+			
 		if component_name != "arm":
 			rospy.logerr("Only arm component is supported in move_constrained_planned.")
 			ah.set_failed(4)
