@@ -123,8 +123,8 @@ class GtkGeneralPanel(gtk.Frame):
     hbox.pack_start(self.status_label, False, False, 0)
     self.vbox.pack_start(hbox, False, False, 5)
 
-    butinit = gtk.Button("Stop all")
-    butinit.connect("clicked", lambda w: self.stop_all(buttons.stop_buttons))
+    butstop = gtk.Button("Stop all")
+    butstop.connect("clicked", lambda w: self.stop_all(buttons.stop_buttons))
     self.vbox.pack_start(butinit, False, False, 5)
 
     butinit = gtk.Button("Init all")
