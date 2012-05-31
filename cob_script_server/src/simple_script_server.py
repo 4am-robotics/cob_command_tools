@@ -1257,26 +1257,38 @@ class simple_script_server:
 			rospy.logwarn("no actual arm joint positions received yet, using [0,0,0,0,0,0,0] as seed state")
 			self.arm_joint_positions = [0,0,0,0,0,0,0]
  			self.arm_joint_names = rospy.get_param("/arm_controller/joint_names") #TODO: switch to /arm_controller/names for compatibility with simulation
+		rospy.wait_for_service("/environment_server/set_planning_scene_diff")
+		SetPlanningSceneDiffService = rospy.ServiceProxy('/environment_server/set_planning_scene_diff', SetPlanningSceneDiff)
+		
+		#sending empty request for triggering planning scene 
+		planning_scene_request = SetPlanningSceneDiffRequest()
+		planning_scene_response = SetPlanningSceneDiffService(planning_scene_request)
+		
+		if not planning_scene_response:
+			print "Can't get planning scene!"
 		
 		# fill ik request message
 		req = GetPositionIKRequest()
 
 		req.ik_request.ik_link_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
-		if joins_state is not None:
-		    req.ik_request.ik_seed_state = joins_state
+		if joint_state is not None:
+			req.ik_request.ik_seed_state.joint_state = joint_state
 		else:
-		    req.ik_request.ik_seed_state.joint_state.name = self.arm_joint_names
-		    req.ik_request.ik_seed_state.joint_state.position = self.arm_joint_positions
+			req.ik_request.ik_seed_state.joint_state.name = self.arm_joint_names
+			req.ik_request.ik_seed_state.joint_state.position = self.arm_joint_positions
 		req.ik_request.pose_stamped = res.result
-		req.timeout = rospy.Duration(5)
+		req.timeout = rospy.Duration(10)
 		
 		# call ik service
-                try:
-		    resp = self.iks(req)
-		    return (list(resp.solution.joint_state), resp.error_code)
-                except:
-                    rospy.logwarn("Could not call service cob_arm_kinematics/get_ik! Is cob_arm_navigation started?")
-                    return ([],-1)
+		resp = GetPositionIKResponse()
+		resp.error_code.val = ArmNavigationErrorCodes.PLANNING_FAILED
+		print req
+		try:
+			resp = self.iks(req)
+		except:
+			print sys.exc_info()
+			rospy.logwarn("Could not call service cob_arm_kinematics/get_ik! Is cob_arm_navigation started?")
+		return (resp.solution.joint_state, resp.error_code)
 	
 	## Subscribes to /arm_controller/state to get actual joint positions
 	def sub_arm_joint_states_cb(self,msg):
