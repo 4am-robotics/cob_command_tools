@@ -831,9 +831,10 @@ class simple_script_server:
 		req.root_name = rospy.get_param("/cob_arm_kinematics/arm/root_name")
 		req.target, req.origin = parameter_name       
 		
-		#res.result = req.target # if transformer server should not be used
-		#res.success = True                
-		res = self.pose_transformer(req)
+		res = GetPoseStampedTransformedResponse()
+		res.result = req.target # if transformer server should not be used
+		res.success = True                
+		#res = self.pose_transformer(req)
 		if not res.success:
 			rospy.logerr("Pose transformer failed")
 			ah.set_failed(4)
@@ -1242,9 +1243,10 @@ class simple_script_server:
 		req.root_name = rospy.get_param("/cob_arm_kinematics/arm/root_name")
 		req.target, req.origin = self.parse_cartesian_parameters(parameter_name)       
 		
-		#res.result = req.target # if transformer server should not be used
-		#res.success = True                
-		res = self.pose_transformer(req)
+		res = GetPoseStampedTransformedResponse()
+		res.result = req.target # if transformer server should not be used
+		res.success = True                
+		#res = self.pose_transformer(req)
 		if not res.success:
 			rospy.logerr("Pose transformer failed")
 			ah.set_failed(4)
