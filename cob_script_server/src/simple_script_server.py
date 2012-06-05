@@ -79,11 +79,10 @@ from move_base_msgs.msg import *
 from arm_navigation_msgs.msg import *
 from arm_navigation_msgs.srv import *
 from tf.transformations import *
-from std_msgs.msg import String
+from std_msgs.msg import String,ColorRGBA
 from kinematics_msgs.srv import *
 
 # care-o-bot includes
-from cob_light.msg import *
 from cob_sound.msg import *
 from cob_script_server.msg import *
 from cob_srvs.srv import *
@@ -172,7 +171,7 @@ class simple_script_server:
 		self.arm_joint_names = []
 		
 		# init publishers
-		self.pub_light = rospy.Publisher('/light_controller/command', Light)
+		self.pub_light = rospy.Publisher('/light_controller/command', ColorRGBA)
 		
 		# init subscribers
 		rospy.Subscriber("/arm_controller/state", JointTrajectoryControllerState, self.sub_arm_joint_states_cb)
@@ -1055,16 +1054,12 @@ class simple_script_server:
 					else:
 						rospy.logdebug("accepted parameter %f for light",i)
 		
-		# convert to light message
-		color = Light()
-		color.header.stamp = rospy.Time.now()
-		if type(parameter_name) is str:
-			color.name.data = parameter_name
-		else:
-			color.name.data = "unspecified"
+		# convert to ColorRGBA message
+		color = ColorRGBA()
 		color.r = param[0]
 		color.g = param[1]
 		color.b = param[2]
+		color.a = 1 # Transparency
 
 		# publish color		
 		self.pub_light.publish(color)
