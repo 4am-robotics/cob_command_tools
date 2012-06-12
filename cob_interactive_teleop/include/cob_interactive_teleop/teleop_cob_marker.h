@@ -1,7 +1,7 @@
 /******************************************************************************
  * \file
  *
- * $Id: teleop_cob_marker.h 670 2012-04-19 13:38:03Z xlokaj03 $
+ * $Id: teleop_cob_marker.h 869 2012-06-02 22:24:03Z spanel $
  *
  * Copyright (C) Brno University of Technology
  *
@@ -34,29 +34,44 @@
 #include <tf/transform_datatypes.h>
 
 #include <cob_interactive_teleop/interactive_markers_tools.h>
-
-using namespace interactive_markers;
-using namespace visualization_msgs;
-using namespace std;
+#include <cob_interactive_teleop/parameters_list.h>
 
 namespace cob_interactive_teleop
 {
 
-#define ANGULAR_SCALE 2.2
-#define LINEAR_SCALE 1.0
+const std::string MARKER_DRIVER_NAME      = "marker_driver";
+const std::string MARKER_NAVIGATOR_NAME   = "marker_navigator";
+const std::string CONTROL_MOVE_NAME       = "control_move";
+const std::string CONTROL_STRAFE_NAME     = "control_strafe";
+const std::string CONTROL_ROTATE_NAME     = "control_rotate";
+const std::string CONTROL_NAVIGATION_NAME = "controle_naavigation";
 
-#define NAVIGATION_TRESHOLD 0.2
-#define ROTATE_ON_MOVE 0.01
-#define ROTATE 2.5
+typedef boost::shared_ptr<interactive_markers::InteractiveMarkerServer> InteractiveMarkerServerPtr;
 
-#define MARKER_DRIVER_NAME "marker_driver"
-#define MARKER_NAVIGATOR_NAME "marker_navigator"
-#define CONTROL_MOVE_NAME "control_move"
-#define CONTROL_STRAFE_NAME "control_strafe"
-#define CONTROL_ROTATE_NAME "control_rotate"
-#define CONTROL_NAVIGATION_NAME "controle_naavigation"
 
-typedef boost::shared_ptr<InteractiveMarkerServer> InteractiveMarkerServerPtr;
+/**
+ * @brief Motion parameters for the interactive COB teleop.
+ */
+struct TeleopCOBParams
+{
+  double angular_scale;
+  double linear_scale;
+  double navigation_threshold;
+  double rotate_on_move;
+  double rotate_in_place;
+
+  /**
+   * @brief Constructor initializes all parameters to default values
+   */
+  TeleopCOBParams()
+    : angular_scale(DEFAULT_ANGULAR_SCALE)
+    , linear_scale(DEFAULT_LINEAR_SCALE)
+    , navigation_threshold(DEFAULT_NAVIGATION_THRESHOLD)
+    , rotate_on_move(DEFAULT_ROTATE_ON_MOVE)
+    , rotate_in_place(DEFAULT_ROTATE_IN_PLACE)
+  {}
+};
+
 
 /**
  * @brief This class handles COB driving using Interactive Markers.
@@ -71,6 +86,7 @@ public:
    * @brief Constructor
    */
   TeleopCOBMarker();
+
   /**
    * @brief Destructor
    */
@@ -80,6 +96,11 @@ public:
     server_->erase(MARKER_NAVIGATOR_NAME);
     server_->applyChanges();
   }
+
+  /**
+   * @brief Returns reference to the motion parameters
+   */
+  TeleopCOBParams& getParams() { return params_; }
 
 private:
   /**
@@ -92,13 +113,24 @@ private:
    */
   void createMarkers();
 
-  InteractiveMarkerServerPtr server_; // Interactive Marker Server
-  ros::Publisher pub_; // Movement publisher
-  ros::NodeHandle n_; // Node handler
-  geometry_msgs::Pose initial_pose_; // Initial position
+private:
+  // Interactive Marker Server
+  InteractiveMarkerServerPtr server_;
 
+  // Movement publisher
+  ros::Publisher pub_;
+
+  // Node handler
+  ros::NodeHandle n_;
+
+  // Initial position
+  geometry_msgs::Pose initial_pose_;
+
+  // Teleop parameters
+  TeleopCOBParams params_;
 };
 
 }
 
 #endif /* TELEOPCOBMARKER_H_ */
+
