@@ -1,15 +1,15 @@
 /******************************************************************************
  * \file
  *
- * $Id: cob_interactive_teleop.cpp 674 2012-04-19 13:59:19Z spanel $
+ * $Id:$
  *
  * Copyright (C) Brno University of Technology
  *
  * This file is part of software developed by dcgm-robotics@FIT group.
  *
- * Author: Tomas Lokaj (xlokaj03@stud.fit.vutbr.cz)
+ * Author: Michal Spanel (spanel@fit.vutbr.cz)
  * Supervised by: Michal Spanel (spanel@fit.vutbr.cz)
- * Date: 09/02/2012
+ * Date: 02/06/2012
  * 
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,20 +25,20 @@
  * along with this file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cob_interactive_teleop/teleop_cob_marker.h>
+#ifndef COB_INTERACTIVE_TELEOP_TOPICS_LIST_H
+#define COB_INTERACTIVE_TELEOP_TOPCIS_LIST_H
 
-using namespace cob_interactive_teleop;
+#include <string>
+
+namespace cob_interactive_teleop
+{
 
 /**
- * @brief Just a main function which runs COB marker teleop node
+ * Published topics
  */
-int main(int argc, char** argv)
-{
-  ros::init(argc, argv, "cob_interactive_teleop");
+const std::string BASE_CONTROLLER_COMMAND_TOPIC = "base_controller/command";
 
-  TeleopCOBMarker *cobTeleop = new TeleopCOBMarker();
-
-  ROS_INFO("COB Interactive Teleop is running...");
-  ros::spin();
 }
+
+#endif // COB_INTERACTIVE_TELEOP_TOPCIS_LIST_H
 

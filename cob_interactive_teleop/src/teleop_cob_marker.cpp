@@ -26,14 +26,26 @@
  */
 
 #include <cob_interactive_teleop/teleop_cob_marker.h>
+#include <cob_interactive_teleop/topics_list.h>
+
+//#include <iostream>
+
+using namespace interactive_markers;
+using namespace visualization_msgs;
 
 namespace cob_interactive_teleop
 {
 
 TeleopCOBMarker::TeleopCOBMarker()
 {
+  n_.param(ANGULAR_SCALE_PARAM, params_.angular_scale, params_.angular_scale);
+  n_.param(LINEAR_SCALE_PARAM, params_.linear_scale, params_.linear_scale);
+
+  ROS_INFO("linear_scale = %f", params_.linear_scale);
+  ROS_INFO("angular_scale = %f", params_.angular_scale);
+
   server_.reset(new InteractiveMarkerServer("cob_interactive_teleop", "", false));
-  pub_ = n_.advertise<geometry_msgs::Twist> ("base_controller/command", 1);
+  pub_ = n_.advertise<geometry_msgs::Twist>(BASE_CONTROLLER_COMMAND_TOPIC, 1);
 
   initial_pose_ = geometry_msgs::Pose();
   initial_pose_.position.z = 0.05;
@@ -47,38 +59,51 @@ void TeleopCOBMarker::processFeedback(const visualization_msgs::InteractiveMarke
 {
   geometry_msgs::Twist twist;
 
+/*  if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP)
+  {
+    twist.linear.x = 0.0;
+    twist.linear.y = 0.0;
+    twist.angular.z = 0.0;
+  }*/
   // Move forward or backward
   if (feedback->control_name == CONTROL_MOVE_NAME)
   {
-    twist.linear.x = LINEAR_SCALE * feedback->pose.position.x;
+    twist.linear.x = params_.linear_scale * feedback->pose.position.x;
   }
   // Strafe left or right
   else if (feedback->control_name == CONTROL_STRAFE_NAME)
   {
-    twist.linear.y = LINEAR_SCALE * feedback->pose.position.y;
+    twist.linear.y = params_.linear_scale * feedback->pose.position.y;
   }
   // Rotate
   else if (feedback->control_name == CONTROL_ROTATE_NAME)
-    twist.angular.z = ANGULAR_SCALE * tf::getYaw(feedback->pose.orientation);
+  {
+    twist.angular.z = params_.angular_scale * tf::getYaw(feedback->pose.orientation);
+  }
   // Move to position
   else if (feedback->control_name == CONTROL_NAVIGATION_NAME)
   {
     // Move towards the position and rotate slightly if necessary
-    if (fabs(feedback->pose.position.y) <= NAVIGATION_TRESHOLD)
+    double fposy = fabs(feedback->pose.position.y);
+    if (fposy <= params_.navigation_threshold)
     {
-      twist.linear.x = LINEAR_SCALE * feedback->pose.position.x;
+      twist.linear.x = params_.linear_scale * feedback->pose.position.x;
+      double rotation_step = (params_.rotate_on_move > fposy) ? params_.rotate_on_move : fposy;
       if (feedback->pose.position.y > 0)
-        twist.angular.z = ROTATE_ON_MOVE;
+        twist.angular.z = rotation_step;
       else if (feedback->pose.position.y < 0)
-        twist.angular.z = -ROTATE_ON_MOVE;
+        twist.angular.z = -rotation_step;
     }
     // Just rotate
     else
     {
+      double rotation_step = (params_.rotate_in_place > fposy) ? params_.rotate_in_place : fposy;
+      if (feedback->pose.position.x < 0)
+        rotation_step *= -1.0;
       if (feedback->pose.position.y > 0)
-        twist.angular.z = ROTATE;
+        twist.angular.z = rotation_step;
       else if (feedback->pose.position.y < 0)
-        twist.angular.z = -ROTATE;
+        twist.angular.z = -rotation_step;
     }
   }
   else
@@ -155,3 +180,4 @@ void TeleopCOBMarker::createMarkers()
 }
 
 }
+
