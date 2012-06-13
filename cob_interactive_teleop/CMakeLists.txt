@@ -42,3 +42,5 @@ set( COB_TELEOP_SOURCE_FILES src/interactive_markers_tools.cpp
 set( COB_TELEOP_PROJECT_NAME interactive_teleop )
 rosbuild_add_executable( ${COB_TELEOP_PROJECT_NAME} ${COB_TELEOP_SOURCE_FILES} )
 
+# rostest 
+rosbuild_add_roslaunch_check(launch)

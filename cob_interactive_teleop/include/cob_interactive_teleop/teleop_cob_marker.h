@@ -44,7 +44,7 @@ const std::string MARKER_NAVIGATOR_NAME   = "marker_navigator";
 const std::string CONTROL_MOVE_NAME       = "control_move";
 const std::string CONTROL_STRAFE_NAME     = "control_strafe";
 const std::string CONTROL_ROTATE_NAME     = "control_rotate";
-const std::string CONTROL_NAVIGATION_NAME = "controle_naavigation";
+const std::string CONTROL_NAVIGATION_NAME = "controle_navigation";
 
 typedef boost::shared_ptr<interactive_markers::InteractiveMarkerServer> InteractiveMarkerServerPtr;
 
@@ -54,21 +54,18 @@ typedef boost::shared_ptr<interactive_markers::InteractiveMarkerServer> Interact
  */
 struct TeleopCOBParams
 {
-  double angular_scale;
-  double linear_scale;
-  double navigation_threshold;
-  double rotate_on_move;
-  double rotate_in_place;
+  double max_vel_x, max_vel_y, max_vel_th;
+  double scale_linear, scale_angular;
 
   /**
    * @brief Constructor initializes all parameters to default values
    */
   TeleopCOBParams()
-    : angular_scale(DEFAULT_ANGULAR_SCALE)
-    , linear_scale(DEFAULT_LINEAR_SCALE)
-    , navigation_threshold(DEFAULT_NAVIGATION_THRESHOLD)
-    , rotate_on_move(DEFAULT_ROTATE_ON_MOVE)
-    , rotate_in_place(DEFAULT_ROTATE_IN_PLACE)
+    : max_vel_x(DEFAULT_MAX_VEL_X)
+    , max_vel_y(DEFAULT_MAX_VEL_Y)
+    , max_vel_th(DEFAULT_MAX_VEL_TH)
+    , scale_linear(DEFAULT_SCALE_LINEAR)
+    , scale_angular(DEFAULT_SCALE_ANGULAR)
   {}
 };
 
@@ -107,6 +104,16 @@ private:
    * @brief Markers feedback
    */
   void processFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+
+  /**
+   * @brief Limits a given velocity
+   */
+  double limitVel(double vel, double limit);
+
+  /**
+   * @brief Gives the sign (1, -1 or 0) of value
+   */
+  int sign(double value);
 
   /**
    * @brief Creates Interactive Markers

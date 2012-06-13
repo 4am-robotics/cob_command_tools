@@ -36,17 +36,20 @@ namespace cob_interactive_teleop
 /**
  * Names of parameters
  */
-const std::string ANGULAR_SCALE_PARAM = "cob_interactive_teleop/angular_scale";
-const std::string LINEAR_SCALE_PARAM  = "cob_interactive_teleop/linear_scale";
+const std::string MAX_VEL_X_PARAM      = "max_vel_x";
+const std::string MAX_VEL_Y_PARAM      = "max_vel_y";
+const std::string MAX_VEL_TH_PARAM     = "max_vel_th";
+const std::string SCALE_LINEAR_PARAM   = "scale_linear";
+const std::string SCALE_ANGULAR_PARAM  = "scale_angular";
 
 /**
  * Default parameter values
  */
-const double DEFAULT_ANGULAR_SCALE        = 0.5;
-const double DEFAULT_LINEAR_SCALE         = 0.5;
-const double DEFAULT_NAVIGATION_THRESHOLD = 0.2;
-const double DEFAULT_ROTATE_ON_MOVE       = 0.01;
-const double DEFAULT_ROTATE_IN_PLACE      = 0.1;
+const double DEFAULT_MAX_VEL_X       = 0.1;
+const double DEFAULT_MAX_VEL_Y       = 0.1;
+const double DEFAULT_MAX_VEL_TH      = 0.1;
+const double DEFAULT_SCALE_LINEAR    = 0.1;
+const double DEFAULT_SCALE_ANGULAR   = 0.1;
 
 }
 
