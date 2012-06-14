@@ -77,12 +77,12 @@ from geometry_msgs.msg import *
 from pr2_controllers_msgs.msg import *
 from move_base_msgs.msg import *
 from arm_navigation_msgs.msg import *
+from arm_navigation_msgs.srv import *
 from tf.transformations import *
-from std_msgs.msg import String
+from std_msgs.msg import String,ColorRGBA
 from kinematics_msgs.srv import *
 
 # care-o-bot includes
-from cob_light.msg import *
 from cob_sound.msg import *
 from cob_script_server.msg import *
 from cob_srvs.srv import *
@@ -171,13 +171,13 @@ class simple_script_server:
 		self.arm_joint_names = []
 		
 		# init publishers
-		self.pub_light = rospy.Publisher('/light_controller/command', Light)
+		self.pub_light = rospy.Publisher('/light_controller/command', ColorRGBA)
 		
 		# init subscribers
 		rospy.Subscriber("/arm_controller/state", JointTrajectoryControllerState, self.sub_arm_joint_states_cb)
 		
-                self.iks = rospy.ServiceProxy('/cob_arm_kinematics/get_ik', GetPositionIK)
-                self.pose_transformer = rospy.ServiceProxy('/cob_pose_transform/get_pose_stamped_transformed', GetPoseStampedTransformed)
+		self.iks = rospy.ServiceProxy('/cob_arm_kinematics/get_ik', GetPositionIK)
+		self.pose_transformer = rospy.ServiceProxy('/cob_pose_transform/get_pose_stamped_transformed', GetPoseStampedTransformed)
 		
 		rospy.sleep(1) # we have to wait here until publishers are ready, don't ask why
 
@@ -569,6 +569,126 @@ class simple_script_server:
 		ah.wait_inside()
 		return ah
 		
+	## Check if a trajectory to a specific goal exists
+	#
+	# The OMPL planner will check for a valid trajectory between
+	# a specific start and end position.  
+	# optional: Add start position in function call for planning if necessary.
+	#
+	# \param component_name Name of the component.
+	# \param parameter_name Name of the parameter on the ROS parameter server.
+	# \param blocking Bool value to specify blocking behaviour.
+	def check_plan(self, component_name, parameter_name, blocking=True):
+		
+		#get joint_names
+		param_string = self.ns_global_prefix + "/" + component_name + "/joint_names"
+		joint_names = rospy.get_param(param_string)
+		
+		#setting a planning scene
+		#ToDo: remove after setting up in cob_arm_navigation
+		rospy.wait_for_service("/environment_server/set_planning_scene_diff")
+		SetPlanningSceneDiffService = rospy.ServiceProxy('/environment_server/set_planning_scene_diff', SetPlanningSceneDiff)
+		
+		#sending empty request for triggering planning scene 
+		planning_scene_request = SetPlanningSceneDiffRequest()
+		planning_scene_response = SetPlanningSceneDiffService(planning_scene_request)
+		
+		if not planning_scene_response:
+			print "Can't get planning scene!"
+		#planning scene end
+		
+		#defining motion plan
+		motion_plan = MotionPlanRequest()
+		motion_plan.group_name = component_name
+		motion_plan.num_planning_attempts = 1
+		motion_plan.allowed_planning_time = rospy.Duration(5.0)
+		motion_plan.planner_id= ""
+		
+		#defining start state
+		start_position = parameter_name[1]
+		if len(parameter_name) == 2: #check if start position is given
+			motion_plan.start_state.joint_state.header.stamp = rospy.Time.now()
+			motion_plan.start_state.joint_state.header.frame_id = 'base_footprint'
+			motion_plan.start_state.joint_state.name = joint_names
+			motion_plan.start_state.joint_state.position = start_position
+		if len(parameter_name) == 1: 
+			rospy.loginfo("No start position defined. Using actual joint state for planning.")
+		
+		#defining constraints
+		goal_constraints = Constraints()
+		goal_constraints.position_constraints=[]
+		new_position_constraints = PositionConstraint()
+		new_orientation_constraints = OrientationConstraint()
+		
+		#position constraints
+		new_position_constraints.header.stamp = rospy.Time.now()
+		new_position_constraints.header.frame_id = rospy.get_param("/cob_arm_kinematics/arm/root_name")
+		new_position_constraints.link_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
+		
+		goal_position = parameter_name[0][0]
+		new_position_constraints.position.x = goal_position[0]
+		new_position_constraints.position.y = goal_position[1]
+		new_position_constraints.position.z = goal_position[2]
+			
+		new_position_constraints.constraint_region_shape.type = Shape.BOX
+		new_position_constraints.constraint_region_shape.dimensions = [0.02] *3
+
+		new_position_constraints.constraint_region_orientation.w = 1.0
+		new_position_constraints.weight = 1.0
+		
+		#orientation constraints
+		new_orientation_constraints.header.stamp = rospy.Time.now()
+		new_orientation_constraints.header.frame_id = rospy.get_param("/cob_arm_kinematics/arm/root_name")
+		new_orientation_constraints.link_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
+		
+		goal_orientation = parameter_name[0][1]
+		new_orientation_constraints.orientation.x = goal_orientation[0]
+		new_orientation_constraints.orientation.y = goal_orientation[1]
+		new_orientation_constraints.orientation.z = goal_orientation[2]
+		new_orientation_constraints.orientation.w = goal_orientation[3]
+		
+		new_orientation_constraints.absolute_roll_tolerance = 0.04
+		new_orientation_constraints.absolute_pitch_tolerance = 0.04
+		new_orientation_constraints.absolute_yaw_tolerance = 0.04
+
+		new_orientation_constraints.weight = 1.0
+		
+		#assign constraints 
+		goal_constraints.position_constraints.append(new_position_constraints)
+		goal_constraints.orientation_constraints.append(new_orientation_constraints)
+
+		motion_plan.goal_constraints = goal_constraints
+		
+		rospy.wait_for_service('ompl_planning/plan_kinematic_path')
+		GetMotionPlanService = rospy.ServiceProxy('ompl_planning/plan_kinematic_path', GetMotionPlan)
+		
+		req = GetMotionPlanRequest()
+		req.motion_plan_request = motion_plan
+		
+		#call service GetMotionPlan
+		resp = GetMotionPlanService(req)
+		
+		#print if a valid plan was found
+		if (resp.error_code.val == resp.error_code.SUCCESS):
+			rospy.loginfo("Motion planning succeeded.")
+		else:
+			rospy.logerr("Motion planning failed!")
+		
+		#display trajectory
+		### FOR DEBUGGING ONLY
+		display_trajectory = DisplayTrajectory()
+		display_trajectory_publisher = rospy.Publisher('joint_path_display', DisplayTrajectory)
+		display_trajectory.model_id = "arm"
+		display_trajectory.trajectory.joint_trajectory.header.frame_id = "base_link"
+		display_trajectory.trajectory.joint_trajectory.header.stamp = rospy.Time.now()
+		display_trajectory.robot_state.joint_state.name =  self.arm_joint_names
+		display_trajectory.robot_state.joint_state.position =  self.arm_joint_positions
+		display_trajectory.trajectory = resp.trajectory
+		rospy.loginfo("Publishing path for display")
+		display_trajectory_publisher.publish(display_trajectory)
+		
+		return resp.trajectory.joint_trajectory, resp.error_code
+		
 	def move_planned(self, component_name, parameter_name, blocking=True): # for backward compatibility
 		return self.move_joint_goal_planned(component_name, parameter_name, blocking)
 	
@@ -686,38 +806,10 @@ class simple_script_server:
 			#print "traj_endpoint[%d]: %f", k, traj_endpoint[k]
 			goal_constraints.joint_constraints[k].position = traj_endpoint[k]
 
-
 		return self.move_constrained_planned(component_name, goal_constraints, blocking, ah)
 
-	def move_cart_planned(self, component_name, parameter_name, blocking=True):
-		now = rospy.Time.now()
-	    
-		# parse pose_target
-		param = parameter_name[0] if type(parameter_name[0]) is list else parameter_name
-		ps = PoseStamped()
-		ps.header.stamp = now
-		ps.header.frame_id = param[0]
-		
-		ps.pose.position.x,ps.pose.position.y,ps.pose.position.z = param[1]
-	    
-		if len(param) > 2:
-		    ps.pose.orientation.x,ps.pose.orientation.y,ps.pose.orientation.z,ps.pose.orientation.w = quaternion_from_euler(*param[2])
-	    
-		pose_target = ps
-
-		# parse pose_origin
-		param = parameter_name[1] if type(parameter_name[0]) is list else None
-	    
-		ps = PoseStamped()
-	    
-		ps.header.stamp = now
-		ps.header.frame_id = param[0] if len(param) >=1 else "arm_7_link" # component_name+'_tcp_link'
-		if len(param) > 1:
-		    ps.pose.position.x,ps.pose.position.y,ps.pose.position.z = param[1]
-		if len(param) > 2:
-		    ps.pose.orientation.x,ps.pose.orientation.y,ps.pose.orientation.z,ps.pose.orientation.w = quaternion_from_euler(*param[2])
-		
-		return self.move_pose_goal_planned(component_name,[pose_target,ps],blocking)
+	def move_cartesian_planned(self, component_name, parameter_name, blocking=True):
+		return self.move_pose_goal_planned(component_name,list(self.parse_cartesian_parameters(parameter_name)),blocking)
 	
 	    
 	def move_pose_goal_planned(self, component_name, parameter_name, blocking=True):
@@ -737,9 +829,10 @@ class simple_script_server:
 		req.root_name = rospy.get_param("/cob_arm_kinematics/arm/root_name")
 		req.target, req.origin = parameter_name       
 		
-		#res.result = req.target # if transformer server should not be used
-		#res.success = True                
-		res = self.pose_transformer(req)
+		res = GetPoseStampedTransformedResponse()
+		res.result = req.target # if transformer server should not be used
+		res.success = True                
+		#res = self.pose_transformer(req)
 		if not res.success:
 			rospy.logerr("Pose transformer failed")
 			ah.set_failed(4)
@@ -748,16 +841,16 @@ class simple_script_server:
 		pose = res.result.pose
 		pose_link = res.result.header.frame_id
 		goal_constraints = Constraints() #arm_navigation_msgs/Constraints
-		
+
 		new_position_constraint = PositionConstraint()
 		new_orientation_constraint = OrientationConstraint()
 
 		new_position_constraint.header.stamp = rospy.Time.now()
 		new_position_constraint.header.frame_id = pose_link
-		    
+
 		new_position_constraint.link_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
 		new_position_constraint.position = pose.position
-		    
+
 		new_position_constraint.constraint_region_shape.type = Shape.BOX
 		new_position_constraint.constraint_region_shape.dimensions = [0.02] *3
 
@@ -768,7 +861,7 @@ class simple_script_server:
 		new_orientation_constraint.header.frame_id = pose_link
 		new_orientation_constraint.link_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
 		new_orientation_constraint.orientation = pose.orientation
-		    
+
 		new_orientation_constraint.absolute_roll_tolerance = 0.04
 		new_orientation_constraint.absolute_pitch_tolerance = 0.04
 		new_orientation_constraint.absolute_yaw_tolerance = 0.04
@@ -782,12 +875,12 @@ class simple_script_server:
 
 	def move_constrained_planned(self, component_name, parameter_name, blocking=True, ah=None):
 		if ah is None:
-		    ah = action_handle("move_constrained_planned", component_name, "constraint_goal", blocking, self.parse)
-		    if(self.parse):
-			    return ah
-		    else:
-			    ah.set_active()
-			    
+			ah = action_handle("move_constrained_planned", component_name, "constraint_goal", blocking, self.parse)
+			if(self.parse):
+				return ah
+			else:
+				ah.set_active()
+			
 		if component_name != "arm":
 			rospy.logerr("Only arm component is supported in move_constrained_planned.")
 			ah.set_failed(4)
@@ -961,16 +1054,12 @@ class simple_script_server:
 					else:
 						rospy.logdebug("accepted parameter %f for light",i)
 		
-		# convert to light message
-		color = Light()
-		color.header.stamp = rospy.Time.now()
-		if type(parameter_name) is str:
-			color.name.data = parameter_name
-		else:
-			color.name.data = "unspecified"
+		# convert to ColorRGBA message
+		color = ColorRGBA()
 		color.r = param[0]
 		color.g = param[1]
 		color.b = param[2]
+		color.a = 1 # Transparency
 
 		# publish color		
 		self.pub_light.publish(color)
@@ -1141,49 +1230,105 @@ class simple_script_server:
 	# The reference system is "arm_7_link"
 	#
 	# \param parameter_name List, which consists of [reference system, [x,y,z],[roll,pitch,yaw]]
-	def calculate_ik(self, parameter_name=["base_footprint",[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]], blocking=True):
+	def calculate_ik(self, parameter_name=["base_footprint",[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]], joint_state=None, blocking=True):
+
+		req = GetPoseStampedTransformedRequest()
+		req.tip_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
+		req.root_name = rospy.get_param("/cob_arm_kinematics/arm/root_name")
+		req.target, req.origin = self.parse_cartesian_parameters(parameter_name)       
 		
-		# parse parameters
-		pose = PoseStamped()
-		pose.header.stamp = rospy.Time.now()
-		pose.header.frame_id = parameter_name[0]
-		param = parameter_name[1:]
-		pose.pose.position.x = param[0][0]
-		pose.pose.position.y = param[0][1]
-		pose.pose.position.z = param[0][2]
-		q = quaternion_from_euler(param[1][0], param[1][1], param[1][2])
-		pose.pose.orientation.x = q[0]
-		pose.pose.orientation.y = q[1]
-		pose.pose.orientation.z = q[2]
-		pose.pose.orientation.w = q[3]
-		
+		res = GetPoseStampedTransformedResponse()
+		res.result = req.target # if transformer server should not be used
+		res.success = True                
+		#res = self.pose_transformer(req)
+		if not res.success:
+			rospy.logerr("Pose transformer failed")
+			ah.set_failed(4)
+			return ah
+
 		#check if actual arm positions were received
 		if len(self.arm_joint_positions) == 0:
 			rospy.logwarn("no actual arm joint positions received yet, using [0,0,0,0,0,0,0] as seed state")
 			self.arm_joint_positions = [0,0,0,0,0,0,0]
  			self.arm_joint_names = rospy.get_param("/arm_controller/joint_names") #TODO: switch to /arm_controller/names for compatibility with simulation
+		rospy.wait_for_service("/environment_server/set_planning_scene_diff")
+		SetPlanningSceneDiffService = rospy.ServiceProxy('/environment_server/set_planning_scene_diff', SetPlanningSceneDiff)
+		
+		#sending empty request for triggering planning scene 
+		planning_scene_request = SetPlanningSceneDiffRequest()
+		planning_scene_response = SetPlanningSceneDiffService(planning_scene_request)
+		
+		if not planning_scene_response:
+			print "Can't get planning scene!"
 		
 		# fill ik request message
 		req = GetPositionIKRequest()
 
 		req.ik_request.ik_link_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
-		req.ik_request.ik_seed_state.joint_state.name = self.arm_joint_names
-		req.ik_request.ik_seed_state.joint_state.position = self.arm_joint_positions
-		req.ik_request.pose_stamped = pose
-		req.timeout = rospy.Duration(5)
+		if joint_state is not None:
+			req.ik_request.ik_seed_state.joint_state = joint_state
+		else:
+			req.ik_request.ik_seed_state.joint_state.name = self.arm_joint_names
+			req.ik_request.ik_seed_state.joint_state.position = self.arm_joint_positions
+		req.ik_request.pose_stamped = res.result
+		req.timeout = rospy.Duration(10)
 		
 		# call ik service
-                try:
-		    resp = self.iks(req)
-		    return (list(resp.solution.joint_state.position), resp.error_code)
-                except:
-                    rospy.logwarn("Could not call service cob_arm_kinematics/get_ik! Is cob_arm_navigation started?")
-                    return ([],-1)
+		resp = GetPositionIKResponse()
+		resp.error_code.val = ArmNavigationErrorCodes.PLANNING_FAILED
+		print req
+		try:
+			resp = self.iks(req)
+		except:
+			print sys.exc_info()
+			rospy.logwarn("Could not call service cob_arm_kinematics/get_ik! Is cob_arm_navigation started?")
+		return (resp.solution.joint_state, resp.error_code)
 	
 	## Subscribes to /arm_controller/state to get actual joint positions
 	def sub_arm_joint_states_cb(self,msg):
 		self.arm_joint_positions = msg.actual.positions
 		self.arm_joint_names = msg.joint_names
+		
+	# parses two stamped poses from parameter list
+	def parse_cartesian_parameters(self, parameter_name):
+		now = rospy.Time.now()
+		
+		# parse pose_target
+		param = parameter_name
+		second_param = None
+		if type(parameter_name) is list and len(parameter_name) > 0:
+			if type(parameter_name[0]) is not string:
+				param = parameter_name[0]
+				if len(parameter_name) > 1:
+					second_param = parameter_name[1]
+
+		ps = PoseStamped()
+		if type(param) is not PoseStamped:
+			ps = PoseStamped()
+			ps.header.stamp = now
+			ps.header.frame_id = param[0]
+			ps.pose.position.x,ps.pose.position.y,ps.pose.position.z = param[1]
+			if len(param) > 2:
+				ps.pose.orientation.x,ps.pose.orientation.y,ps.pose.orientation.z,ps.pose.orientation.w = quaternion_from_euler(*param[2])
+		else:
+			ps = param
+		
+		pose_target = ps
+
+		# parse pose_origin
+		param = second_param
+		ps = PoseStamped()
+		ps.header.stamp = pose_target.header.stamp
+		ps.header.frame_id = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
+		if type(param) is not PoseStamped:
+			 if param is not None and len(param) >=1:
+				ps.header.frame_id = param[0]
+				ps.pose.position.x,ps.pose.position.y,ps.pose.position.z = param[1]
+				if len(param) > 2:
+					ps.pose.orientation.x,ps.pose.orientation.y,ps.pose.orientation.z,ps.pose.orientation.w = quaternion_from_euler(*param[2])
+		else:
+			ps = param
+		return pose_target,ps
 
 #------------------- action_handle section -------------------#	
 ## Action handle class.
