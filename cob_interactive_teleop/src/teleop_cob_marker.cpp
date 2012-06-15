@@ -57,6 +57,8 @@ TeleopCOBMarker::TeleopCOBMarker()
   initial_pose_ = geometry_msgs::Pose();
   initial_pose_.position.z = 0.05;
 
+  last_command_ = geometry_msgs::Twist();
+
   createMarkers();
 
   server_->applyChanges();
@@ -64,9 +66,31 @@ TeleopCOBMarker::TeleopCOBMarker()
 
 void TeleopCOBMarker::processFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
+  static const double STOP_COEFF = 0.5;
+  static const int STOP_ITERS = 15;
+
   geometry_msgs::Twist twist;
 
-  if (feedback->marker_name == MARKER_DRIVER_NAME)
+  // Marker has been released...
+  if (feedback->event_type == visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP)
+  {
+    // TODO: remove this provisory hack to reduce the speed...
+    twist = last_command_;
+	for (int i = 0; i < STOP_ITERS; ++i)
+	{
+      twist.linear.x *= STOP_COEFF;
+      twist.linear.y *= STOP_COEFF;
+      twist.angular.z *= STOP_COEFF;
+      pub_.publish(twist);
+      ros::Duration(0, 1000).sleep();
+	}
+
+    // stop
+    twist.linear.x = 0.0;
+    twist.linear.y = 0.0;
+    twist.angular.z = 0.0;
+  }
+  else if (feedback->marker_name == MARKER_DRIVER_NAME)
   {
     twist.linear.x = limitVel(params_.scale_linear * feedback->pose.position.x, params_.max_vel_x);
     twist.linear.y = limitVel(params_.scale_linear * feedback->pose.position.y, params_.max_vel_y);
@@ -81,6 +105,7 @@ void TeleopCOBMarker::processFeedback(const visualization_msgs::InteractiveMarke
   else
     return;
 
+  last_command_ = twist;
   pub_.publish(twist);
 
   server_->setPose(MARKER_DRIVER_NAME, initial_pose_);
