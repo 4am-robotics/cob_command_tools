@@ -1297,7 +1297,7 @@ class simple_script_server:
 		param = parameter_name
 		second_param = None
 		if type(parameter_name) is list and len(parameter_name) > 0:
-			if type(parameter_name[0]) is not string:
+			if type(parameter_name[0]) is not str:
 				param = parameter_name[0]
 				if len(parameter_name) > 1:
 					second_param = parameter_name[1]
