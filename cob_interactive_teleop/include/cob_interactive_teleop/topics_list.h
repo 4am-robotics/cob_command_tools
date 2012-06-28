@@ -36,7 +36,7 @@ namespace cob_interactive_teleop
 /**
  * Published topics
  */
-const std::string BASE_CONTROLLER_COMMAND_TOPIC = "base_controller/command";
+const std::string BASE_CONTROLLER_COMMAND_TOPIC = "/base_controller/command";
 
 }
 
