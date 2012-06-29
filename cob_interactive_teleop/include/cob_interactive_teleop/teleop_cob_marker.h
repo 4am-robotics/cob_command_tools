@@ -135,6 +135,9 @@ private:
 
   // Teleop parameters
   TeleopCOBParams params_;
+
+  // Previous command
+  geometry_msgs::Twist last_command_;
 };
 
 }
