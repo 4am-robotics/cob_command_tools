@@ -35,12 +35,12 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 
 # BUT cob teleop
-set( COB_TELEOP_SOURCE_FILES src/cob_interactive_teleop/interactive_markers_tools.cpp
-                             src/cob_interactive_teleop/teleop_cob_marker.cpp 
-                             src/init.cpp )
+set( COB_TELEOP_SOURCE_FILES src/interactive_markers_tools.cpp
+                             src/teleop_cob_marker.cpp 
+                             src/cob_interactive_teleop.cpp )
 
-set( COB_TELEOP_PROJECT_NAME cob_interactive_teleop )
-rosbuild_add_library( ${COB_TELEOP_PROJECT_NAME} ${COB_TELEOP_SOURCE_FILES} )
+set( COB_TELEOP_PROJECT_NAME interactive_teleop )
+rosbuild_add_executable( ${COB_TELEOP_PROJECT_NAME} ${COB_TELEOP_SOURCE_FILES} )
 
-rosbuild_add_executable( interactive_teleop src/cob_interactive_teleop/cob_interactive_teleop.cpp )
-target_link_libraries( interactive_teleop ${COB_TELEOP_PROJECT_NAME} )
+# rostest 
+rosbuild_add_roslaunch_check(launch)

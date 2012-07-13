@@ -5,7 +5,7 @@
         
     </description>
     <author>
-        Tomas Lokaj, Michal Spanel/spanel@fit.vutbr.cz
+        Tomas Lokaj, Michal Spanel (spanel@fit.vutbr.cz)
     </author>
     <license>
         LGPL
@@ -28,7 +28,6 @@
     <depend package="message_filters"/>
     
     <export>
-        <rviz plugin="${prefix}/lib/cob_interactive_teleop.yaml"/>
         <rosdoc config="rosdoc.yaml"/>
     </export>
     
