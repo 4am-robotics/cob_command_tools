@@ -584,18 +584,7 @@ class simple_script_server:
 		param_string = self.ns_global_prefix + "/" + component_name + "/joint_names"
 		joint_names = rospy.get_param(param_string)
 		
-		#setting a planning scene
-		#ToDo: remove after setting up in cob_arm_navigation
-		rospy.wait_for_service("/environment_server/set_planning_scene_diff")
-		SetPlanningSceneDiffService = rospy.ServiceProxy('/environment_server/set_planning_scene_diff', SetPlanningSceneDiff)
-		
-		#sending empty request for triggering planning scene 
-		planning_scene_request = SetPlanningSceneDiffRequest()
-		planning_scene_response = SetPlanningSceneDiffService(planning_scene_request)
-		
-		if not planning_scene_response:
-			print "Can't get planning scene!"
-		#planning scene end
+		#setting a planning scene                  
 		
 		#defining motion plan
 		motion_plan = MotionPlanRequest()
@@ -1211,6 +1200,17 @@ class simple_script_server:
 		return retVal
 
 #------------------- Helper section -------------------#
+                def reset_planning_scene(self):
+                        rospy.wait_for_service("/environment_server/set_planning_scene_diff")
+                        SetPlanningSceneDiffService = rospy.ServiceProxy('/environment_server/set_planning_scene_diff', SetPlanningSceneDiff)
+                        
+                        #sending empty request for triggering planning scene 
+                        planning_scene_request = SetPlanningSceneDiffRequest()
+                        planning_scene_response = SetPlanningSceneDiffService(planning_scene_request)
+                        
+                        if not planning_scene_response:
+                                        print "Can't get planning scene!"
+                
 	## Calculates a joint configuration for a given pose
 	#
 	# The reference system is "arm_7_link"
@@ -1225,15 +1225,7 @@ class simple_script_server:
 			rospy.logwarn("no actual arm joint positions received yet, using [0,0,0,0,0,0,0] as seed state")
 			self.arm_joint_positions = [0,0,0,0,0,0,0]
  			self.arm_joint_names = rospy.get_param("/arm_controller/joint_names") #TODO: switch to /arm_controller/names for compatibility with simulation
-		rospy.wait_for_service("/environment_server/set_planning_scene_diff")
-		SetPlanningSceneDiffService = rospy.ServiceProxy('/environment_server/set_planning_scene_diff', SetPlanningSceneDiff)
 		
-		#sending empty request for triggering planning scene 
-		planning_scene_request = SetPlanningSceneDiffRequest()
-		planning_scene_response = SetPlanningSceneDiffService(planning_scene_request)
-		
-		if not planning_scene_response:
-			print "Can't get planning scene!"
 		
 		# fill ik request message
 		req = GetPositionIKRequest()
