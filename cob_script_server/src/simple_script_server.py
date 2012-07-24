@@ -676,16 +676,16 @@ class simple_script_server:
 		
 		#display trajectory
 		### FOR DEBUGGING ONLY
-		display_trajectory = DisplayTrajectory()
-		display_trajectory_publisher = rospy.Publisher('joint_path_display', DisplayTrajectory)
-		display_trajectory.model_id = "arm"
-		display_trajectory.trajectory.joint_trajectory.header.frame_id = "base_link"
-		display_trajectory.trajectory.joint_trajectory.header.stamp = rospy.Time.now()
-		display_trajectory.robot_state.joint_state.name =  self.arm_joint_names
-		display_trajectory.robot_state.joint_state.position =  self.arm_joint_positions
-		display_trajectory.trajectory = resp.trajectory
-		rospy.loginfo("Publishing path for display")
-		display_trajectory_publisher.publish(display_trajectory)
+		#display_trajectory = DisplayTrajectory()
+		#display_trajectory_publisher = rospy.Publisher('joint_path_display', DisplayTrajectory)
+		#display_trajectory.model_id = "arm"
+		#display_trajectory.trajectory.joint_trajectory.header.frame_id = "base_link"
+		#display_trajectory.trajectory.joint_trajectory.header.stamp = rospy.Time.now()
+		#display_trajectory.robot_state.joint_state.name =  self.arm_joint_names
+		#display_trajectory.robot_state.joint_state.position =  self.arm_joint_positions
+		#display_trajectory.trajectory = resp.trajectory
+		#rospy.loginfo("Publishing path for display")
+		#display_trajectory_publisher.publish(display_trajectory)
 		
 		return resp.trajectory.joint_trajectory, resp.error_code
 		
@@ -811,7 +811,7 @@ class simple_script_server:
 	def move_cartesian_planned(self, component_name, parameter_name, blocking=True):
 		return self.move_pose_goal_planned(component_name,list(self.parse_cartesian_parameters(parameter_name)),blocking)
 	
-	    
+	        
 	def move_pose_goal_planned(self, component_name, parameter_name, blocking=True):
 		ah = action_handle("move_pose_goal_planned", component_name, 'pose_goal', blocking, self.parse)
 		if(self.parse):
@@ -824,22 +824,8 @@ class simple_script_server:
 			ah.set_failed(4)
 			return ah
 			
-		req = GetPoseStampedTransformedRequest()
-		req.tip_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
-		req.root_name = rospy.get_param("/cob_arm_kinematics/arm/root_name")
-		req.target, req.origin = parameter_name       
-		
-		res = GetPoseStampedTransformedResponse()
-		res.result = req.target # if transformer server should not be used
-		res.success = True                
-		#res = self.pose_transformer(req)
-		if not res.success:
-			rospy.logerr("Pose transformer failed")
-			ah.set_failed(4)
-			return ah
-			
-		pose = res.result.pose
-		pose_link = res.result.header.frame_id
+		pose, pose_origin = parameter_name
+		pose_link = pose.header.frame_id
 		goal_constraints = Constraints() #arm_navigation_msgs/Constraints
 
 		new_position_constraint = PositionConstraint()
@@ -1232,20 +1218,8 @@ class simple_script_server:
 	# \param parameter_name List, which consists of [reference system, [x,y,z],[roll,pitch,yaw]]
 	def calculate_ik(self, parameter_name=["base_footprint",[0.0, 0.0, 0.0],[0.0, 0.0, 0.0]], joint_state=None, blocking=True):
 
-		req = GetPoseStampedTransformedRequest()
-		req.tip_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
-		req.root_name = rospy.get_param("/cob_arm_kinematics/arm/root_name")
-		req.target, req.origin = self.parse_cartesian_parameters(parameter_name)       
+		pose_target, pose_origin = self.parse_cartesian_parameters(parameter_name)         
 		
-		res = GetPoseStampedTransformedResponse()
-		res.result = req.target # if transformer server should not be used
-		res.success = True                
-		#res = self.pose_transformer(req)
-		if not res.success:
-			rospy.logerr("Pose transformer failed")
-			ah.set_failed(4)
-			return ah
-
 		#check if actual arm positions were received
 		if len(self.arm_joint_positions) == 0:
 			rospy.logwarn("no actual arm joint positions received yet, using [0,0,0,0,0,0,0] as seed state")
@@ -1270,7 +1244,7 @@ class simple_script_server:
 		else:
 			req.ik_request.ik_seed_state.joint_state.name = self.arm_joint_names
 			req.ik_request.ik_seed_state.joint_state.position = self.arm_joint_positions
-		req.ik_request.pose_stamped = res.result
+		req.ik_request.pose_stamped = pose_target
 		req.timeout = rospy.Duration(10)
 		
 		# call ik service
