@@ -22,7 +22,6 @@
   <depend package="pr2_controllers_msgs"/>
   <depend package="move_base_msgs"/>
   <depend package="arm_navigation_msgs"/>
-  <depend package="cob_light"/>
   <depend package="cob_sound"/>
 
   <depend package="rostest"/>

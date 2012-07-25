@@ -1,7 +1,7 @@
 /******************************************************************************
  * \file
  *
- * $Id: init.cpp 626 2012-04-16 14:07:09Z spanel $
+ * $Id:$
  *
  * Copyright (C) Brno University of Technology
  *
@@ -9,7 +9,7 @@
  *
  * Author: Michal Spanel (spanel@fit.vutbr.cz)
  * Supervised by: Michal Spanel (spanel@fit.vutbr.cz)
- * Date: 16/04/2012
+ * Date: 02/06/2012
  * 
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,11 +25,33 @@
  * along with this file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "rviz/plugin/type_registry.h"
+#ifndef COB_INTERACTIVE_TELEOP_PARAMETERS_LIST_H
+#define COB_INTERACTIVE_TELEOP_PARAMETERS_LIST_H
 
-extern "C" void rvizPluginInit(rviz::TypeRegistry* reg)
+#include <string>
+
+namespace cob_interactive_teleop
 {
-//    reg->registerDisplay<CButCobDisplay> ("CButCobDisplay");
 
-    // There are no RViz displays to be registered for now!
+/**
+ * Names of parameters
+ */
+const std::string MAX_VEL_X_PARAM      = "max_vel_x";
+const std::string MAX_VEL_Y_PARAM      = "max_vel_y";
+const std::string MAX_VEL_TH_PARAM     = "max_vel_th";
+const std::string SCALE_LINEAR_PARAM   = "scale_linear";
+const std::string SCALE_ANGULAR_PARAM  = "scale_angular";
+
+/**
+ * Default parameter values
+ */
+const double DEFAULT_MAX_VEL_X       = 0.1;
+const double DEFAULT_MAX_VEL_Y       = 0.1;
+const double DEFAULT_MAX_VEL_TH      = 0.1;
+const double DEFAULT_SCALE_LINEAR    = 0.1;
+const double DEFAULT_SCALE_ANGULAR   = 0.1;
+
 }
+
+#endif // COB_INTERACTIVE_TELEOP_PARAMETERS_LIST_H
+

@@ -26,14 +26,33 @@
  */
 
 #include <cob_interactive_teleop/teleop_cob_marker.h>
+#include <cob_interactive_teleop/topics_list.h>
+
+//#include <iostream>
+
+using namespace interactive_markers;
+using namespace visualization_msgs;
 
 namespace cob_interactive_teleop
 {
 
 TeleopCOBMarker::TeleopCOBMarker()
 {
+  n_.param(MAX_VEL_X_PARAM, params_.max_vel_x, params_.max_vel_x);
+  n_.param(MAX_VEL_Y_PARAM, params_.max_vel_y, params_.max_vel_y);
+  n_.param(MAX_VEL_TH_PARAM, params_.max_vel_th, params_.max_vel_th);
+  n_.param(SCALE_LINEAR_PARAM, params_.scale_linear, params_.scale_linear);
+  n_.param(SCALE_ANGULAR_PARAM, params_.scale_angular, params_.scale_angular);
+
+  ROS_INFO("max vel x = %f", params_.max_vel_x);
+  ROS_INFO("max vel y = %f", params_.max_vel_y);
+  ROS_INFO("max vel th = %f", params_.max_vel_th);
+  
+  ROS_INFO("scale linear = %f", params_.scale_linear);
+  ROS_INFO("scale angular = %f", params_.scale_angular);
+
   server_.reset(new InteractiveMarkerServer("cob_interactive_teleop", "", false));
-  pub_ = n_.advertise<geometry_msgs::Twist> ("base_controller/command", 1);
+  pub_ = n_.advertise<geometry_msgs::Twist>(BASE_CONTROLLER_COMMAND_TOPIC, 1);
 
   initial_pose_ = geometry_msgs::Pose();
   initial_pose_.position.z = 0.05;
@@ -47,39 +66,17 @@ void TeleopCOBMarker::processFeedback(const visualization_msgs::InteractiveMarke
 {
   geometry_msgs::Twist twist;
 
-  // Move forward or backward
-  if (feedback->control_name == CONTROL_MOVE_NAME)
+  if (feedback->marker_name == MARKER_DRIVER_NAME)
   {
-    twist.linear.x = LINEAR_SCALE * feedback->pose.position.x;
+    twist.linear.x = limitVel(params_.scale_linear * feedback->pose.position.x, params_.max_vel_x);
+    twist.linear.y = limitVel(params_.scale_linear * feedback->pose.position.y, params_.max_vel_y);
+    twist.angular.z = limitVel(params_.scale_angular * tf::getYaw(feedback->pose.orientation), params_.max_vel_th);
   }
-  // Strafe left or right
-  else if (feedback->control_name == CONTROL_STRAFE_NAME)
+  else if (feedback->marker_name == MARKER_NAVIGATOR_NAME)
   {
-    twist.linear.y = LINEAR_SCALE * feedback->pose.position.y;
-  }
-  // Rotate
-  else if (feedback->control_name == CONTROL_ROTATE_NAME)
-    twist.angular.z = ANGULAR_SCALE * tf::getYaw(feedback->pose.orientation);
-  // Move to position
-  else if (feedback->control_name == CONTROL_NAVIGATION_NAME)
-  {
-    // Move towards the position and rotate slightly if necessary
-    if (fabs(feedback->pose.position.y) <= NAVIGATION_TRESHOLD)
-    {
-      twist.linear.x = LINEAR_SCALE * feedback->pose.position.x;
-      if (feedback->pose.position.y > 0)
-        twist.angular.z = ROTATE_ON_MOVE;
-      else if (feedback->pose.position.y < 0)
-        twist.angular.z = -ROTATE_ON_MOVE;
-    }
-    // Just rotate
-    else
-    {
-      if (feedback->pose.position.y > 0)
-        twist.angular.z = ROTATE;
-      else if (feedback->pose.position.y < 0)
-        twist.angular.z = -ROTATE;
-    }
+    // TODO: use /odom_combined frame to calculate moving direction. for now we use the y displacement for commanding the angular velocity
+    twist.linear.x = limitVel(params_.scale_linear * feedback->pose.position.x, params_.max_vel_x);
+    twist.angular.z = sign(feedback->pose.position.x) * limitVel(params_.scale_linear * feedback->pose.position.y, params_.max_vel_th);
   }
   else
     return;
@@ -89,6 +86,28 @@ void TeleopCOBMarker::processFeedback(const visualization_msgs::InteractiveMarke
   server_->setPose(MARKER_DRIVER_NAME, initial_pose_);
   server_->setPose(MARKER_NAVIGATOR_NAME, initial_pose_);
   server_->applyChanges();
+}
+
+double TeleopCOBMarker::limitVel(double vel, double limit)
+{
+	if (fabs(vel) >= limit)
+	{
+	  return limit*sign(vel);
+	}
+	else
+	{
+	  return vel;
+	}
+}
+
+int TeleopCOBMarker::sign(double value)
+{
+	if (value > 0)
+		return 1;
+	else if (value <0)
+		return -1;
+	else	
+		return 0;
 }
 
 void TeleopCOBMarker::createMarkers()
@@ -155,3 +174,4 @@ void TeleopCOBMarker::createMarkers()
 }
 
 }
+
