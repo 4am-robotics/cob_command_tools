@@ -177,7 +177,8 @@ class simple_script_server:
 		# init subscribers
 		rospy.Subscriber("/arm_controller/state", JointTrajectoryControllerState, self.sub_arm_joint_states_cb)
 		
-		self.iks = rospy.ServiceProxy('/cob_arm_kinematics/get_ik', GetPositionIK)
+		#self.iks = rospy.ServiceProxy('/cob_arm_kinematics/get_ik', GetPositionIK)
+		self.iks = rospy.ServiceProxy('/cob_arm_kinematics/get_constraint_aware_ik', GetConstraintAwarePositionIK)
 		self.pose_transformer = rospy.ServiceProxy('/cob_pose_transform/get_pose_stamped_transformed', GetPoseStampedTransformed)
 		
 		rospy.sleep(1) # we have to wait here until publishers are ready, don't ask why
@@ -891,7 +892,7 @@ class simple_script_server:
 		# convert to ROS Move arm message
 		motion_plan = MotionPlanRequest()
 		motion_plan.group_name = component_name
-		motion_plan.num_planning_attempts = 1
+		motion_plan.num_planning_attempts = 5
 		motion_plan.allowed_planning_time = rospy.Duration(50.0)
 
 		motion_plan.planner_id= ""
@@ -922,17 +923,17 @@ class simple_script_server:
 		
 		
 		
-#		print "GetPlanningScene"
-#		rospy.wait_for_service('/environment_server/get_planning_scene')
-#		get_planning_scene = rospy.ServiceProxy('/environment_server/get_planning_scene', GetPlanningScene)
-#		get_planning_scene_req = GetPlanningSceneRequest()
-#		
-#		try:
-#			get_planning_scene_res = get_planning_scene(get_planning_scene_req)
-#			print get_planning_scene_res
-#		except rospy.ServiceException, e:
-#			print "Service did not process request: %s"%str(e)
-#		
+		print "GetPlanningScene"
+		rospy.wait_for_service('/environment_server/get_planning_scene')
+		get_planning_scene = rospy.ServiceProxy('/environment_server/get_planning_scene', GetPlanningScene)
+		get_planning_scene_req = GetPlanningSceneRequest()
+		
+		try:
+			get_planning_scene_res = get_planning_scene(get_planning_scene_req)
+			print get_planning_scene_res
+		except rospy.ServiceException, e:
+			print "Service did not process request: %s"%str(e)
+		
 #		client_goal.planning_scene_diff = get_planning_scene_res.planning_scene
 #		
 #		
@@ -954,7 +955,7 @@ class simple_script_server:
 
 		
 		
-		print client_goal
+		#print client_goal
 		client.send_goal(client_goal)
 		ah.set_client(client)
 
@@ -1299,7 +1300,8 @@ class simple_script_server:
 			print "Can't get planning scene!"
 		
 		# fill ik request message
-		req = GetPositionIKRequest()
+		#req = GetPositionIKRequest()
+		req = GetConstraintAwarePositionIKRequest()
 
 		req.ik_request.ik_link_name = rospy.get_param("/cob_arm_kinematics/arm/tip_name")
 		if joint_state is not None:
@@ -1311,7 +1313,8 @@ class simple_script_server:
 		req.timeout = rospy.Duration(10)
 		
 		# call ik service
-		resp = GetPositionIKResponse()
+		#resp = GetPositionIKResponse()
+		resp = GetConstraintAwarePositionIKResponse()
 		resp.error_code.val = ArmNavigationErrorCodes.PLANNING_FAILED
 		print req
 		try:
