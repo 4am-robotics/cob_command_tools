@@ -1150,7 +1150,7 @@ class simple_script_server:
 		if(self.parse):
 			return ah
 		else:
-			ah.set_active()
+			ah.set_active(mode="system")
 		
 		language = rospy.get_param(self.ns_global_prefix + "/" + component_name + "/language","en")
 		if self.wav_path == "":
@@ -1170,9 +1170,12 @@ class simple_script_server:
 		#	return ah
 		
 		if blocking:
-			os.system("aplay -q " + filename)
+			ret = os.system("aplay -q " + filename)
+			if ret != 0:
+				ah.set_failed(99)
+				return ah
 		else:
-			os.system("aplay -q " + filename + "&")
+			os.system("aplay -q " + filename + "&") # TODO how to check if execution failed (e.g. file could be found)?
 		ah.set_succeeded()
 		return ah
 		
