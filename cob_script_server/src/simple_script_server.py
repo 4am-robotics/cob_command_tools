@@ -202,7 +202,7 @@ class simple_script_server:
 			if(self.parse):
 				return ah
 			else:
-				ah.set_active()
+				ah.set_active(mode="service")
 	
 			rospy.loginfo("<<stop>> <<%s>>", component_name)
 	
@@ -263,7 +263,7 @@ class simple_script_server:
 		if(self.parse):
 			return ah
 		else:
-			ah.set_active()
+			ah.set_active(mode="service")
 
 		rospy.loginfo("<<%s>> <<%s>>", service_name, component_name)
 		service_full_name = "/" + component_name + "_controller/" + service_name
@@ -935,7 +935,7 @@ class simple_script_server:
 		if(self.parse):
 			return ah
 		else:
-			ah.set_active()
+			ah.set_active(mode="topic")
 
 		rospy.loginfo("Move base relatively by <<%s>>", parameter_name)
 
@@ -945,12 +945,12 @@ class simple_script_server:
 			print("parameter_name must be numeric list of length 3; (relative x and y transl [m], relative rotation [rad])")
 			ah.set_failed(3)
 			return ah
-		if math.sqrt(parameter_name[0]**2 + parameter_name[1]**2) > 0.1:
+		if math.sqrt(parameter_name[0]**2 + parameter_name[1]**2) >= 0.15:
 			rospy.logerr("Maximal relative translation step exceeded, aborting move_base_rel")
 			print("Maximal relative translation step is 0.1 m")
 			ah.set_failed(3)
 			return(ah)
-		if abs(parameter_name[2]) > math.pi/2:
+		if abs(parameter_name[2]) >= math.pi/2:
 			rospy.logerr("Maximal relative rotation step exceeded, aborting move_base_rel")
 			print("Maximal relative rotation step is pi/2")
 			ah.set_failed(3)
@@ -1353,13 +1353,18 @@ class action_handle:
 		self.state_pub = rospy.Publisher("/script_server/state", ScriptState)
 		self.AppendNode(blocking)
 		self.client = actionlib.SimpleActionClient("dummy",ScriptAction)
+		self.client_state = 9
+		self.client_mode = ""
 
 	## Sets the actionlib client.
 	def set_client(self,client):
 		self.client = client
 
 	## Sets the execution state to active, if not paused
-	def set_active(self):
+	def set_active(self,mode=""):
+		if mode != "": # not processing an actionlib client
+			self.client_mode = mode
+			self.client_state = 1
 		self.check_pause()
 		self.state = ScriptState.ACTIVE
 		self.error_code = -1
@@ -1381,6 +1386,8 @@ class action_handle:
 		
 	## Sets the execution state to succeeded.
 	def set_succeeded(self):
+		if self.client_mode != "": # not processing an actionlib client
+			self.client_state = 3
 		self.state = ScriptState.SUCCEEDED
 		self.error_code = 0
 		self.PublishState()
@@ -1390,6 +1397,8 @@ class action_handle:
 		
 	## Sets the execution state to failed.
 	def set_failed(self,error_code):
+		if self.client_mode != "": # not processing an actionlib client
+			self.client_state = 4
 		self.state = ScriptState.FAILED
 		self.error_code = error_code
 		self.PublishState()
@@ -1399,7 +1408,10 @@ class action_handle:
 		
 	## Gets the state of an action handle.
 	def get_state(self):
-		return self.client.get_state()
+		if self.client_mode != "": # not processing an actionlib client
+			return self.client_state
+		else:
+			return self.client.get_state()
 
 	## Gets the error code of an action handle.
 	def get_error_code(self):
