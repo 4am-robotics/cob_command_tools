@@ -922,39 +922,6 @@ class simple_script_server:
 		client_goal.motion_plan_request = motion_plan
 		
 		
-		
-		print "GetPlanningScene"
-		rospy.wait_for_service('/environment_server/get_planning_scene')
-		get_planning_scene = rospy.ServiceProxy('/environment_server/get_planning_scene', GetPlanningScene)
-		get_planning_scene_req = GetPlanningSceneRequest()
-		
-		try:
-			get_planning_scene_res = get_planning_scene(get_planning_scene_req)
-			print get_planning_scene_res
-		except rospy.ServiceException, e:
-			print "Service did not process request: %s"%str(e)
-		
-#		client_goal.planning_scene_diff = get_planning_scene_res.planning_scene
-#		
-#		
-#		print "SetOrderedOperations"
-#		client_goal.operations.collision_operations=[]
-#		coll_op = CollisionOperation()
-#		coll_op.object1="arm"
-#		coll_op.object2="objects"
-#		coll_op.penetration_distance=0.0
-#		coll_op.operation=1
-#		client_goal.operations.collision_operations.append(coll_op)
-#		
-#		coll_op2 = CollisionOperation()
-#		coll_op2.object1="sdh"
-#		coll_op2.object2="objects"
-#		coll_op2.penetration_distance=0.0
-#		coll_op2.operation=1
-#		client_goal.operations.collision_operations.append(coll_op2)
-
-		
-		
 		#print client_goal
 		client.send_goal(client_goal)
 		ah.set_client(client)
