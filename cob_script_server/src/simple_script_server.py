@@ -74,7 +74,7 @@ import actionlib
 # msg imports
 from trajectory_msgs.msg import *
 from geometry_msgs.msg import *
-from pr2_controllers_msgs.msg import *
+#from pr2_controllers_msgs.msg import *	#replaced by control_msgs.msg (FollowJointTrajectoryAction)
 from move_base_msgs.msg import *
 from arm_navigation_msgs.msg import *
 from arm_navigation_msgs.srv import *
