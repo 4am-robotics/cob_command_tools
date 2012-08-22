@@ -18,6 +18,7 @@
   <depend package="trajectory_msgs"/>
   <depend package="kinematics_msgs"/>
   <depend package="geometry_msgs"/>
+   <depend package="control_msgs"/>
   <depend package="pr2_controllers_msgs"/>
   <depend package="move_base_msgs"/>
   <depend package="arm_navigation_msgs"/>

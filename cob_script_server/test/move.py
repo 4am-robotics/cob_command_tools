@@ -49,8 +49,10 @@ class TestMove(unittest.TestCase):
 	# test move trajectory commands
 	def test_move_traj(self):
 		component_name = "arm" # testing for component arm
-		as_name = "/" + component_name + "_controller/joint_trajectory_action"
-		self.as_server = actionlib.SimpleActionServer(as_name, JointTrajectoryAction, execute_cb=self.traj_cb, auto_start=False)
+		#as_name = "/" + component_name + "_controller/joint_trajectory_action"
+		#self.as_server = actionlib.SimpleActionServer(as_name, JointTrajectoryAction, execute_cb=self.traj_cb, auto_start=False)
+		as_name = "/" + component_name + "_controller/follow_joint_trajectory"
+		self.as_server = actionlib.SimpleActionServer(as_name, FollowJointTrajectoryAction, execute_cb=self.traj_cb, auto_start=False)
 		self.as_server.start()
 		self.cb_executed = False
 		handle = sss.move(component_name,[[0,0,0,0,0,0,0]])
@@ -59,7 +61,8 @@ class TestMove(unittest.TestCase):
 
 	def traj_cb(self, goal):
 		self.cb_executed = True
-		result = JointTrajectoryResult()
+		#result = JointTrajectoryResult()
+		result = FollowJointTrajectoryResult()
 		self.as_server.set_succeeded(result)
 	
 	# move cartesian
