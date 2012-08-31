@@ -821,7 +821,7 @@ class simple_script_server:
 		if(self.parse):
 			return ah
 		else:
-			ah.set_active()
+			ah.set_active(mode="topic")
 
 		rospy.loginfo("Set light_controller to <<%s>>",parameter_name)
 		
