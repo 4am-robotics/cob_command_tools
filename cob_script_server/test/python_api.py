@@ -10,6 +10,7 @@ import rostest
 from trajectory_msgs.msg import *
 from simple_script_server import *
 from pr2_controllers_msgs.msg import *
+from control_msgs.msg import *
 from cob_srvs.srv import *
 
 class PythonAPITest(unittest.TestCase):
@@ -35,8 +36,10 @@ class PythonAPITest(unittest.TestCase):
 		if command == "move":
 			component_name = "arm"
 			# init action server (as)
-			as_name = "/" + component_name + "_controller/joint_trajectory_action"
-			self.as_server = actionlib.SimpleActionServer(as_name, JointTrajectoryAction, execute_cb=self.as_cb)
+			##as_name = "/" + component_name + "_controller/joint_trajectory_action"
+			##self.as_server = actionlib.SimpleActionServer(as_name, JointTrajectoryAction, execute_cb=self.as_cb)
+			as_name = "/" + component_name + "_controller/follow_joint_trajectory"
+			self.as_server = actionlib.SimpleActionServer(as_name, FollowJointTrajectoryAction, execute_cb=self.as_cb)			
 			#execute test (as all components have the same trajectory interface, we only test for arm)
 			self.move_test(component_name,"home") # test trajectories with a single point (home)
 			self.move_test(component_name,"grasp-to-tray") # test trajectories with multiple points (grasp-to-tray)
@@ -170,7 +173,8 @@ class PythonAPITest(unittest.TestCase):
 					self.fail('Not the same values in point')
 		
 	def as_cb(self, goal):
-		result = JointTrajectoryResult()
+		#result = JointTrajectoryResult()
+		result = FollowJointTrajectoryResult()
 		#self.as_server.set_preempted(result)
 		self.as_cb_executed = True
 		self.traj = goal.trajectory
