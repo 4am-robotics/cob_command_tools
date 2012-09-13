@@ -1,0 +1,37 @@
+<package>
+  <description brief="cob_rviz_movement_control">
+
+     cob_rviz_movement_control
+
+  </description>
+  <author>Jonathan Schwarz</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cob_rviz_movement_control</url>
+
+  <depend package="roscpp"/>
+  <!-- <depend package="urdf"/> -->
+  <!-- <depend package="sensor_msgs"/> -->
+  <!-- <depend package="diagnostic_msgs"/> -->
+  <!-- <depend package="cob_srvs"/> -->
+  <!-- <depend package="brics_actuator"/> -->
+  <!-- <depend package="cob_trajectory_controller"/> -->
+  <!-- <depend package="cob_dashboard"/> -->
+  <!-- <depend package="cob_command_gui"/> -->
+  <depend package="actionlib"/>
+  <!-- <depend package="pr2_controllers_msgs"/> -->
+  <!-- <depend package="robot_state_publisher"/> -->
+  <depend package="rviz"/>
+  <!-- <depend package="openni_launch"/> -->
+  <depend package="cob_script_server"/>
+  <!-- <depend package="cob_3d_mapping_msgs"/>
+  <depend package="cob_3d_mapping_pipeline"/> -->
+  
+  <export>
+  	  <rviz plugin="${prefix}/lib/plugin.yaml"/>
+	 <!-- <rviz plugin="${prefix}/plugin_description.xml"/>  ??? -->
+  </export>
+
+</package>
+
+

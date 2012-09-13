@@ -1,0 +1,11 @@
+name: cob_rviz_movement_control
+library: cob_rviz_movement_control
+displays:
+  -
+    class_name: RvizMovementButtons
+    display_name: RvizMovementButtons
+    description: |
+      Buttons to control the robot in rviz
+
+
+      
