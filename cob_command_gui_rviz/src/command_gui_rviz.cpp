@@ -1,4 +1,4 @@
-#include "cob_command_gui_rviz/rviz_movement_buttons.h"
+#include "cob_command_gui_rviz/command_gui_rviz.h"
 
 #include "rviz/visualization_manager.h"     
 #include "rviz/window_manager_interface.h" 
@@ -7,7 +7,7 @@ namespace rviz
 {
 	
 	//constructor
-	RvizMovementButtons::RvizMovementButtons(const std::string &name, VisualizationManager* manager):
+	CommandGuiRviz::CommandGuiRviz(const std::string &name, VisualizationManager* manager):
 	Display(name, manager),
 	frame_(0)
 	{
@@ -26,7 +26,7 @@ namespace rviz
 			parent = frame_;		
 		}
 		
-		panel_ = new RvizMovementButtonsPanel(parent, wxString());
+		panel_ = new CommandGuiRvizPanel(parent, wxString());
 		
 		if(wm)
 		{
@@ -35,12 +35,12 @@ namespace rviz
 	}
 	
 	//destructor
-	RvizMovementButtons::~RvizMovementButtons()
+	CommandGuiRviz::~CommandGuiRviz()
 	{
 	}
 
 	//show panel
-	void RvizMovementButtons::onEnable()
+	void CommandGuiRviz::onEnable()
 	{
 		if(frame_)
 		{
@@ -54,7 +54,7 @@ namespace rviz
 	}
 	
 	//hide panel
-	void RvizMovementButtons::onDisable()
+	void CommandGuiRviz::onDisable()
 	{
 		if(frame_)
 		{

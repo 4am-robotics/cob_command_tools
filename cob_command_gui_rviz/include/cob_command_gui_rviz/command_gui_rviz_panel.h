@@ -1,5 +1,5 @@
-#ifndef RVIZ_MOVEMENT_BUTTONS_PANEL_H
-#define RVIZ_MOVEMENT_BUTTONS_PANEL_H
+#ifndef COMMAND_GUI_RVIZ_PANEL_H
+#define COMMAND_GUI_RVIZ_PANEL_H
 
 #include <wx/panel.h>
 #include <wx/button.h>
@@ -26,12 +26,12 @@ namespace rviz
 	typedef std::vector<wxSizer*> Sizerlist;
 	typedef std::list<std::string> Stringlist;
 
-	class RvizMovementButtonsPanel : public wxPanel
+	class CommandGuiRvizPanel : public wxPanel
 	{
 	public:
 		
-		RvizMovementButtonsPanel(wxWindow *parent, const wxString&title);
-		~RvizMovementButtonsPanel();
+		CommandGuiRvizPanel(wxWindow *parent, const wxString&title);
+		~CommandGuiRvizPanel();
 	
 	protected:	 	    
 		
@@ -73,7 +73,7 @@ namespace rviz
 	private:
 		//some typecast-functions
 		inline wxString TowxString(const std::string &temp) const;
-		inline std::string TostlString(const std::string &temp = "", const wxString &wxtemp =wxT("")) const;
+		inline std::string TostlString(XmlRpc::XmlRpcValue temp = XmlRpc::XmlRpcValue(), wxString wxtemp = wxString()) const;
 	};
 }
 

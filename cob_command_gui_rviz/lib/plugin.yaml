@@ -2,7 +2,7 @@ name: cob_command_gui_rviz
 library: cob_command_gui_rviz
 displays:
   -
-    class_name: RvizMovementButtons
+    class_name: CommandGuiRviz
     display_name: cob_command_gui_rviz
     description: |
       the cob_command_gui as a rviz plugin

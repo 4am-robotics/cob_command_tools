@@ -1,5 +1,5 @@
-#ifndef RVIZ_MOVEMENT_BUTTONS_H
-#define RVIZ_MOVEMENT_BUTTONS_H
+#ifndef COMMAND_GUI_RVIZ_H
+#define COMMAND_GUI_RVIZ_H
 
 #include <wx/wx.h>
 #include <wx/dialog.h>
@@ -9,16 +9,16 @@
 
 #include <string.h>
 
-#include "cob_command_gui_rviz/rviz_movement_buttons_panel.h"
+#include "cob_command_gui_rviz/command_gui_rviz_panel.h"
 
 namespace rviz
 {
-	class RvizMovementButtons : public Display
+	class CommandGuiRviz : public Display
 	{
 	public:
 	
-	    RvizMovementButtons(const std::string& name, VisualizationManager* manager);
-	    ~RvizMovementButtons();
+	    CommandGuiRviz(const std::string& name, VisualizationManager* manager);
+	    ~CommandGuiRviz();
 	    
 	    void onEnable();
 	    void onDisable();
@@ -34,7 +34,7 @@ namespace rviz
 	
 	protected:
 		
-	    RvizMovementButtonsPanel *panel_;
+	    CommandGuiRvizPanel *panel_;
 	    wxFrame *frame_;
 	};
 }
