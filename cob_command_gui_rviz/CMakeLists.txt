@@ -44,4 +44,4 @@ include_directories( ${wxWidgets_INCLUDE_DIRS} )
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-rosbuild_add_roslaunch_check(launch/startup.launch ROBOT=cob3-3)
+rosbuild_add_roslaunch_check(launch/startup.launch)
