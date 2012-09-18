@@ -25,7 +25,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
 #add project executables
-rosbuild_add_library(cob_rviz_movement_control 
+rosbuild_add_library(cob_command_gui_rviz 
     src/rviz_movement_buttons.cpp
     src/rviz_movement_buttons_panel.cpp
     src/init.cpp)

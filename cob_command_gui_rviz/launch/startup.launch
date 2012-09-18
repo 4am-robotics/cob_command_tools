@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<!--Launchfile for RvizMovementbuttons plugin-->
+<!--Launchfile for cob_command_gui_rviz-->
 
 <launch>		
 		<!-- upload button parameters, but delete the old ones before -->

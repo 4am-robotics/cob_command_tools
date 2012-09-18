@@ -2,7 +2,7 @@
 \mainpage
 \htmlinclude manifest.html
 
-\b cob_rviz_movement_control is ... 
+\b cob_command_gui_rviz is ... 
 
 <!-- 
 Provide an overview of your package.

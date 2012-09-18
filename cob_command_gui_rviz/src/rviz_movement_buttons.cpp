@@ -1,4 +1,4 @@
-#include "cob_rviz_movement_control/rviz_movement_buttons.h"
+#include "cob_command_gui_rviz/rviz_movement_buttons.h"
 
 #include "rviz/visualization_manager.h"     
 #include "rviz/window_manager_interface.h" 
@@ -11,7 +11,7 @@ namespace rviz
 	Display(name, manager),
 	frame_(0)
 	{
-		// Create controls
+		//create controls
 		wxWindow* parent = 0;
 		
 		WindowManagerInterface* wm = vis_manager_->getWindowManager();
@@ -34,10 +34,12 @@ namespace rviz
 		}
 	}
 	
+	//destructor
 	RvizMovementButtons::~RvizMovementButtons()
 	{
 	}
 
+	//show panel
 	void RvizMovementButtons::onEnable()
 	{
 		if(frame_)
@@ -51,6 +53,7 @@ namespace rviz
 		}
 	}
 	
+	//hide panel
 	void RvizMovementButtons::onDisable()
 	{
 		if(frame_)

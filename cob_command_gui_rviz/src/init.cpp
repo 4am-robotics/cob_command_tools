@@ -1,6 +1,6 @@
 #include "rviz/plugin/type_registry.h"
 
-#include "cob_rviz_movement_control/rviz_movement_buttons.h"
+#include "cob_command_gui_rviz/rviz_movement_buttons.h"
 
 extern "C" void rvizPluginInit(rviz::TypeRegistry* reg)
 {

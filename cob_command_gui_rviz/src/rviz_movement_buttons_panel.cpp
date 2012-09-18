@@ -1,8 +1,6 @@
-#include "cob_rviz_movement_control/rviz_movement_buttons_panel.h"
+#include "cob_command_gui_rviz/rviz_movement_buttons_panel.h"
 
 #include <wx/event.h>
-#include <wx/filedlg.h>
-#include <pthread.h>
 #include <XmlRpcValue.h>
 
 namespace rviz
@@ -22,30 +20,14 @@ namespace rviz
 			Creategui();		
 		
 			//initialze the action client
-			action_client_ = new actionlib::SimpleActionClient<cob_script_server::ScriptAction>("cob_rviz_movement_control", true);		
+			action_client_ = new actionlib::SimpleActionClient<cob_script_server::ScriptAction>("cob_command_gui_rviz", true);		
 		}
 		else
 		{
-			//no parameter available -> launch startup file
-		    system("roslaunch cob_rviz_movement_control startup.launch");
-			
-			//check again
-			if(false != Getparams())
-			{
-				//create graphical user interface
-				Creategui();		
-		
-				//initialze the action client
-				action_client_ = new actionlib::SimpleActionClient<cob_script_server::ScriptAction>("cob_rviz_movement_control", true);	
-			}
-			else
-			{
 				//still no parameter available -> Error message
 				statuslabel_ = new wxStaticText(this, wxID_ANY, wxT("\n\tStatus: Error - Parameter does not exist on ROS Parameter Server! \n\n"));
 				statuslabel_->SetForegroundColour(wxColor(255,0,0));		
-			}
 		}	
-		
     }
 
 	//destructor
@@ -64,11 +46,7 @@ namespace rviz
 		
 		if(false == (ros::param::has(param_prefix)))
 		{
-			if(2 == ++failed_attempts)
-			{
-				ROS_DEBUG_ONCE("Parameter '%s' does not exist on ROS Parameter Server, aborting...", param_prefix.c_str());		
-				ROS_INFO("Parameter '%s' does not exist on ROS Parameter Server, aborting...", param_prefix.c_str());		
-			}
+			ROS_DEBUG_ONCE("Parameter '%s' does not exist on ROS Parameter Server, aborting...\n", param_prefix.c_str());			
 			return false;			
 		}
 		
@@ -92,7 +70,7 @@ namespace rviz
 		    buttons  = current_group["buttons"];
 	        group_name = current_group["group_name"];
 		    component_name  = current_group["component_name"];	
-		    static int id = 201;    		        		    
+		    static int id = 101;    		        		    
 		 	 
 			Buttonlist current_buttons;	
 			
@@ -181,13 +159,14 @@ namespace rviz
 				} 
 				else
 				{
-					ROS_DEBUG_ONCE("parameter %s does not exist on ROS Parameter Server, no nav buttons will be available.", param_prefix.c_str());		
+					ROS_DEBUG_ONCE("parameter %s does not exist on ROS Parameter Server, no nav buttons will be available!\n", param_prefix.c_str());		
 				}
 			}
-				
-			groups_[TostlString(group_name)] = current_buttons;
+			
+			groups_.push_back(std::pair<std::string, Buttonlist>(TostlString(group_name),current_buttons));
 		}				
 		
+		//uniquify lists
 		stop_buttons_.unique();
 		init_buttons_.unique();
 		recover_buttons_.unique();
@@ -201,18 +180,11 @@ namespace rviz
 		//main sizer
 		wxSizer *mainsizer = new wxBoxSizer(wxHORIZONTAL);
 		
-		//wxSizer *tempsizer = new wxBoxSizer(wxVERTICAL);
-		
-		//tempsizer->Add(createsbGeneral(), 1, wxEXPAND | wxBOTTOM, 10);
-		//tempsizer->Add(createsbSMACH(), 1, wxEXPAND | wxTOP, 10);
-		
-		//sizers_.push_back(tempsizer);
-		
 		//create general box
 		sizers_.push_back(CreatesbGeneral());
 		
 		//create boxes and buttons inside them
-		for(Groupdict::const_iterator group_ci = groups_.begin(); group_ci != groups_.end(); group_ci++)
+		for(Grouplist::const_iterator group_ci = groups_.begin(); group_ci != groups_.end(); group_ci++)
 		{
 			wxSizer *vsizer = new wxStaticBoxSizer(wxVERTICAL, this, TowxString(group_ci->first));
 			
@@ -240,7 +212,7 @@ namespace rviz
 		//Widget IDs
 		const int GENIDs[7] = {001, 002, 003, 004, 005, 006, 007};		
 		
-		wxSizer *vsizer = new wxStaticBoxSizer(wxVERTICAL, this, wxT("General"));
+		wxSizer *vsizer = new wxStaticBoxSizer(wxVERTICAL, this, wxT("general"));
 		
 		statuslabel_            = new wxStaticText(this, wxID_ANY, wxT("\n Status: OK"));
 		cbPlanning_		        = new wxCheckBox(this, GENIDs[0], wxT("Planning"));
@@ -274,34 +246,6 @@ namespace rviz
 		
 		return vsizer;
 	}
-
-	//creates the 'SMACH' box with predefined widgets
-	wxSizer* RvizMovementButtonsPanel::CreatesbSMACH()
-	{
-		//Widget IDs
-		const int SMACHIDs[2] = {101, 102};		
-		
-		wxSizer *vsizer         = new wxStaticBoxSizer(wxVERTICAL, this, wxT("SMACH"));
-
-		wxStaticText *status    = new wxStaticText(this, wxID_ANY, wxT("\n no file selected"));
-		wxButton *loadsmach     = new wxButton(this, SMACHIDs[5], wxT("load"), wxDefaultPosition, /*wxDefaultSize*/wxSize(30,29), wxBU_EXACTFIT);
-		wxButton *runsmach      = new wxButton(this, SMACHIDs[6], wxT("run"), wxDefaultPosition, /*wxDefaultSize*/wxSize(30,29), wxBU_EXACTFIT);
-		//wxFileDialog *openFile  = new wxFileDialog(this);
-		
-		loadsmach->Enable(true); 
-		runsmach->Enable(true);
-		/*
-		//connect buttons to event handler
-		Connect(GENIDs[2], wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(RvizMovementButtonsPanel::OnStopAll));
-		Connect(GENIDs[3], wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(RvizMovementButtonsPanel::OnInitAll));
-		Connect(GENIDs[4], wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(RvizMovementButtonsPanel::OnRecoverAll));
-		*/
-		vsizer->Add(status, 0, wxEXPAND);
-		vsizer->Add(loadsmach, 0, wxEXPAND);
-		vsizer->Add(runsmach, 0, wxEXPAND);
-		
-		return vsizer;
-	}
  
 	//creates a 'Button_Description'
 	Button_Description RvizMovementButtonsPanel::Descripe_button(const int &ID, XmlRpc::XmlRpcValue data, const std::string &component_name) const
@@ -317,7 +261,7 @@ namespace rviz
 		return btn;
 	}
 	
-	//adds a visual wxButton and connects it to a event-handling function
+	//creates a wxButton and connects it to a event-handler
 	wxButton* RvizMovementButtonsPanel::AddButton(const int &ID, const wxString &name)
 	{
 		wxButton *but = new wxButton(this, ID, name, wxDefaultPosition, wxSize(30,29)/*wxDefaultSize*/, wxBU_EXACTFIT, wxDefaultValidator, name);
@@ -337,16 +281,16 @@ namespace rviz
 		
 		pressed_button.id = event.GetId();
 		
-		//use the event id to get more information about the pressed button		
-		for(Groupdict::const_iterator group_ci = groups_.begin(); group_ci != groups_.end(); group_ci++)
+		//use the button_id to get more information about the pressed button		
+		for(Grouplist::const_iterator group_ci = groups_.begin(); group_ci != groups_.end(); group_ci++)
 		{
 			for(Buttonlist::const_iterator button_ci = group_ci->second.begin(); button_ci != group_ci->second.end(); button_ci++)
 			{
 				if((button_ci->id == pressed_button.id))
 				{
-					pressed_button.button_name = (button_ci->button_name);
-					pressed_button.function_name = (button_ci->function_name);
-					pressed_button.args = (button_ci->args);
+					pressed_button.button_name = button_ci->button_name;
+					pressed_button.function_name = button_ci->function_name;
+					pressed_button.args = button_ci->args;
 					group_name = group_ci->first;
 				}
 			}
@@ -386,9 +330,18 @@ namespace rviz
 		}
 		
 		ROS_INFO("Current State: %s\n", action_client_->getState().toString().c_str());
+		
+		if("SUCCEEDED" != action_client_->getState().toString())
+		{		
+			//set status to 'no connection'
+			statuslabel_->SetLabel(wxT("\nStatus: \nno connect. to action server!\n\n"));
+			statuslabel_->SetForegroundColour(wxColor(255,0,0));
+			
+			this->GetSizer()->Layout();
+		}
 	}
 	
-	//event handler for the general 'stop all' Button
+	//event handler for the 'stop all' Button
 	void RvizMovementButtonsPanel::OnStopAll(wxCommandEvent &event)
 	{
 		cob_script_server::ScriptGoal goal;
@@ -406,21 +359,26 @@ namespace rviz
 		    if("SUCCEEDED" != action_client_->getState().toString())
 		    {
 				success = false;
-				ROS_INFO("Warning: Component %s not properly stopped", goal.component_name.c_str());
+				ROS_INFO("Warning: Component %s not properly stopped\n", goal.component_name.c_str());
 			}
 		}
 		
 		if(false != success)
 		{ 
-			ROS_INFO("All components stopped");
+			ROS_INFO("All components stopped\n");
 		}
 		else
 		{
-			ROS_INFO("Error during stop!");
+			//set status to 'no connection'
+			statuslabel_->SetLabel(wxT("\nStatus: \nno connect. to action server!\n\n"));
+			statuslabel_->SetForegroundColour(wxColor(255,0,0));
+			
+			this->GetSizer()->Layout();
+			ROS_DEBUG_ONCE("Error during stop! - no connection to action server!\n");
 		}
 	}
 	
-	//event handler for the general 'init all' Button
+	//event handler for the 'init all' Button
 	void RvizMovementButtonsPanel::OnInitAll(wxCommandEvent &event)
 	{
 		cob_script_server::ScriptGoal goal;
@@ -438,21 +396,26 @@ namespace rviz
 		    if("SUCCEEDED" != action_client_->getState().toString())
 		    {
 				success = false;
-				ROS_INFO("Warning: Component %s not properly initialized", goal.component_name.c_str());
+				ROS_INFO("Warning: Component %s not properly initialized\n", goal.component_name.c_str());
 			}
 		}
 		
 		if(false != success)
 		{ 
-			ROS_INFO("All components initialized");
+			ROS_INFO("All components initialized\n");
 		}
 		else
 		{
-			ROS_INFO("Error during initialization!");
+			//set status to 'no connection'
+			statuslabel_->SetLabel(wxT("\nStatus: \nno connect. to action server!\n\n"));
+			statuslabel_->SetForegroundColour(wxColor(255,0,0));
+			this->GetSizer()->Layout();
+			
+			ROS_DEBUG_ONCE("Error during initialization! - no connection to action server!\n");
 		}
 	}
 	
-	//event handler for the general 'recover all' Button
+	//event handler for the 'recover all' Button
 	void RvizMovementButtonsPanel::OnRecoverAll(wxCommandEvent &event)
 	{
 		cob_script_server::ScriptGoal goal;
@@ -470,17 +433,22 @@ namespace rviz
 		    if("SUCCEEDED" != action_client_->getState().toString())
 		    {
 				success = false;
-				ROS_INFO("Warning: Component %s not properly recovered", goal.component_name.c_str());
+				ROS_INFO("Warning: Component %s not properly recovered\n", goal.component_name.c_str());
 			}
 		}
 		
 		if(false != success)
 		{ 
-			ROS_INFO("All components recovered");
+			ROS_INFO("All components recovered\n");
 		}
 		else
 		{
-			ROS_INFO("Error during recovery!");
+			//set status to 'no connection'
+			statuslabel_->SetLabel(wxT("\nStatus: \nno connect. to action server!\n\n"));
+			statuslabel_->SetForegroundColour(wxColor(255,0,0));
+			this->GetSizer()->Layout();
+			
+			ROS_DEBUG_ONCE("Error during recovery! - no connection to action server!\n");
 		}
 	}
 	
@@ -513,7 +481,7 @@ namespace rviz
 	{	
 		if(false == wxtemp.IsEmpty())
 		{
-			return (std::string(wxtemp.mb_str()));
+			return std::string(wxtemp.mb_str());
 		}
 		else
 		{
@@ -524,4 +492,5 @@ namespace rviz
 	}
 
 }
+
 

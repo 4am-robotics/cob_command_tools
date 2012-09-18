@@ -9,42 +9,35 @@
 
 #include <string.h>
 
-#include "cob_rviz_movement_control/rviz_movement_buttons_panel.h"
+#include "cob_command_gui_rviz/rviz_movement_buttons_panel.h"
 
 namespace rviz
 {
 	class RvizMovementButtons : public Display
 	{
-	
 	public:
-	    //constructor 
+	
 	    RvizMovementButtons(const std::string& name, VisualizationManager* manager);
 	    ~RvizMovementButtons();
 	    
 	    void onEnable();
 	    void onDisable();
 	    
-	    
-	    //nötig?
 	    void targetFrameChanged()
 	    {
 	    }
-	    //nötig?
+	    
 	    void fixedFrameChanged()
 	    {
 	    }
-		
+	   
+	
 	protected:
 		
-	    //ros::ServiceServer service_start_;
-	    //ros::ServiceServer service_timeout_;
-		
 	    RvizMovementButtonsPanel *panel_;
-		
 	    wxFrame *frame_;
-		
-	};//RvizMovementButtons
-	
+	};
 }
 
-#endif //RVIZ_MOVEMENT_BUTTONS_H
+#endif 
+
