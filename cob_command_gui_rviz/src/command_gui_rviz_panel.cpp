@@ -1,56 +1,56 @@
 #include "cob_command_gui_rviz/command_gui_rviz_panel.h"
 
 #include <wx/event.h>
-#include <XmlRpcValue.h>
+#include <xmlrpcvalue.h>
 
 namespace rviz
 {	
 	
 	//constructor
-	CommandGuiRvizPanel::CommandGuiRvizPanel(wxWindow *parent, const wxString& title):
-	wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, title),
+	commandguirvizpanel::commandguirvizpanel(wxwindow *parent, const wxstring& title):
+	wxpanel(parent, wxid_any, wxdefaultposition, wxdefaultsize, wxtab_traversal, title),
 	planning_enabled(false),
 	base_diff_enabled(false)
 	{		
-		//try to load button parameters from ROS Parameter Server
-		if(false != Getparams())
+		//try to load button parameters from ros parameter server
+		if(false != getparams())
 		{
 			//create graphical user interface
-			Creategui();		
+			creategui();		
 		
 			//initialze the action client
-			action_client_ = new actionlib::SimpleActionClient<cob_script_server::ScriptAction>("cob_command_gui_rviz", true);		
+			action_client_ = new actionlib::simpleactionclient<cob_script_server::scriptaction>("cob_command_gui_rviz", true);		
 		}
 		else
 		{
-			//no parameter available -> Error message
-			statuslabel_ = new wxStaticText(this, wxID_ANY, wxT("\n\tStatus: Error - Parameter does not exist on ROS Parameter Server! \n\n"));	
+			//no parameter available -> error message
+			statuslabel_ = new wxstatictext(this, wxid_any, wxt("\n\tstatus: error - parameter does not exist on ros parameter server! \n\n"));	
 		}	
 	}
 
 	//destructor
-	CommandGuiRvizPanel::~CommandGuiRvizPanel() 
+	commandguirvizpanel::~commandguirvizpanel() 
 	{
 	}
 	
-	//try to load button parameters from ROS Parameter Server
-	bool CommandGuiRvizPanel::Getparams()
+	//try to load button parameters from ros parameter server
+	bool commandguirvizpanel::getparams()
 	{	
 		std::string param_prefix = "/control_buttons";		
 		
 		if(false == (ros::param::has(param_prefix)))
 		{
-			ROS_DEBUG_ONCE("Parameter '%s' does not exist on ROS Parameter Server, aborting...\n", param_prefix.c_str());			
+			ros_debug_once("parameter '%s' does not exist on ros parameter server, aborting...\n", param_prefix.c_str());			
 			return false;			
 		}
 		
-		XmlRpc::XmlRpcValue group_param;
-        ros::param::get(param_prefix, group_param);
+		xmlrpc::xmlrpcvalue group_param;
+		ros::param::get(param_prefix, group_param);
 				
-		XmlRpc::XmlRpcValue current_group;
-		XmlRpc::XmlRpcValue buttons;
-		XmlRpc::XmlRpcValue group_name;
-		XmlRpc::XmlRpcValue component_name;
+		xmlrpc::xmlrpcvalue current_group;
+		xmlrpc::xmlrpcvalue buttons;
+		xmlrpc::xmlrpcvalue group_name;
+		xmlrpc::xmlrpcvalue component_name;
 		
 		std::string groupkey = "groupx";
 
@@ -61,27 +61,27 @@ namespace rviz
 			 
 			current_group = group_param[groupkey];
 			 
-		    buttons  = current_group["buttons"];
-	        group_name = current_group["group_name"];
-		    component_name  = current_group["component_name"];	
-		    static int id = 101;    		        		    
+			buttons  = current_group["buttons"];
+			group_name = current_group["group_name"];
+			component_name  = current_group["component_name"];	
+			static int id = 101;    		        		    
 		 	 
-			Buttonlist current_buttons;	
+			buttonlist current_buttons;	
 					 
 			// create buttons in group		 
-		    for(int j=0; j < buttons.size(); j++)
-		    {
+			for(int j=0; j < buttons.size(); j++)
+			{
 				if(buttons[j][1] == "move")
 				{
-					current_buttons.push_back(Descripe_button(id, buttons[j], component_name));
+					current_buttons.push_back(descripe_button(id, buttons[j], component_name));
 				}				
 				else if(buttons[j][1] == "move_base_rel")
 				{
-					current_buttons.push_back(Descripe_button(id, buttons[j], component_name));
+					current_buttons.push_back(descripe_button(id, buttons[j], component_name));
 				}
 				else if(buttons[j][1] == "trigger")
 				{
-					current_buttons.push_back(Descripe_button(id, buttons[j], component_name));
+					current_buttons.push_back(descripe_button(id, buttons[j], component_name));
 					
 					if(buttons[j][2] == "stop")
 					{
@@ -99,17 +99,17 @@ namespace rviz
 				}
 				else if(buttons[j][1] == "stop")
 				{
-					current_buttons.push_back(Descripe_button(id, buttons[j], component_name));
+					current_buttons.push_back(descripe_button(id, buttons[j], component_name));
 					stop_buttons_.push_back(component_name);
 				}
 				else if(buttons[j][1] == "mode")
 				{
-					current_buttons.push_back(Descripe_button(id, buttons[j], component_name));
+					current_buttons.push_back(descripe_button(id, buttons[j], component_name));
 				}
 				else 
 				{
 					std::string fail = buttons[j][1];
-					ROS_DEBUG_ONCE("Function %s not known to rviz_movement_buttons panel", fail.c_str());
+					ros_debug_once("function %s not known to rviz_movement_buttons panel", fail.c_str());
 				}		
 						
 				id++;												 
@@ -118,14 +118,14 @@ namespace rviz
 			
 			
 			//add nav buttons (optional)		
-			if("base" == TostlString(component_name))
+			if("base" == tostlstring(component_name))
 			{
 				param_prefix = "/nav_buttons";
 				
 				if(false != (ros::param::has(param_prefix)))
 				{
-					XmlRpc::XmlRpcValue nav_buttons_param;
-					XmlRpc::XmlRpcValue nav_buttons;
+					xmlrpc::xmlrpcvalue nav_buttons_param;
+					xmlrpc::xmlrpcvalue nav_buttons;
 					
 					ros::param::get(param_prefix, nav_buttons_param);
 					
@@ -133,17 +133,17 @@ namespace rviz
 					
 					for(int k=0; k < nav_buttons.size(); k++)
 					{
-						current_buttons.push_back(Descripe_button(id, nav_buttons[k], component_name));	
+						current_buttons.push_back(descripe_button(id, nav_buttons[k], component_name));	
 						id++;
 					}
 				} 
 				else
 				{
-					ROS_DEBUG_ONCE("parameter %s does not exist on ROS Parameter Server, no nav buttons will be available!\n", param_prefix.c_str());		
+					ros_debug_once("parameter %s does not exist on ros parameter server, no nav buttons will be available!\n", param_prefix.c_str());		
 				}
 			}
 			
-			groups_.push_back(std::pair<std::string, Buttonlist>(TostlString(group_name),current_buttons));
+			groups_.push_back(std::pair<std::string, buttonlist>(tostlstring(group_name),current_buttons));
 		}				
 		
 		//uniquify lists
@@ -155,116 +155,116 @@ namespace rviz
 	}	
 	
 	//creates the graphical user interface
-	void CommandGuiRvizPanel::Creategui()
+	void commandguirvizpanel::creategui()
 	{	
 		//main sizer
-		wxSizer *mainsizer = new wxBoxSizer(wxHORIZONTAL);
+		wxsizer *mainsizer = new wxboxsizer(wxhorizontal);
 		
 		//create general box
-		sizers_.push_back(CreatesbGeneral());
+		sizers_.push_back(createsbgeneral());
 		
 		//create boxes and buttons inside them
-		for(Grouplist::const_iterator group_ci = groups_.begin(); group_ci != groups_.end(); group_ci++)
+		for(grouplist::const_iterator group_ci = groups_.begin(); group_ci != groups_.end(); group_ci++)
 		{
-			wxSizer *vsizer = new wxStaticBoxSizer(wxVERTICAL, this, TowxString(group_ci->first));
+			wxsizer *vsizer = new wxstaticboxsizer(wxvertical, this, towxstring(group_ci->first));
 			
-			for(Buttonlist::const_iterator button_ci = (group_ci->second).begin(); button_ci != (group_ci->second).end(); button_ci++)
+			for(buttonlist::const_iterator button_ci = (group_ci->second).begin(); button_ci != (group_ci->second).end(); button_ci++)
 			{				
-				vsizer->Add(AddButton(button_ci->id, TowxString(button_ci->button_name)), 0, wxEXPAND);		
+				vsizer->add(addbutton(button_ci->id, towxstring(button_ci->button_name)), 0, wxexpand);		
 			}
 			
 			sizers_.push_back(vsizer);
 		}
 		
-		//add staticboxsizer to mainsizer
-	  	for(unsigned int i = 0; i < sizers_.size(); i++)
-	    {
-			mainsizer->Add(sizers_[i], 1, wxEXPAND);
+		//add each groupsizer to the mainsizer
+		for(unsigned int i = 0; i < sizers_.size(); i++)
+		{
+			mainsizer->add(sizers_[i], 1, wxexpand);
 		}	
 		
-		mainsizer->SetSizeHints(this);
-		this->SetSizerAndFit(mainsizer);
+		mainsizer->setsizehints(this);
+		this->setsizerandfit(mainsizer);
 	}
 	
 	//creates the 'general' box with predefined widgets
-	wxSizer* CommandGuiRvizPanel::CreatesbGeneral()
+	wxsizer* commandguirvizpanel::createsbgeneral()
 	{			
-		//Widget IDs
-		const int GENIDs[5] = {001, 002, 003, 004, 005};		
+		//widget ids
+		const int genids[5] = {001, 002, 003, 004, 005};		
 		
-		wxSizer *vsizer = new wxStaticBoxSizer(wxVERTICAL, this, wxT("general"));
+		wxsizer *vsizer = new wxstaticboxsizer(wxvertical, this, wxt("general"));
 		
-		statuslabel_            = new wxStaticText(this, wxID_ANY, wxT("\n Status: OK"));
-		cbPlanning_		        = new wxCheckBox(this, GENIDs[0], wxT("Planning"));
-		cbBaseDiff_		  	    = new wxCheckBox(this, GENIDs[1], wxT("Base Diff"));
+		statuslabel_	= new wxstatictext(this, wxid_any, wxt("\n status: ok"));
+		cbplanning_		= new wxcheckbox(this, genids[0], wxt("planning"));
+		cbbasediff_		= new wxcheckbox(this, genids[1], wxt("base diff"));
 		
-		wxButton *btnStopAll    = new wxButton(this, GENIDs[2], wxT("stop all"), wxDefaultPosition, /*wxDefaultSize*/wxSize(30,29), wxBU_EXACTFIT);
-		wxButton *btnInitAll    = new wxButton(this, GENIDs[3], wxT("init all"), wxDefaultPosition, /*wxDefaultSize*/wxSize(30,29), wxBU_EXACTFIT);
-		wxButton *btnRecoverAll = new wxButton(this, GENIDs[4], wxT("recover all"), wxDefaultPosition, /*wxDefaultSize*/wxSize(30,29), wxBU_EXACTFIT);		
+		wxbutton *btnstopall	= new wxbutton(this, genids[2], wxt("stop all"), wxdefaultposition, /*wxdefaultsize*/wxsize(30,29), wxbu_exactfit);
+		wxbutton *btninitall	= new wxbutton(this, genids[3], wxt("init all"), wxdefaultposition, /*wxdefaultsize*/wxsize(30,29), wxbu_exactfit);
+		wxbutton *btnrecoverall	= new wxbutton(this, genids[4], wxt("recover all"), wxdefaultposition, /*wxdefaultsize*/wxsize(30,29), wxbu_exactfit);		
 		
-		btnStopAll->Enable(true);
-		btnInitAll->Enable(true);	
-		btnRecoverAll->Enable(true);
+		btnstopall->enable(true);
+		btninitall->enable(true);	
+		btnrecoverall->enable(true);
 		
 		//connect checkboxes to event handler
-		Connect(GENIDs[0], wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler(CommandGuiRvizPanel::Planned_toggle));
-		Connect(GENIDs[1], wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler(CommandGuiRvizPanel::Base_mode_toggle));
+		connect(genids[0], wxevt_command_checkbox_clicked, wxcommandeventhandler(commandguirvizpanel::planned_toggle));
+		connect(genids[1], wxevt_command_checkbox_clicked, wxcommandeventhandler(commandguirvizpanel::base_mode_toggle));
 		
 		//connect buttons to event handler
-		Connect(GENIDs[2], wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(CommandGuiRvizPanel::OnStopAll));
-		Connect(GENIDs[3], wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(CommandGuiRvizPanel::OnInitAll));
-		Connect(GENIDs[4], wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(CommandGuiRvizPanel::OnRecoverAll));
+		connect(genids[2], wxevt_command_button_clicked, wxcommandeventhandler(commandguirvizpanel::onstopall));
+		connect(genids[3], wxevt_command_button_clicked, wxcommandeventhandler(commandguirvizpanel::oninitall));
+		connect(genids[4], wxevt_command_button_clicked, wxcommandeventhandler(commandguirvizpanel::onrecoverall));
 
 
-		vsizer->Add(statuslabel_, 0, wxEXPAND);
-		vsizer->Add(btnStopAll, 0, wxEXPAND);
-		vsizer->Add(btnInitAll, 0, wxEXPAND);
-		vsizer->Add(btnRecoverAll, 0, wxEXPAND);
+		vsizer->add(statuslabel_, 0, wxexpand);
+		vsizer->add(btnstopall, 0, wxexpand);
+		vsizer->add(btninitall, 0, wxexpand);
+		vsizer->add(btnrecoverall, 0, wxexpand);
 		
-		vsizer->Add(cbPlanning_, 0, wxEXPAND);
-		vsizer->Add(cbBaseDiff_, 0, wxEXPAND);	
+		vsizer->add(cbplanning_, 0, wxexpand);
+		vsizer->add(cbbasediff_, 0, wxexpand);	
 		
 		return vsizer;
 	}
  
-	//creates a 'Button_Description'
-	Button_Description CommandGuiRvizPanel::Descripe_button(const int &ID, XmlRpc::XmlRpcValue data, const std::string &component_name) const
-    {
-		Button_Description btn;
+	//creates a 'button_description'
+	button_description commandguirvizpanel::descripe_button(const int &id, xmlrpc::xmlrpcvalue data, const std::string &component_name) const
+	{
+		button_description btn;
 		
-		btn.id = ID;
-		btn.button_name   = TostlString(data[0]);
-		btn.function_name = TostlString(data[1]);
+		btn.id = id;
+		btn.button_name   = tostlstring(data[0]);
+		btn.function_name = tostlstring(data[1]);
 		btn.args.first    = component_name;
-		btn.args.second   = TostlString(data[2]);
+		btn.args.second   = tostlstring(data[2]);
 		
-		return btn;
+	return btn;
 	}
 	
-	//creates a wxButton and connects it to a event-handler
-	wxButton* CommandGuiRvizPanel::AddButton(const int &ID, const wxString &name)
+	//creates a wxbutton and connects it to a event-handler
+	wxbutton* commandguirvizpanel::addbutton(const int &id, const wxstring &name)
 	{
-		wxButton *but = new wxButton(this, ID, name, wxDefaultPosition, wxSize(30,29)/*wxDefaultSize*/, wxBU_EXACTFIT, wxDefaultValidator, name);
+		wxbutton *but = new wxbutton(this, id, name, wxdefaultposition, wxsize(30,29)/*wxdefaultsize*/, wxbu_exactfit, wxdefaultvalidator, name);
 		
-		but->Enable(true);
+		but->enable(true);
 		
-		Connect(ID, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(CommandGuiRvizPanel::OnClick));
+		connect(id, wxevt_command_button_clicked, wxcommandeventhandler(commandguirvizpanel::onclick));
 		 
 		return but;
 	}
 
-	//event handler for buttons from the config file on ROS parameter server
-	void CommandGuiRvizPanel::OnClick(wxCommandEvent& event)
+	//event handler for buttons from the config file on ros parameter server
+	void commandguirvizpanel::onclick(wxcommandevent& event)
 	{			    	
-		Button_Description pressed_button;
+		button_description pressed_button;
 		std::string group_name;
 		
-		pressed_button.id = event.GetId();
+		pressed_button.id = event.getid();
 		
 		//use the button_id to get more information about the pressed button		
-		for(Grouplist::const_iterator group_ci = groups_.begin(); group_ci != groups_.end(); group_ci++)
+		for(grouplist::const_iterator group_ci = groups_.begin(); group_ci != groups_.end(); group_ci++)
 		{
-			for(Buttonlist::const_iterator button_ci = group_ci->second.begin(); button_ci != group_ci->second.end(); button_ci++)
+			for(buttonlist::const_iterator button_ci = group_ci->second.begin(); button_ci != group_ci->second.end(); button_ci++)
 			{
 				if((button_ci->id == pressed_button.id))
 				{
@@ -276,9 +276,9 @@ namespace rviz
 			}
 		}
 				
-		ROS_INFO("'%s-%s' clicked", group_name.c_str(), pressed_button.button_name.c_str());
+		ros_info("'%s-%s' clicked", group_name.c_str(), pressed_button.button_name.c_str());
 		
-		cob_script_server::ScriptGoal goal;
+		cob_script_server::scriptgoal goal;
 		goal.function_name  = pressed_button.function_name;
 		goal.component_name = pressed_button.args.first;
 		goal.parameter_name = pressed_button.args.second;
@@ -299,180 +299,180 @@ namespace rviz
 			}	
 		}
 		
-		//Fill in goal here
-		action_client_->sendGoal(goal);
-		action_client_->waitForResult(ros::Duration(1.0));
-		if(action_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+		//fill in goal here
+		action_client_->sendgoal(goal);
+		action_client_->waitforresult(ros::duration(1.0));
+		if(action_client_->getstate() == actionlib::simpleclientgoalstate::succeeded)
 		{
 			//set status to 'ok'
-			statuslabel_->SetLabel(wxT("\n Status: OK"));
+			statuslabel_->setlabel(wxt("\n status: ok"));
 			
-			this->GetSizer()->Layout();
+			this->getsizer()->layout();
 		}
 		else
 		{
 			//set status to 'no connection'
-			statuslabel_->SetLabel(wxT("\nStatus: \nno connect. to action server!\n\n"));
+			statuslabel_->setlabel(wxt("\nstatus: \nno connect. to action server!\n\n"));
 			
-			this->GetSizer()->Layout();
+			this->getsizer()->layout();
 			
-			ROS_DEBUG_ONCE("Error! - no connection to action server!\n");
+			ros_debug_once("error! - no connection to action server!\n");
 		}
 		
-		ROS_INFO("Current State: %s\n", action_client_->getState().toString().c_str());
+		ros_info("current state: %s\n", action_client_->getstate().tostring().c_str());
 	}
 	
-	//event handler for the 'stop all' Button
-	void CommandGuiRvizPanel::OnStopAll(wxCommandEvent &event)
+	//event handler for the 'stop all' button
+	void commandguirvizpanel::onstopall(wxcommandevent &event)
 	{
-		cob_script_server::ScriptGoal goal;
+		cob_script_server::scriptgoal goal;
 		bool success = true; 
 		
 		goal.function_name  = "stop";
 		
-		ROS_INFO("'stop all' clicked");
+		ros_info("'stop all' clicked");
 		
-		for(Stringlist::const_iterator ci = stop_buttons_.begin(); ci != stop_buttons_.end(); ci++)
+		for(stringlist::const_iterator ci = stop_buttons_.begin(); ci != stop_buttons_.end(); ci++)
 		{
 			goal.component_name = *ci;
 			
-		    action_client_->sendGoal(goal);
-		    action_client_->waitForResult(ros::Duration(1.0));
+			action_client_->sendgoal(goal);
+			action_client_->waitforresult(ros::duration(1.0));
 		    
-		    if("SUCCEEDED" != action_client_->getState().toString())
-		    {
+			if("succeeded" != action_client_->getstate().tostring())
+			{
 				success = false;
-				ROS_INFO("Warning: Component %s not properly stopped\n", goal.component_name.c_str());
+				ros_info("warning: component %s not properly stopped\n", goal.component_name.c_str());
 			}
 			
-			ROS_INFO("Current State: %s\n", action_client_->getState().toString().c_str());
+			ros_info("current state: %s\n", action_client_->getstate().tostring().c_str());
 		}
 		
 		if(false != success)
 		{ 
-			ROS_INFO("All components stopped\n");
+			ros_info("all components stopped\n");
 			
-			statuslabel_->SetLabel(wxT("\n Status: OK"));
-			this->GetSizer()->Layout();
+			statuslabel_->setlabel(wxt("\n status: ok"));
+			this->getsizer()->layout();
 		}
 		else
 		{
 			//set status to 'no connection'
-			statuslabel_->SetLabel(wxT("\nStatus: \nno connect. to action server!\n\n"));
+			statuslabel_->setlabel(wxt("\nstatus: \nno connect. to action server!\n\n"));
 			
-			this->GetSizer()->Layout();
-			ROS_DEBUG_ONCE("Error! - no connection to action server!\n");
+			this->getsizer()->layout();
+			ros_debug_once("error! - no connection to action server!\n");
 		}
 	}
 	
-	//event handler for the 'init all' Button
-	void CommandGuiRvizPanel::OnInitAll(wxCommandEvent &event)
+	//event handler for the 'init all' button
+	void commandguirvizpanel::oninitall(wxcommandevent &event)
 	{
-		cob_script_server::ScriptGoal goal;
+		cob_script_server::scriptgoal goal;
 		bool success = true; 
 		
 		goal.function_name = "init";
 		
-		ROS_INFO("'init all' clicked");
+		ros_info("'init all' clicked");
 		
-		for(Stringlist::const_iterator ci = init_buttons_.begin(); ci != init_buttons_.end(); ci++)
+		for(stringlist::const_iterator ci = init_buttons_.begin(); ci != init_buttons_.end(); ci++)
 		{
 			goal.component_name = *ci;
+			
+			action_client_->sendgoal(goal);
+			action_client_->waitforresult(ros::duration(1.0));
 		    
-		    action_client_->sendGoal(goal);
-		    action_client_->waitForResult(ros::Duration(1.0));
-		    
-		    if("SUCCEEDED" != action_client_->getState().toString())
-		    {
+			if("succeeded" != action_client_->getstate().tostring())
+			{
 				success = false;
-				ROS_INFO("Warning: Component %s not properly initialized\n", goal.component_name.c_str());
+				ros_info("warning: component %s not properly initialized\n", goal.component_name.c_str());
 			}
 			
-			ROS_INFO("Current State: %s\n", action_client_->getState().toString().c_str());
+			ros_info("current state: %s\n", action_client_->getstate().tostring().c_str());
 		}
 		
 		if(false != success)
 		{ 
-			statuslabel_->SetLabel(wxT("\n Status: OK"));
-			this->GetSizer()->Layout();
+			statuslabel_->setlabel(wxt("\n status: ok"));
+			this->getsizer()->layout();
 			
-			ROS_INFO("All components initialized\n");
+			ros_info("all components initialized\n");
 		}
 		else
 		{
 			//set status to 'no connection'
-			statuslabel_->SetLabel(wxT("\nStatus: \nno connect. to action server!\n\n"));
-			this->GetSizer()->Layout();
+			statuslabel_->setlabel(wxt("\nstatus: \nno connect. to action server!\n\n"));
+			this->getsizer()->layout();
 			
-			ROS_DEBUG_ONCE("Error! - no connection to action server!\n");
+			ros_debug_once("error! - no connection to action server!\n");
 		}
 	}
 	
-	//event handler for the 'recover all' Button
-	void CommandGuiRvizPanel::OnRecoverAll(wxCommandEvent &event)
+	//event handler for the 'recover all' button
+	void commandguirvizpanel::onrecoverall(wxcommandevent &event)
 	{
-		cob_script_server::ScriptGoal goal;
+		cob_script_server::scriptgoal goal;
 		bool success = true; 
 		
 		goal.function_name = "recover";
 		
-		ROS_INFO("'recover all' clicked");
+		ros_info("'recover all' clicked");
 		
-		for(Stringlist::const_iterator ci = recover_buttons_.begin(); ci != recover_buttons_.end(); ci++)
+		for(stringlist::const_iterator ci = recover_buttons_.begin(); ci != recover_buttons_.end(); ci++)
 		{
 			goal.component_name = *ci;
-		    
-		    action_client_->sendGoal(goal);
-		    action_client_->waitForResult(ros::Duration(1.0));
-		    
-		    if("SUCCEEDED" != action_client_->getState().toString())
+			
+			action_client_->sendgoal(goal);
+			action_client_->waitforresult(ros::duration(1.0));
+			
+			if("succeeded" != action_client_->getstate().tostring())
 		    {
 				success = false;
-				ROS_INFO("Warning: Component %s not properly recovered\n", goal.component_name.c_str());
+				ros_info("warning: component %s not properly recovered\n", goal.component_name.c_str());
 			}
 			
-			ROS_INFO("Current State: %s\n", action_client_->getState().toString().c_str());
+			ros_info("current state: %s\n", action_client_->getstate().tostring().c_str());
 		}
 		
 		if(false != success)
 		{ 
-			statuslabel_->SetLabel(wxT("\n Status: OK"));
-			this->GetSizer()->Layout();
+			statuslabel_->setlabel(wxt("\n status: ok"));
+			this->getsizer()->layout();
 			
-			ROS_INFO("All components recovered\n");
+			ros_info("all components recovered\n");
 		}
 		else
 		{
 			//set status to 'no connection'
-			statuslabel_->SetLabel(wxT("\nStatus: \nno connect. to action server!\n\n"));
-			this->GetSizer()->Layout();
+			statuslabel_->setlabel(wxt("\nstatus: \nno connect. to action server!\n\n"));
+			this->getsizer()->layout();
 			
-			ROS_DEBUG_ONCE("Error! - no connection to action server!\n");
+			ros_debug_once("error! - no connection to action server!\n");
 		}
 	}
 	
 	//event handler for the 'planning' checkbox
-	inline void CommandGuiRvizPanel::Planned_toggle(wxCommandEvent &event)
+	inline void commandguirvizpanel::planned_toggle(wxcommandevent &event)
 	{
 		planning_enabled = !planning_enabled;
 	}
 	
 	//event handler for the 'base diff' checkbox
-	inline void CommandGuiRvizPanel::Base_mode_toggle(wxCommandEvent &event)
+	inline void commandguirvizpanel::base_mode_toggle(wxcommandevent &event)
 	{
 		base_diff_enabled = !base_diff_enabled;
 	}
 
-	//converts a std::string into a wxString
-	inline wxString CommandGuiRvizPanel::TowxString(const std::string &temp) const
+	//converts a std::string into a wxstring
+	inline wxstring commandguirvizpanel::towxstring(const std::string &temp) const
 	{
-		return wxString(temp.c_str(), wxConvUTF8);
+		return wxstring(temp.c_str(), wxconvutf8);
 	}
 	
-	//coverts a XmlRpcValue of 'TypeString' or a wxString into std::string
-	inline std::string CommandGuiRvizPanel::TostlString(XmlRpc::XmlRpcValue temp, wxString wxtemp) const
+	//coverts a xmlrpcvalue of 'typestring' or a wxstring into std::string
+	inline std::string commandguirvizpanel::tostlstring(xmlrpc::xmlrpcvalue temp, wxstring wxtemp) const
 	{	
-		if(false == wxtemp.IsEmpty())
+		if(false == wxtemp.isempty())
 		{
 			return std::string(wxtemp.mb_str());
 		}

@@ -7,6 +7,11 @@
 #include <wx/checkbox.h>
 #include <wx/sizer.h>
 
+#include <list>
+#include <pair>
+#include <vector>
+#include <string>
+
 #include <ros/ros.h>
 #include <cob_script_server/ScriptAction.h>
 #include <actionlib/client/simple_action_client.h>
@@ -15,7 +20,7 @@ namespace rviz
 {
 	struct Button_Description
 	{	
-	    int id;
+		int id;
 		std::string button_name;
 		std::string function_name;
 		std::pair<std::string, std::string> args;
