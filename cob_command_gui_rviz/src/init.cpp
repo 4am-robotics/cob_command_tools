@@ -4,5 +4,5 @@
 
 extern "C" void rvizPluginInit(rviz::TypeRegistry* reg)
 {
-  reg->registerDisplay<rviz::CommandGuiRviz>("CommandGuiRviz");
+	reg->registerDisplay<rviz::CommandGuiRviz>("CommandGuiRviz");
 }

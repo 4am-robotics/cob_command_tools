@@ -7,11 +7,6 @@
 #include <wx/checkbox.h>
 #include <wx/sizer.h>
 
-#include <list>
-#include <pair>
-#include <vector>
-#include <string>
-
 #include <ros/ros.h>
 #include <cob_script_server/ScriptAction.h>
 #include <actionlib/client/simple_action_client.h>
@@ -62,7 +57,7 @@ namespace rviz
 		
 		bool Getparams();
 		void Creategui();
-		wxSizer *CreatesbGeneral();
+		wxSizer* CreatesbGeneral();
 		
 		Button_Description Descripe_button(const int &ID, XmlRpc::XmlRpcValue data, const std::string &component_name) const;
 		wxButton* AddButton(const int &ID, const wxString &title);
@@ -72,13 +67,14 @@ namespace rviz
 		void OnStopAll(wxCommandEvent &event);
 		void OnInitAll(wxCommandEvent &event);
 		void OnRecoverAll(wxCommandEvent &event);
-		inline void Planned_toggle(wxCommandEvent &event);
-		inline void Base_mode_toggle(wxCommandEvent &event);
+		inline void planned_toggle(wxCommandEvent &event);
+		inline void base_mode_toggle(wxCommandEvent &event);
 
 	private:
 		//some typecast-functions
 		inline wxString TowxString(const std::string &temp) const;
-		inline std::string TostlString(XmlRpc::XmlRpcValue temp = XmlRpc::XmlRpcValue(), wxString wxtemp = wxString()) const;
+		inline std::string TostlString(XmlRpc::XmlRpcValue temp) const;
+		inline std::string TostlString(wxString temp) const;
 	};
 }
 
