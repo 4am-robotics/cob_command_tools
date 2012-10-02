@@ -3,6 +3,6 @@
 
   <rosparam ns="cob_interactive_teleop" file="$(find cob_interactive_teleop)/config/interactive_teleop.yaml" command="load"/>
 
-  <node ns="cob_interactive_teleop" pkg="cob_interactive_teleop" type="interactive_teleop" name="cob_interactive_teleop" output="screen" />
+  <node pkg="cob_interactive_teleop" type="interactive_teleop" name="cob_interactive_teleop" output="screen" />
   
 </launch>
