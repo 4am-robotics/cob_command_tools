@@ -1,8 +1,15 @@
 <?xml version="1.0"?>
 <launch>
+  <!-- default command topic to move the robot base -->
+  <arg name="base_topic" default="/base_controller/command_safe" />
 
-  <rosparam ns="cob_interactive_teleop" file="$(find cob_interactive_teleop)/config/interactive_teleop.yaml" command="load"/>
+  <!-- parameter file -->
+  <arg name="param_file" default="$(find cob_interactive_teleop)/config/interactive_teleop.yaml" />
 
-  <node ns="cob_interactive_teleop" pkg="cob_interactive_teleop" type="interactive_teleop" name="cob_interactive_teleop" output="screen" />
+  <node pkg="cob_interactive_teleop" type="interactive_teleop" name="cob_interactive_teleop" output="screen">
+    <rosparam file="$(arg param_file)" command="load" />
+    <remap from="/base_controller/command" to="$(arg base_topic)" />
+  </node>
   
 </launch>
+
