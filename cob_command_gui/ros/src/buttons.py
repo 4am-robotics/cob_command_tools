@@ -111,7 +111,7 @@ class buttons:
 			group = (group_name,buttons)
 			
 			# add nav buttons (optional)
-			if component_name == "base_controller": # \todo get base name from robot_components.yaml
+			if component_name == "base": # \todo get base name from robot_components.yaml
 				param_prefix = "~nav_buttons"
 				if rospy.has_param(param_prefix):
 					nav_buttons_param = rospy.get_param(param_prefix)

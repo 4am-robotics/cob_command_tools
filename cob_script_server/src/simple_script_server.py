@@ -259,7 +259,7 @@ class simple_script_server:
 			ah.set_active(mode="service")
 
 		rospy.loginfo("<<%s>> <<%s>>", service_name, component_name)
-		service_full_name = "/" + component_name + "/" + service_name
+		service_full_name = "/" + component_name + "_controller/" + service_name
 		
 		if blocking:
 			# check if service is available
@@ -308,9 +308,9 @@ class simple_script_server:
 	# \param parameter_name Name of the parameter on the ROS parameter server.
 	# \param blocking Bool value to specify blocking behaviour.
 	def move(self,component_name,parameter_name,blocking=True, mode=None):
-		if component_name == "base_controller":
+		if component_name == "base":
 			return self.move_base(component_name,parameter_name,blocking, mode)
-		elif component_name == "arm_controller" and mode=="planned":
+		elif component_name == "arm" and mode=="planned":
 			return self.move_planned(component_name,parameter_name,blocking)
 		else:
 			return self.move_traj(component_name,parameter_name,blocking)
@@ -535,7 +535,7 @@ class simple_script_server:
 			traj_msg.points.append(point_msg)
 
 		# call action server
-		action_server_name = "/" + component_name + '/follow_joint_trajectory'
+		action_server_name = "/" + component_name + '_controller/follow_joint_trajectory'
 		rospy.logdebug("calling %s action server",action_server_name)
 		client = actionlib.SimpleActionClient(action_server_name, FollowJointTrajectoryAction)
 		# trying to connect to server
@@ -547,6 +547,11 @@ class simple_script_server:
 			return ah
 		else:
 			rospy.logdebug("%s action server ready",action_server_name)
+		
+		# set operation mode to position
+		#if not component_name == "arm":
+		#	self.set_operation_mode(component_name,"position")
+		#self.set_operation_mode(component_name,"position")		
 
 		# sending goal
 		client_goal = FollowJointTrajectoryGoal()
@@ -568,8 +573,8 @@ class simple_script_server:
 		else:
 			ah.set_active()
 		
-		if component_name != "arm_controller":
-			rospy.logerr("Only arm_controller component is supported in move_joint_goal_planned.")
+		if component_name != "arm":
+			rospy.logerr("Only arm component is supported in move_joint_goal_planned.")
 			ah.set_failed(4)
 			return ah
 			
@@ -686,8 +691,8 @@ class simple_script_server:
 			else:
 				ah.set_active()
 			
-		if component_name != "arm_controller":
-			rospy.logerr("Only arm_controller component is supported in move_constrained_planned.")
+		if component_name != "arm":
+			rospy.logerr("Only arm component is supported in move_constrained_planned.")
 			ah.set_failed(4)
 			return ah
 		
@@ -799,9 +804,10 @@ class simple_script_server:
 	# \param blocking Service calls are always blocking. The parameter is only provided for compatibility with other functions.
 	def set_operation_mode(self,component_name,mode,blocking=True, planning=False):
 		#rospy.loginfo("setting <<%s>> to operation mode <<%s>>",component_name, mode)
-		#rospy.wait_for_service("/" + component_name + "/set_operation_mode")
+		rospy.set_param("/" + component_name + "_controller/OperationMode",mode) # \todo TODO: remove and only use service call
+		#rospy.wait_for_service("/" + component_name + "_controller/set_operation_mode")
 		try:
-			set_operation_mode = rospy.ServiceProxy("/" + component_name + "/set_operation_mode", SetOperationMode)
+			set_operation_mode = rospy.ServiceProxy("/" + component_name + "_controller/set_operation_mode", SetOperationMode)
 			req = SetOperationModeRequest()
 			req.operation_mode.data = mode
 			#print req
@@ -817,32 +823,32 @@ class simple_script_server:
 	#
 	# \param parameter_name Name of the parameter on the parameter server which holds the rgb values.
 	def set_light(self,parameter_name,blocking=False):
-		ah = action_handle("set", "light_controller", parameter_name, blocking, self.parse)
+		ah = action_handle("set", "light", parameter_name, blocking, self.parse)
 		if(self.parse):
 			return ah
 		else:
 			ah.set_active(mode="topic")
 
-		rospy.loginfo("Set light_controller to <<%s>>",parameter_name)
+		rospy.loginfo("Set light to <<%s>>",parameter_name)
 		
 		# get joint values from parameter server
 		if type(parameter_name) is str:
-			if not rospy.has_param(self.ns_global_prefix + "/light_controller/" + parameter_name):
-				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",self.ns_global_prefix + "/light_controller/" + parameter_name)
+			if not rospy.has_param(self.ns_global_prefix + "/light/" + parameter_name):
+				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",self.ns_global_prefix + "/light/" + parameter_name)
 				return 2
-			param = rospy.get_param(self.ns_global_prefix + "/light_controller/" + parameter_name)
+			param = rospy.get_param(self.ns_global_prefix + "/light/" + parameter_name)
 		else:
 			param = parameter_name
 			
 		# check color parameters
 		if not type(param) is list: # check outer list
-			rospy.logerr("no valid parameter for light_controller: not a list, aborting...")
+			rospy.logerr("no valid parameter for light: not a list, aborting...")
 			print "parameter is:",param
 			ah.error_code = 3
 			return ah
 		else:
 			if not len(param) == 3: # check dimension
-				rospy.logerr("no valid parameter for light_controller: dimension should be 3 (r,g,b) and is %d, aborting...",len(param))
+				rospy.logerr("no valid parameter for light: dimension should be 3 (r,g,b) and is %d, aborting...",len(param))
 				print "parameter is:",param
 				ah.error_code = 3
 				return ah
@@ -851,12 +857,12 @@ class simple_script_server:
 					#print i,"type1 = ", type(i)
 					if not ((type(i) is float) or (type(i) is int)): # check type
 						#print type(i)
-						rospy.logerr("no valid parameter for light_controller: not a list of float or int, aborting...")
+						rospy.logerr("no valid parameter for light: not a list of float or int, aborting...")
 						print "parameter is:",param
 						ah.error_code = 3
 						return ah
 					else:
-						rospy.logdebug("accepted parameter %f for light_controller",i)
+						rospy.logdebug("accepted parameter %f for light",i)
 		
 		# convert to ColorRGBA message
 		color = ColorRGBA()
@@ -880,7 +886,7 @@ class simple_script_server:
 	# \param parameter_name Name of the parameter
 	# \param language Language to use for the TTS system
 	def say(self,parameter_name,blocking=True):
-		component_name = "sound_controller"
+		component_name = "sound"
 		ah = action_handle("say", component_name, parameter_name, blocking, self.parse)
 		if(self.parse):
 			return ah
@@ -949,7 +955,7 @@ class simple_script_server:
 	# \param parameter_name Name of the parameter
 	# \param language Language to use
 	def play(self,parameter_name,blocking=True):
-		component_name = "sound_controller"
+		component_name = "sound"
 		ah = action_handle("play", component_name, parameter_name, False, self.parse)
 		if(self.parse):
 			return ah
