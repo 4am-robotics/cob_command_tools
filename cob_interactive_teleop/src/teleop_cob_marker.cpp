@@ -36,13 +36,13 @@ using namespace visualization_msgs;
 namespace cob_interactive_teleop
 {
 
-TeleopCOBMarker::TeleopCOBMarker()
+TeleopCOBMarker::TeleopCOBMarker() : pn_("~")
 {
-  n_.param(MAX_VEL_X_PARAM, params_.max_vel_x, params_.max_vel_x);
-  n_.param(MAX_VEL_Y_PARAM, params_.max_vel_y, params_.max_vel_y);
-  n_.param(MAX_VEL_TH_PARAM, params_.max_vel_th, params_.max_vel_th);
-  n_.param(SCALE_LINEAR_PARAM, params_.scale_linear, params_.scale_linear);
-  n_.param(SCALE_ANGULAR_PARAM, params_.scale_angular, params_.scale_angular);
+  pn_.param(MAX_VEL_X_PARAM, params_.max_vel_x, params_.max_vel_x);
+  pn_.param(MAX_VEL_Y_PARAM, params_.max_vel_y, params_.max_vel_y);
+  pn_.param(MAX_VEL_TH_PARAM, params_.max_vel_th, params_.max_vel_th);
+  pn_.param(SCALE_LINEAR_PARAM, params_.scale_linear, params_.scale_linear);
+  pn_.param(SCALE_ANGULAR_PARAM, params_.scale_angular, params_.scale_angular);
 
   ROS_INFO("max vel x = %f", params_.max_vel_x);
   ROS_INFO("max vel y = %f", params_.max_vel_y);

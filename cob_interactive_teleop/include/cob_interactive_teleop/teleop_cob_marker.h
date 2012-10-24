@@ -1,7 +1,7 @@
 /******************************************************************************
  * \file
  *
- * $Id: teleop_cob_marker.h 869 2012-06-02 22:24:03Z spanel $
+ * $Id: teleop_cob_marker.h 1105 2012-08-09 07:23:02Z spanel $
  *
  * Copyright (C) Brno University of Technology
  *
@@ -127,8 +127,8 @@ private:
   // Movement publisher
   ros::Publisher pub_;
 
-  // Node handler
-  ros::NodeHandle n_;
+  // Node handles
+  ros::NodeHandle n_, pn_;
 
   // Initial position
   geometry_msgs::Pose initial_pose_;
