@@ -1013,6 +1013,7 @@ class simple_script_server:
 		rospy.sleep(duration)
 		
 		ah.set_succeeded()
+		return ah
 
 	## Waits for user input.
 	#
