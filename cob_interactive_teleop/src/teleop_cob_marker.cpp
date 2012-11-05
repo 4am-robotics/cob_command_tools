@@ -115,7 +115,8 @@ void TeleopCOBMarker::createMarkers()
   InteractiveMarker marker_driver;
   marker_driver.name = MARKER_DRIVER_NAME;
   marker_driver.header.frame_id = "/base_link";
-  marker_driver.header.stamp = ros::Time::now();
+//  marker_driver.header.stamp = ros::Time::now();
+  marker_driver.header.stamp = ros::Time(0);
   marker_driver.pose = initial_pose_;
   marker_driver.scale = 1.5;
 
@@ -148,7 +149,8 @@ void TeleopCOBMarker::createMarkers()
   InteractiveMarker marker_navigator;
   marker_navigator.name = MARKER_NAVIGATOR_NAME;
   marker_navigator.header.frame_id = "/base_link";
-  marker_navigator.header.stamp = ros::Time::now();
+//  marker_navigator.header.stamp = ros::Time::now();
+  marker_navigator.header.stamp = ros::Time(0);
   marker_navigator.pose = initial_pose_;
   marker_navigator.scale = 1.5;
 
