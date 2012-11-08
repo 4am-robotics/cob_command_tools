@@ -55,7 +55,7 @@ TeleopCOBMarker::TeleopCOBMarker() : pn_("~")
   pub_ = n_.advertise<geometry_msgs::Twist>(BASE_CONTROLLER_COMMAND_TOPIC, 1);
 
   initial_pose_ = geometry_msgs::Pose();
-  initial_pose_.position.z = 0.05;
+  initial_pose_.position.z = 0.10;
 
   createMarkers();
 
