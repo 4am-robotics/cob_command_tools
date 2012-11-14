@@ -3,6 +3,10 @@ string function_name
 string component_name
 string parameter_name
 string mode
+bool blocking
+string service_name
+float32 duration
+bool planning
 ---
 #result definition
 int32 error_code
