@@ -6,8 +6,9 @@ import rospy
 
 from simple_script_server import *
 sss = simple_script_server()
-		
-if __name__ == "__main__":
-	rospy.init_node("asd")
+
+### start this with
+# rosrun cob_script_server cob_console
 	
-	sss.move("torso","home")
+if __name__ == "__main__":
+	rospy.init_node("cob_console")
