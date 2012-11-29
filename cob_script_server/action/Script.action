@@ -3,7 +3,7 @@ string function_name
 string component_name
 string parameter_name
 string mode
-bool blocking
+bool blocking = True
 string service_name
 float32 duration
 bool planning
