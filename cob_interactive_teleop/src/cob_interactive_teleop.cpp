@@ -40,6 +40,10 @@ int main(int argc, char** argv)
 
   ROS_INFO("COB Interactive Teleop is running...");
 
+/*  ros::spinOnce();
+
+  cobTeleop->reinitMarkers();*/
+
   ros::spin();
 }
 

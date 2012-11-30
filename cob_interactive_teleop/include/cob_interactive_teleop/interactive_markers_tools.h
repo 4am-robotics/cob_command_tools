@@ -1,7 +1,7 @@
 /******************************************************************************
  * \file
  *
- * $Id: interactive_markers_tools.h 624 2012-04-16 14:05:56Z spanel $
+ * $Id: interactive_markers_tools.h 2037 2012-11-30 16:28:17Z spanel $
  *
  * Copyright (C) Brno University of Technology
  *
@@ -40,9 +40,13 @@ namespace interactive_markers
  * @param width is circle's width
  * @param color is circle's color
  */
-void makeCircle(visualization_msgs::InteractiveMarkerControl &control, float radius, float width,
-                std_msgs::ColorRGBA color);
+void makeCircle(visualization_msgs::InteractiveMarkerControl &control, 
+                float radius, 
+                float width,
+                std_msgs::ColorRGBA color
+                );
 
 }
 
 #endif /* INTERACTIVE_MARKERS_TOOLS_H_ */
+
