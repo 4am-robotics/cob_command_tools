@@ -13,6 +13,7 @@
   <depend stack="cob_driver" /> <!-- cob_relayboard, cob_sound -->
   <depend stack="common" /> <!-- actionlib -->
   <depend stack="common_msgs" /> <!-- sensor_msgs, actionlib_msgs, trajectory_msgs, geometry_msgs, visualization_msgs -->
+  <depend stack="control" /> <!-- control_msgs -->
   <depend stack="diagnostics_monitors" /> <!-- robot_monitor -->
   <depend stack="geometry" /> <!-- tf -->
   <depend stack="navigation" /> <!-- move_base_msgs -->

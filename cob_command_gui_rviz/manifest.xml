@@ -5,7 +5,7 @@
 
   </description>
   <author>Jonathan Schwarz</author>
-  <license>BSD</license>
+  <license>LGPL</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/cob_command_gui_rviz</url>
 
