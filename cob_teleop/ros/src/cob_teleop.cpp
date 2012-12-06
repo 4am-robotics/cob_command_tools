@@ -75,7 +75,7 @@
 #include <brics_actuator/JointPositions.h>
 #include <brics_actuator/JointVelocities.h>
 
-const int PUBLISH_FREQ = 20.0;
+const int PUBLISH_FREQ = 100.0;
 
 /*!
  * \brief Implementation of teleoperation node.
