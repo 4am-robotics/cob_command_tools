@@ -5,5 +5,5 @@ max_vel_th: 0.3
 scale_linear: 0.5
 scale_angular: 0.25
 
-z_pos: 0.2
-
+z_pos: 0.1
+disable_driver: false
