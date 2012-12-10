@@ -57,6 +57,7 @@ struct TeleopCOBParams
   double max_vel_x, max_vel_y, max_vel_th;
   double scale_linear, scale_angular;
   double z_pos;
+  bool disable_driver;
 
   /**
    * @brief Constructor initializes all parameters to default values
@@ -68,6 +69,7 @@ struct TeleopCOBParams
     , scale_linear(DEFAULT_SCALE_LINEAR)
     , scale_angular(DEFAULT_SCALE_ANGULAR)
     , z_pos(DEFAULT_Z_POS)
+    , disable_driver(false)
   {}
 };
 
