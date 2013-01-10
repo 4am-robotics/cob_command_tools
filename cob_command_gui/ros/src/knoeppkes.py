@@ -98,7 +98,7 @@ def start(func, args):
         largs.append("planned")
     if(largs[0] == "base"):
       if(base_diff_enabled):
-     largs.append("diff") 
+        largs.append("diff") 
     #print "Args", tuple(largs)
     thread.start_new_thread(func,tuple(largs))
 
