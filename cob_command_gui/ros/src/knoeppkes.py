@@ -69,6 +69,7 @@ import roslib
 import os
 import pynotify
 import sys 
+import signal
 
 planning_enabled = False
 base_diff_enabled = False
@@ -85,14 +86,15 @@ def start(func, args):
   global base_diff_enabled
   global confirm_commands_enabled
   execute_command = True
-
-  if confirm_commands_enabled:
+  
+  largs = list(args)
+  
+  if confirm_commands_enabled and (largs[1] != 'stop'):
     confirm_dialog = gtk.MessageDialog(None, 0, gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, "Execute Command?")
     if confirm_dialog.run() == gtk.RESPONSE_NO:
       execute_command = False
     confirm_dialog.destroy()
   if execute_command:
-    largs = list(args)
     if(largs[0] == "arm"):
       if(planning_enabled):
         largs.append("planned")
@@ -100,6 +102,7 @@ def start(func, args):
       if(base_diff_enabled):
         largs.append("diff") 
     #print "Args", tuple(largs)
+    #print "func ", func
     thread.start_new_thread(func,tuple(largs))
 
 def startGTK(widget, data):
@@ -273,5 +276,12 @@ class Knoeppkes():
     self.window.show_all()
     gtk.gdk.threads_init() 
     gtk.main()
-  
-app = Knoeppkes()
+    
+def signal_handler(signal, frame):
+#  print 'You pressed Ctrl+C!'
+  gtk.main_quit()
+
+if __name__ == "__main__":
+	signal.signal(signal.SIGINT, signal_handler)
+	app = Knoeppkes()
+
