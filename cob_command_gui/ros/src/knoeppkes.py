@@ -78,7 +78,7 @@ confirm_commands_enabled = True
 initialized = False
 
 #Initializing the gtk's thread engine
-gtk.gdk.threads_init()
+#gtk.gdk.threads_init()
 
 ## Executes a button click in a new thread
 def start(func, args):
@@ -181,8 +181,10 @@ class GtkGeneralPanel(gtk.Frame):
   def setEMStop(self, em):
     if(em):
       #print "Emergency Stop Active"
+      gtk.threads_enter()
       self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/weather-storm.png")
       self.status_label.set_text("EM Stop !")
+      gtk.threads_leave()
       if(self.em_stop == False):
         self.em_stop = True
         n = pynotify.Notification("Emergency Stop issued!", "", "dialog-warning")
@@ -191,7 +193,9 @@ class GtkGeneralPanel(gtk.Frame):
     else:
       #print "Status OK"
       #self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/weather-clear.png")
+      gtk.threads_enter()
       self.status_label.set_text("Status OK")
+      gtk.threads_leave()
       if(self.em_stop == True):
         self.em_stop = False
         n = pynotify.Notification("Emergency Stop released!", "", "dialog-ok")
@@ -274,8 +278,10 @@ class Knoeppkes():
     vbox.pack_start(self.status_bar, False, False, 0)     
     self.window.add(vbox)    
     self.window.show_all()
-    gtk.gdk.threads_init() 
+    gtk.gdk.threads_init()
+    gtk.gdk.threads_enter()
     gtk.main()
+    gtk.gdk.threads_leave()
     
 def signal_handler(signal, frame):
 #  print 'You pressed Ctrl+C!'
