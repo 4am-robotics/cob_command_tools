@@ -108,7 +108,10 @@ public:
 
 	bool has_base_module_;
 
-	int lower_neck_button_,upper_neck_button_; //buttons
+	int joy_num_buttons_;
+	int joy_num_axes_;
+	//buttons
+	int lower_neck_button_,upper_neck_button_;
 	int tray_button_;
 	int axis_vx_,axis_vy_,axis_vth_;
 	int arm_joint12_button_;
@@ -142,6 +145,7 @@ public:
 	TeleopCOB();
 	void getConfigurationFromParameters();
 	void init();
+	void check_joy_config();
 	void joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg);
 	void joint_states_cb(const sensor_msgs::JointState::ConstPtr &joint_states_msg);
 	void update();
@@ -254,7 +258,7 @@ bool TeleopCOB::assign_joint_module(std::string mod_name, XmlRpc::XmlRpcValue mo
 		tempModule.module_publisher_ = n_.advertise<trajectory_msgs::JointTrajectory>(("/"+mod_name+"_controller/command"),1);
 		tempModule.module_publisher_brics_ = n_.advertise<brics_actuator::JointVelocities>(("/"+mod_name+"_controller/command_vel"),1);
 		// store joint module in collection
-		ROS_DEBUG("%s module stored",mod_name);
+		ROS_DEBUG("%s module stored",mod_name.c_str());
 		joint_modules_.insert(std::pair<std::string,joint_module>(mod_name,tempModule));
 	}
 	return is_joint_module;
@@ -364,6 +368,10 @@ void TeleopCOB::init()
 {
 	// common
 	n_.param("run_factor",run_factor_param_,1.5);
+
+	// joy config
+	n_.param("joy_num_buttons",joy_num_buttons_,12);
+	n_.param("joy_num_axes",joy_num_axes_,6);
 
 	// assign buttons
 	n_.param("lower_neck_button",lower_neck_button_,6);
@@ -477,6 +485,19 @@ void TeleopCOB::joint_states_cb(const sensor_msgs::JointState::ConstPtr &joint_s
  */
 void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 {
+	// cleaner solution
+	//
+	// int buttons_pressed = 0;
+	// for(int i = 0; i < joy_msg->buttons.size(); i++)
+	// 	buttons_pressed = (buttons_pressed << 1) | ((bool)joy_msg->buttons[i] ? 1 : 0);
+
+	// switch(buttons_pressed)
+	// {
+	// 	case pow(deadman_button_,2):
+	// 		...
+	// 	break;
+	// }
+
 	// deadman button to activate joystick
 	if(deadman_button_>=0 && deadman_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[deadman_button_]==1)
 	{
@@ -565,94 +586,99 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 	// head
 	if(joint_modules_.find("head")!=joint_modules_.end())
 	{
-		if(upper_neck_button_>=0 &&
-				upper_neck_button_<(int)joy_msg->buttons.size() &&
-				joy_msg->buttons[upper_neck_button_]==1)
+		if(joint_modules_["head"].req_joint_vel_.size() >=2)
 		{
-			//pan (turn)
-			if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]<0.0)
-				joint_modules_["head"].req_joint_vel_[0] = (int)joy_msg->buttons[upper_neck_button_]*joint_modules_["head"].steps[0]*run_factor_;//upper_pan_step_*run_factor_;
-			else if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]>0.0)
-				joint_modules_["head"].req_joint_vel_[0] = -1*(int)joy_msg->buttons[upper_neck_button_]*joint_modules_["head"].steps[0]*run_factor_;//upper_pan_step_*run_factor_;
-			else
-				joint_modules_["head"].req_joint_vel_[0]= 0.0;
-			ROS_DEBUG("cb::upper neck pan velocity: %f",joint_modules_["head"].req_joint_vel_[0]);
+			if(upper_neck_button_>=0 &&	upper_neck_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[upper_neck_button_]==1)
+			{
+				//pan (turn)
+				if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]<0.0)
+					joint_modules_["head"].req_joint_vel_[0] = (int)joy_msg->buttons[upper_neck_button_]*joint_modules_["head"].steps[0]*run_factor_;//upper_pan_step_*run_factor_;
+				else if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]>0.0)
+					joint_modules_["head"].req_joint_vel_[0] = -1*(int)joy_msg->buttons[upper_neck_button_]*joint_modules_["head"].steps[0]*run_factor_;//upper_pan_step_*run_factor_;
+				else
+					joint_modules_["head"].req_joint_vel_[0]= 0.0;
+				ROS_DEBUG("cb::upper neck pan velocity: %f",joint_modules_["head"].req_joint_vel_[0]);
 
-			//tilt (nod)
-			if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]>0.0)
-				joint_modules_["head"].req_joint_vel_[1] = -1*(int)joy_msg->buttons[upper_neck_button_]*joint_modules_["head"].steps[1]*run_factor_;//upper_tilt_step_*run_factor_;
-			else if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]<0.0)
-				joint_modules_["head"].req_joint_vel_[1] = (int)joy_msg->buttons[upper_neck_button_]*joint_modules_["head"].steps[1]*run_factor_;//upper_tilt_step_*run_factor_;
+				//tilt (nod)
+				if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]>0.0)
+					joint_modules_["head"].req_joint_vel_[1] = -1*(int)joy_msg->buttons[upper_neck_button_]*joint_modules_["head"].steps[1]*run_factor_;//upper_tilt_step_*run_factor_;
+				else if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]<0.0)
+					joint_modules_["head"].req_joint_vel_[1] = (int)joy_msg->buttons[upper_neck_button_]*joint_modules_["head"].steps[1]*run_factor_;//upper_tilt_step_*run_factor_;
+				else
+					joint_modules_["head"].req_joint_vel_[1] = 0.0;
+				ROS_DEBUG("cb::upper neck tilt velocity: %f",joint_modules_["head"].req_joint_vel_[1]);
+
+			}
 			else
+			{
+				joint_modules_["head"].req_joint_vel_[0] = 0.0;
 				joint_modules_["head"].req_joint_vel_[1] = 0.0;
-			ROS_DEBUG("cb::upper neck tilt velocity: %f",joint_modules_["head"].req_joint_vel_[1]);
-
-		}
-		else
-		{
-			joint_modules_["head"].req_joint_vel_[0] = 0.0;
-			joint_modules_["head"].req_joint_vel_[1] = 0.0;
+			}
 		}
 	}
 	if(joint_modules_.find("torso")!=joint_modules_.end())
 	{
-		// torso TODO update with general as well
-		//lower neck
-		if(lower_neck_button_>=0 &&
-				lower_neck_button_<(int)joy_msg->buttons.size() &&
-				joy_msg->buttons[lower_neck_button_]==1)
+		if(joint_modules_["torso"].req_joint_vel_.size() >=2)
 		{
-			//pan
-			if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]<0.0)
-				joint_modules_["torso"].req_joint_vel_[0] = (int)joy_msg->buttons[lower_neck_button_]*joint_modules_["torso"].steps[0]*run_factor_; //req_lower_pan_vel_
-			else if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]>0.0)
-				joint_modules_["torso"].req_joint_vel_[0] = -1*(int)joy_msg->buttons[lower_neck_button_]*joint_modules_["torso"].steps[0]*run_factor_; //req_lower_pan_vel_
-			else
+			// torso TODO update with general as well
+			//lower neck
+			if(lower_neck_button_>=0 && lower_neck_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[lower_neck_button_]==1)
+			{
+				//pan
+				if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]<0.0)
+					joint_modules_["torso"].req_joint_vel_[0] = (int)joy_msg->buttons[lower_neck_button_]*joint_modules_["torso"].steps[0]*run_factor_; //req_lower_pan_vel_
+				else if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]>0.0)
+					joint_modules_["torso"].req_joint_vel_[0] = -1*(int)joy_msg->buttons[lower_neck_button_]*joint_modules_["torso"].steps[0]*run_factor_; //req_lower_pan_vel_
+				else
+					joint_modules_["torso"].req_joint_vel_[0] = 0.0;
+				ROS_DEBUG("cb::lower neck pan velocity: %f",joint_modules_["torso"].req_joint_vel_[0]);
+
+				//tilt
+				if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]>0.0)
+					joint_modules_["torso"].req_joint_vel_[1] = (int)joy_msg->buttons[lower_neck_button_]*joint_modules_["torso"].steps[1]*run_factor_; //req_lower_tilt_vel_
+				else if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]<0.0)
+					joint_modules_["torso"].req_joint_vel_[1] = -1*(int)joy_msg->buttons[lower_neck_button_]*joint_modules_["torso"].steps[1]*run_factor_;
+				else
+					joint_modules_["torso"].req_joint_vel_[1] = 0.0;
+				ROS_DEBUG("cb::lower neck tilt velocity: %f",joint_modules_["torso"].req_joint_vel_[1]);
+			}
+			else //button release
+			{
 				joint_modules_["torso"].req_joint_vel_[0] = 0.0;
-			ROS_DEBUG("cb::lower neck pan velocity: %f",joint_modules_["torso"].req_joint_vel_[0]);
-
-			//tilt
-			if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]>0.0)
-				joint_modules_["torso"].req_joint_vel_[1] = (int)joy_msg->buttons[lower_neck_button_]*joint_modules_["torso"].steps[1]*run_factor_; //req_lower_tilt_vel_
-			else if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]<0.0)
-				joint_modules_["torso"].req_joint_vel_[1] = -1*(int)joy_msg->buttons[lower_neck_button_]*joint_modules_["torso"].steps[1]*run_factor_;
-			else
 				joint_modules_["torso"].req_joint_vel_[1] = 0.0;
-			ROS_DEBUG("cb::lower neck tilt velocity: %f",joint_modules_["torso"].req_joint_vel_[1]);
-		}
-		else //button release
-		{
-			joint_modules_["torso"].req_joint_vel_[0] = 0.0;
-			joint_modules_["torso"].req_joint_vel_[1] = 0.0;
+			}
 		}
 
-		//upper neck
-		if(upper_neck_button_>=0 &&
-				upper_neck_button_<(int)joy_msg->buttons.size() &&
-				joy_msg->buttons[upper_neck_button_]==1)
+		if(joint_modules_["torso"].req_joint_vel_.size() >=4)
 		{
-			//pan
-			if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]<0.0)
-				joint_modules_["torso"].req_joint_vel_[2] = (int)joy_msg->buttons[upper_neck_button_]*joint_modules_["torso"].steps[2]*run_factor_;
-			else if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]>0.0)
-				joint_modules_["torso"].req_joint_vel_[2] = -1*(int)joy_msg->buttons[upper_neck_button_]*joint_modules_["torso"].steps[2]*run_factor_;
-			else
+			//upper neck
+			if(upper_neck_button_>=0 &&
+					upper_neck_button_<(int)joy_msg->buttons.size() &&
+					joy_msg->buttons[upper_neck_button_]==1)
+			{
+				//pan
+				if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]<0.0)
+					joint_modules_["torso"].req_joint_vel_[2] = (int)joy_msg->buttons[upper_neck_button_]*joint_modules_["torso"].steps[2]*run_factor_;
+				else if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]>0.0)
+					joint_modules_["torso"].req_joint_vel_[2] = -1*(int)joy_msg->buttons[upper_neck_button_]*joint_modules_["torso"].steps[2]*run_factor_;
+				else
+					joint_modules_["torso"].req_joint_vel_[2] = 0.0;
+				ROS_DEBUG("cb::upper neck pan velocity: %f",joint_modules_["torso"].req_joint_vel_[2]);
+
+				//tilt
+				if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]>0.0)
+					joint_modules_["torso"].req_joint_vel_[3] = (int)joy_msg->buttons[upper_neck_button_]*joint_modules_["torso"].steps[3]*run_factor_;
+				else if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]<0.0)
+					joint_modules_["torso"].req_joint_vel_[3] = -1*(int)joy_msg->buttons[upper_neck_button_]*joint_modules_["torso"].steps[3]*run_factor_;
+				else
+					joint_modules_["torso"].req_joint_vel_[3] = 0.0;
+				ROS_DEBUG("cb::upper neck tilt velocity: %f",joint_modules_["torso"].req_joint_vel_[3]);
+			}
+			else //button release
+			{
 				joint_modules_["torso"].req_joint_vel_[2] = 0.0;
-			ROS_DEBUG("cb::upper neck pan velocity: %f",joint_modules_["torso"].req_joint_vel_[2]);
-
-			//tilt
-			if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]>0.0)
-				joint_modules_["torso"].req_joint_vel_[3] = (int)joy_msg->buttons[upper_neck_button_]*joint_modules_["torso"].steps[3]*run_factor_;
-			else if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]<0.0)
-				joint_modules_["torso"].req_joint_vel_[3] = -1*(int)joy_msg->buttons[upper_neck_button_]*joint_modules_["torso"].steps[3]*run_factor_;
-			else
 				joint_modules_["torso"].req_joint_vel_[3] = 0.0;
-			ROS_DEBUG("cb::upper neck tilt velocity: %f",joint_modules_["torso"].req_joint_vel_[3]);
-		}
-		else //button release
-		{
-			joint_modules_["torso"].req_joint_vel_[2] = 0.0;
-			joint_modules_["torso"].req_joint_vel_[3] = 0.0;
+			}
 		}
 	}
 
@@ -679,113 +705,130 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 		//arm
 		//publish_arm_ = false;
 
-		//joint12
-		if(joint_modules_["arm"].req_joint_vel_.size()>1 && arm_joint12_button_>=0 && arm_joint12_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_joint12_button_]==1)
-		{
-			//joint 1 left or right
-			if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]<0.0)
-				joint_modules_["arm"].req_joint_vel_[0] = -1*(int)joy_msg->buttons[arm_joint12_button_]*joint_modules_["arm"].steps[0]*run_factor_;
-			else if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]>0.0)
-				joint_modules_["arm"].req_joint_vel_[0] = (int)joy_msg->buttons[arm_joint12_button_]*joint_modules_["arm"].steps[0]*run_factor_;
-			else
-				joint_modules_["arm"].req_joint_vel_[0] = 0.0;
-			ROS_DEBUG("cb::arm joint1 velocity: %f",joint_modules_["arm"].req_joint_vel_[0]);
+		//assign zero values to all velocities
+		//note: this is not the best solution
+		joint_modules_["arm"].req_joint_vel_.assign(joint_modules_["arm"].req_joint_vel_.size(), 0.0);
 
-			//joint 2 up or down
-			if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]>0.0)
-				joint_modules_["arm"].req_joint_vel_[1] = (int)joy_msg->buttons[arm_joint12_button_]*joint_modules_["arm"].steps[1]*run_factor_;
-			else if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]<0.0)
-				joint_modules_["arm"].req_joint_vel_[1] = -1*(int)joy_msg->buttons[arm_joint12_button_]*joint_modules_["arm"].steps[1]*run_factor_;
-			else
-				joint_modules_["arm"].req_joint_vel_[1] = 0.0;
-			ROS_DEBUG("cb::arm joint2 velocity: %f",joint_modules_["arm"].req_joint_vel_[1]);
-			//publish_arm_ = true;
-		}
-		else //button release
+		//joint12
+		if(joint_modules_["arm"].req_joint_vel_.size() >1 )
 		{
-			joint_modules_["arm"].req_joint_vel_[0] = 0.0;
-			joint_modules_["arm"].req_joint_vel_[1] = 0.0;
-		} //arm_joint12
+			if(arm_joint12_button_>=0 && arm_joint12_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_joint12_button_]==1)
+			{
+				//joint 1 left or right
+				if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]<0.0)
+					joint_modules_["arm"].req_joint_vel_[0] = -1*(int)joy_msg->buttons[arm_joint12_button_]*joint_modules_["arm"].steps[0]*run_factor_;
+				else if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]>0.0)
+					joint_modules_["arm"].req_joint_vel_[0] = (int)joy_msg->buttons[arm_joint12_button_]*joint_modules_["arm"].steps[0]*run_factor_;
+				else
+					joint_modules_["arm"].req_joint_vel_[0] = 0.0;
+				ROS_DEBUG("cb::arm joint1 velocity: %f",joint_modules_["arm"].req_joint_vel_[0]);
+
+				//joint 2 up or down
+				if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]>0.0)
+					joint_modules_["arm"].req_joint_vel_[1] = (int)joy_msg->buttons[arm_joint12_button_]*joint_modules_["arm"].steps[1]*run_factor_;
+				else if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]<0.0)
+					joint_modules_["arm"].req_joint_vel_[1] = -1*(int)joy_msg->buttons[arm_joint12_button_]*joint_modules_["arm"].steps[1]*run_factor_;
+				else
+					joint_modules_["arm"].req_joint_vel_[1] = 0.0;
+				ROS_DEBUG("cb::arm joint2 velocity: %f",joint_modules_["arm"].req_joint_vel_[1]);
+				//publish_arm_ = true;
+			}
+			else //button release
+			{
+				joint_modules_["arm"].req_joint_vel_[0] = 0.0;
+				joint_modules_["arm"].req_joint_vel_[1] = 0.0;
+			} //arm_joint12
+		}
 
 		//joint34
-		if(joint_modules_["arm"].req_joint_vel_.size()>3 && arm_joint34_button_>=0 && arm_joint34_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_joint34_button_]==1)
+		if(joint_modules_["arm"].req_joint_vel_.size() > 3)
 		{
-			//joint 3 left or right
-			if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]<0.0)
-				joint_modules_["arm"].req_joint_vel_[2] = -1*(int)joy_msg->buttons[arm_joint34_button_]*joint_modules_["arm"].steps[2]*run_factor_;
-			else if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]>0.0)
-				joint_modules_["arm"].req_joint_vel_[2] = (int)joy_msg->buttons[arm_joint34_button_]*joint_modules_["arm"].steps[2]*run_factor_;
-			else
-				joint_modules_["arm"].req_joint_vel_[2] = 0.0;
-			ROS_DEBUG("cb::arm joint3 velocity: %f",joint_modules_["arm"].req_joint_vel_[2]);
+			if(arm_joint34_button_>=0 && arm_joint34_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_joint34_button_]==1)
+			{
+				//joint 3 left or right
+				if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]<0.0)
+					joint_modules_["arm"].req_joint_vel_[2] = -1*(int)joy_msg->buttons[arm_joint34_button_]*joint_modules_["arm"].steps[2]*run_factor_;
+				else if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]>0.0)
+					joint_modules_["arm"].req_joint_vel_[2] = (int)joy_msg->buttons[arm_joint34_button_]*joint_modules_["arm"].steps[2]*run_factor_;
+				else
+					joint_modules_["arm"].req_joint_vel_[2] = 0.0;
+				ROS_DEBUG("cb::arm joint3 velocity: %f",joint_modules_["arm"].req_joint_vel_[2]);
 
-			//joint 4 up or down
-			if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]>0.0)
-				joint_modules_["arm"].req_joint_vel_[3] = (int)joy_msg->buttons[arm_joint34_button_]*joint_modules_["arm"].steps[3]*run_factor_;
-			else if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]<0.0)
-				joint_modules_["arm"].req_joint_vel_[3] = -1*(int)joy_msg->buttons[arm_joint34_button_]*joint_modules_["arm"].steps[3]*run_factor_;
-			else
+				//joint 4 up or down
+				if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]>0.0)
+					joint_modules_["arm"].req_joint_vel_[3] = (int)joy_msg->buttons[arm_joint34_button_]*joint_modules_["arm"].steps[3]*run_factor_;
+				else if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]<0.0)
+					joint_modules_["arm"].req_joint_vel_[3] = -1*(int)joy_msg->buttons[arm_joint34_button_]*joint_modules_["arm"].steps[3]*run_factor_;
+				else
+					joint_modules_["arm"].req_joint_vel_[3] = 0.0;
+				ROS_DEBUG("cb::arm joint4 velocity: %f",joint_modules_["arm"].req_joint_vel_[3]);
+				//publish_arm_ = true;
+			}
+			else //button release
+			{
+				joint_modules_["arm"].req_joint_vel_[2] = 0.0;
 				joint_modules_["arm"].req_joint_vel_[3] = 0.0;
-			ROS_DEBUG("cb::arm joint4 velocity: %f",joint_modules_["arm"].req_joint_vel_[3]);
-			//publish_arm_ = true;
+			} //arm_joint34
 		}
-		else //button release
-		{
-			joint_modules_["arm"].req_joint_vel_[2] = 0.0;
-			joint_modules_["arm"].req_joint_vel_[3] = 0.0;
-		} //arm_joint34
 
 		//joint56
-		if(joint_modules_["arm"].req_joint_vel_.size()>4 && arm_joint56_button_>=0 && arm_joint56_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_joint56_button_]==1)
+		if(joint_modules_["arm"].req_joint_vel_.size() > 5)
 		{
-			//joint 5 left or right
-			if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]<0.0)
-				joint_modules_["arm"].req_joint_vel_[4] = -1*(int)joy_msg->buttons[arm_joint56_button_]*joint_modules_["arm"].steps[4]*run_factor_;
-			else if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]>0.0)
-				joint_modules_["arm"].req_joint_vel_[4] = (int)joy_msg->buttons[arm_joint56_button_]*joint_modules_["arm"].steps[4]*run_factor_;
-			else
-				joint_modules_["arm"].req_joint_vel_[4] = 0.0;
-			ROS_DEBUG("cb::arm joint5 velocity: %f",joint_modules_["arm"].req_joint_vel_[4]);
+			if(arm_joint56_button_>=0 && arm_joint56_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_joint56_button_]==1)
+			{
+				//joint 5 left or right
+				if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]<0.0)
+					joint_modules_["arm"].req_joint_vel_[4] = -1*(int)joy_msg->buttons[arm_joint56_button_]*joint_modules_["arm"].steps[4]*run_factor_;
+				else if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]>0.0)
+					joint_modules_["arm"].req_joint_vel_[4] = (int)joy_msg->buttons[arm_joint56_button_]*joint_modules_["arm"].steps[4]*run_factor_;
+				else
+					joint_modules_["arm"].req_joint_vel_[4] = 0.0;
+				ROS_DEBUG("cb::arm joint5 velocity: %f",joint_modules_["arm"].req_joint_vel_[4]);
 
-			//joint 6 up or down
-			if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]>0.0)
-				joint_modules_["arm"].req_joint_vel_[5] = (int)joy_msg->buttons[arm_joint56_button_]*joint_modules_["arm"].steps[5]*run_factor_;
-			else if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]<0.0)
-				joint_modules_["arm"].req_joint_vel_[5] = -1*(int)joy_msg->buttons[arm_joint56_button_]*joint_modules_["arm"].steps[5]*run_factor_;
-			else
+				//joint 6 up or down
+				if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]>0.0)
+					joint_modules_["arm"].req_joint_vel_[5] = (int)joy_msg->buttons[arm_joint56_button_]*joint_modules_["arm"].steps[5]*run_factor_;
+				else if(up_down_>=0 && up_down_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_]<0.0)
+					joint_modules_["arm"].req_joint_vel_[5] = -1*(int)joy_msg->buttons[arm_joint56_button_]*joint_modules_["arm"].steps[5]*run_factor_;
+				else
+					joint_modules_["arm"].req_joint_vel_[5] = 0.0;
+				ROS_DEBUG("cb::arm joint6 velocity: %f",joint_modules_["arm"].req_joint_vel_[5]);
+				//publish_arm_ = true;
+			}
+			else //button release
+			{
+				joint_modules_["arm"].req_joint_vel_[4] = 0.0;
 				joint_modules_["arm"].req_joint_vel_[5] = 0.0;
-			ROS_DEBUG("cb::arm joint6 velocity: %f",joint_modules_["arm"].req_joint_vel_[5]);
-			//publish_arm_ = true;
+			} //arm_joint56
 		}
-		else //button release
-		{
-			joint_modules_["arm"].req_joint_vel_[4] = 0.0;
-			joint_modules_["arm"].req_joint_vel_[5] = 0.0;
-		} //arm_joint56
 
 		//joint7
-		if(joint_modules_["arm"].req_joint_vel_.size()>5 && arm_joint7_button_>=0 && arm_joint7_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_joint7_button_]==1)
+		if(joint_modules_["arm"].req_joint_vel_.size() > 6)
 		{
-			//joint 7 left or right
-			if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]<0.0)
+			if(arm_joint7_button_>=0 && arm_joint7_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_joint7_button_]==1)
 			{
-				joint_modules_["arm"].req_joint_vel_[6] = -1*(int)joy_msg->buttons[arm_joint7_button_]*joint_modules_["arm"].steps[6]*run_factor_;
-				//publish_arm_ = true;
+				//joint 7 left or right
+				if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]<0.0)
+				{
+					joint_modules_["arm"].req_joint_vel_[6] = -1*(int)joy_msg->buttons[arm_joint7_button_]*joint_modules_["arm"].steps[6]*run_factor_;
+					//publish_arm_ = true;
+				}
+				else if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]>0.0)
+				{
+					joint_modules_["arm"].req_joint_vel_[6] = (int)joy_msg->buttons[arm_joint7_button_]*joint_modules_["arm"].steps[6]*run_factor_;
+					//publish_arm_ = true;
+				}
+				else
+					joint_modules_["arm"].req_joint_vel_[6] = 0.0;
+				ROS_DEBUG("cb::arm joint7 velocity: %f",joint_modules_["arm"].req_joint_vel_[6]);
 			}
-			else if(left_right_>=0 && left_right_<(int)joy_msg->axes.size() && joy_msg->axes[left_right_]>0.0)
+			else //button release
 			{
-				joint_modules_["arm"].req_joint_vel_[6] = (int)joy_msg->buttons[arm_joint7_button_]*joint_modules_["arm"].steps[6]*run_factor_;
-				//publish_arm_ = true;
-			}
-			else
 				joint_modules_["arm"].req_joint_vel_[6] = 0.0;
-			ROS_DEBUG("cb::arm joint7 velocity: %f",joint_modules_["arm"].req_joint_vel_[6]);
+			} //arm_joint7
 		}
-		else //button release
-		{
-			joint_modules_["arm"].req_joint_vel_[6] = 0.0;
-		} //arm_joint7
 	}
+
 	//================base================
 	if(has_base_module_ && base_module_.req_vel_.size()==3)
 	{
