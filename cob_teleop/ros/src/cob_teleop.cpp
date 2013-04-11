@@ -254,7 +254,7 @@ bool TeleopCOB::assign_joint_module(std::string mod_name, XmlRpc::XmlRpcValue mo
 		tempModule.module_publisher_ = n_.advertise<trajectory_msgs::JointTrajectory>(("/"+mod_name+"_controller/command"),1);
 		tempModule.module_publisher_brics_ = n_.advertise<brics_actuator::JointVelocities>(("/"+mod_name+"_controller/command_vel"),1);
 		// store joint module in collection
-		ROS_DEBUG("head module stored");
+		ROS_DEBUG("%s module stored",mod_name);
 		joint_modules_.insert(std::pair<std::string,joint_module>(mod_name,tempModule));
 	}
 	return is_joint_module;
