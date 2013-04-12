@@ -30,8 +30,11 @@
 namespace interactive_markers
 {
 
-void makeCircle(visualization_msgs::InteractiveMarkerControl &control, float radius, float width,
-                std_msgs::ColorRGBA color)
+void makeCircle(visualization_msgs::InteractiveMarkerControl &control, 
+                float radius, 
+                float width, 
+                std_msgs::ColorRGBA color
+                )
 {
   visualization_msgs::Marker marker;
 

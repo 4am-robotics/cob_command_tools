@@ -1,7 +1,7 @@
 /******************************************************************************
  * \file
  *
- * $Id: teleop_cob_marker.h 1105 2012-08-09 07:23:02Z spanel $
+ * $Id: teleop_cob_marker.h 2037 2012-11-30 16:28:17Z spanel $
  *
  * Copyright (C) Brno University of Technology
  *
@@ -56,6 +56,8 @@ struct TeleopCOBParams
 {
   double max_vel_x, max_vel_y, max_vel_th;
   double scale_linear, scale_angular;
+  double z_pos;
+  bool disable_driver;
 
   /**
    * @brief Constructor initializes all parameters to default values
@@ -66,6 +68,8 @@ struct TeleopCOBParams
     , max_vel_th(DEFAULT_MAX_VEL_TH)
     , scale_linear(DEFAULT_SCALE_LINEAR)
     , scale_angular(DEFAULT_SCALE_ANGULAR)
+    , z_pos(DEFAULT_Z_POS)
+    , disable_driver(false)
   {}
 };
 
@@ -98,6 +102,11 @@ public:
    * @brief Returns reference to the motion parameters
    */
   TeleopCOBParams& getParams() { return params_; }
+
+  /**
+   * @brief Changes position of the marekrs to the default state
+   */
+  void reinitMarkers();
 
 private:
   /**

@@ -69,28 +69,41 @@ import roslib
 import os
 import pynotify
 import sys 
+import signal
 
 planning_enabled = False
 base_diff_enabled = False
+confirm_commands_enabled = True
 
 initialized = False
 
 #Initializing the gtk's thread engine
-gtk.gdk.threads_init()
+#gtk.gdk.threads_init()
 
 ## Executes a button click in a new thread
 def start(func, args):
   global planning_enabled
   global base_diff_enabled
+  global confirm_commands_enabled
+  execute_command = True
+  
   largs = list(args)
-  if(largs[0] == "arm"):
-    if(planning_enabled):
-      largs.append("planned")
-  if(largs[0] == "base"):
-    if(base_diff_enabled):
-  	largs.append("diff")	
-  #print "Args", tuple(largs)
-  thread.start_new_thread(func,tuple(largs))
+  
+  if confirm_commands_enabled and (largs[1] != 'stop'):
+    confirm_dialog = gtk.MessageDialog(None, 0, gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, "Execute Command?")
+    if confirm_dialog.run() == gtk.RESPONSE_NO:
+      execute_command = False
+    confirm_dialog.destroy()
+  if execute_command:
+    if(largs[0] == "arm"):
+      if(planning_enabled):
+        largs.append("planned")
+    if(largs[0] == "base"):
+      if(base_diff_enabled):
+        largs.append("diff") 
+    #print "Args", tuple(largs)
+    #print "func ", func
+    thread.start_new_thread(func,tuple(largs))
 
 def startGTK(widget, data):
   data()
@@ -142,8 +155,13 @@ class GtkGeneralPanel(gtk.Frame):
     base_mode_check = gtk.CheckButton("Base Diff")
     base_mode_check.connect("toggled", self.base_mode_toggle)
     self.vbox.pack_start(base_mode_check, False, False, 5)
+
+    confirm_com_check = gtk.CheckButton("Confirm Commands")
+    confirm_com_check.set_active(confirm_commands_enabled)
+    confirm_com_check.connect("toggled", self.confirm_com_toggle)
+    self.vbox.pack_start(confirm_com_check, False, False, 5)
     
-    but = gtk.Button(stock=gtk.STOCK_QUIT	)
+    but = gtk.Button(stock=gtk.STOCK_QUIT )
     but.connect("clicked", lambda w: gtk.main_quit())
     self.vbox.pack_start(but, False, False, 5)
     initialized = True
@@ -163,8 +181,10 @@ class GtkGeneralPanel(gtk.Frame):
   def setEMStop(self, em):
     if(em):
       #print "Emergency Stop Active"
+      gtk.threads_enter()
       self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/weather-storm.png")
       self.status_label.set_text("EM Stop !")
+      gtk.threads_leave()
       if(self.em_stop == False):
         self.em_stop = True
         n = pynotify.Notification("Emergency Stop issued!", "", "dialog-warning")
@@ -173,7 +193,9 @@ class GtkGeneralPanel(gtk.Frame):
     else:
       #print "Status OK"
       #self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/weather-clear.png")
+      gtk.threads_enter()
       self.status_label.set_text("Status OK")
+      gtk.threads_leave()
       if(self.em_stop == True):
         self.em_stop = False
         n = pynotify.Notification("Emergency Stop released!", "", "dialog-ok")
@@ -192,8 +214,14 @@ class GtkGeneralPanel(gtk.Frame):
     if(base_diff_enabled):
       base_diff_enabled = False
     else:
-      base_diff_enabled = True       
-		    
+      base_diff_enabled = True
+
+  def confirm_com_toggle(self, b):
+    global confirm_commands_enabled
+    if(confirm_commands_enabled):
+      confirm_commands_enabled = False
+    else:
+      confirm_commands_enabled = True
 
 ## Class for gtk panel implementation
 class GtkPanel(gtk.Frame):
@@ -228,7 +256,7 @@ class Knoeppkes():
   
     self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
     self.window.connect("delete_event", self.delete_event)
-    self.window.set_title("cob command gui")	
+    self.window.set_title("cob command gui")  
     self.window.set_size_request(1000, 500)
     vbox = gtk.VBox(False, 1)
     self.hbox = gtk.HBox(True, 10)
@@ -250,7 +278,16 @@ class Knoeppkes():
     vbox.pack_start(self.status_bar, False, False, 0)     
     self.window.add(vbox)    
     self.window.show_all()
-    gtk.gdk.threads_init() 
+    gtk.gdk.threads_init()
+    gtk.gdk.threads_enter()
     gtk.main()
-  
-app = Knoeppkes()
+    gtk.gdk.threads_leave()
+    
+def signal_handler(signal, frame):
+#  print 'You pressed Ctrl+C!'
+  gtk.main_quit()
+
+if __name__ == "__main__":
+	signal.signal(signal.SIGINT, signal_handler)
+	app = Knoeppkes()
+

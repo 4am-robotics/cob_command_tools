@@ -25,6 +25,9 @@
  * along with this file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <ros/ros.h>
+#include <tf/transform_listener.h>
+
 #include <cob_interactive_teleop/teleop_cob_marker.h>
 #include <cob_interactive_teleop/topics_list.h>
 
@@ -43,23 +46,35 @@ TeleopCOBMarker::TeleopCOBMarker() : pn_("~")
   pn_.param(MAX_VEL_TH_PARAM, params_.max_vel_th, params_.max_vel_th);
   pn_.param(SCALE_LINEAR_PARAM, params_.scale_linear, params_.scale_linear);
   pn_.param(SCALE_ANGULAR_PARAM, params_.scale_angular, params_.scale_angular);
+  pn_.param(Z_POS_PARAM, params_.z_pos, params_.z_pos);
+  pn_.param(DISABLE_DRIVER_PARAM, params_.disable_driver, params_.disable_driver);
 
-  ROS_INFO("max vel x = %f", params_.max_vel_x);
-  ROS_INFO("max vel y = %f", params_.max_vel_y);
-  ROS_INFO("max vel th = %f", params_.max_vel_th);
-  
-  ROS_INFO("scale linear = %f", params_.scale_linear);
-  ROS_INFO("scale angular = %f", params_.scale_angular);
+  ROS_INFO("max_vel_x = %f", params_.max_vel_x);
+  ROS_INFO("max_vel_y = %f", params_.max_vel_y);
+  ROS_INFO("max_vel_th = %f", params_.max_vel_th); 
+  ROS_INFO("scale_linear = %f", params_.scale_linear);
+  ROS_INFO("scale_angular = %f", params_.scale_angular);
+  ROS_INFO("z_pos = %f", params_.z_pos);
+  ROS_INFO("disable_driver = %d", int(params_.disable_driver));
 
   server_.reset(new InteractiveMarkerServer("cob_interactive_teleop", "", false));
   pub_ = n_.advertise<geometry_msgs::Twist>(BASE_CONTROLLER_COMMAND_TOPIC, 1);
 
   initial_pose_ = geometry_msgs::Pose();
-  initial_pose_.position.z = 0.10;
+  initial_pose_.position.z = params_.z_pos;
+
+  // wait for transform to the base_link
+/*  tf::StampedTransform transform;
+  tf::TransformListener listener;
+  try {
+    listener.waitForTransform("/base_link", "/base_footprint", ros::Time(0), ros::Duration(10.0) );
+    listener.lookupTransform("/base_link", "/base_footprint", ros::Time(0), transform);
+  }
+  catch (tf::TransformException ex) {
+    ROS_INFO("Wait for transform failed...");
+  }*/
 
   createMarkers();
-
-  server_->applyChanges();
 }
 
 void TeleopCOBMarker::processFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
@@ -83,7 +98,15 @@ void TeleopCOBMarker::processFeedback(const visualization_msgs::InteractiveMarke
 
   pub_.publish(twist);
 
-  server_->setPose(MARKER_DRIVER_NAME, initial_pose_);
+  reinitMarkers();
+}
+
+void TeleopCOBMarker::reinitMarkers()
+{
+  if( !params_.disable_driver )
+  {
+    server_->setPose(MARKER_DRIVER_NAME, initial_pose_);
+  }
   server_->setPose(MARKER_NAVIGATOR_NAME, initial_pose_);
   server_->applyChanges();
 }
@@ -166,11 +189,14 @@ void TeleopCOBMarker::createMarkers()
   c.r = 1.0;
   c.g = 1.0;
   c.b = 0.0;
-  c.a = 1.0;
+  c.a = 0.7;
   makeCircle(floorControl, 0.1, 10.0, c);
   marker_navigator.controls.push_back(floorControl);
 
-  server_->insert(marker_driver, boost::bind(&TeleopCOBMarker::processFeedback, this, _1));
+  if( !params_.disable_driver )
+  {
+    server_->insert(marker_driver, boost::bind(&TeleopCOBMarker::processFeedback, this, _1));
+  }
   server_->insert(marker_navigator, boost::bind(&TeleopCOBMarker::processFeedback, this, _1));
   server_->applyChanges();
 }

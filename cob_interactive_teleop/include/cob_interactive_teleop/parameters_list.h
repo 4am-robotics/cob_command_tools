@@ -41,6 +41,8 @@ const std::string MAX_VEL_Y_PARAM      = "max_vel_y";
 const std::string MAX_VEL_TH_PARAM     = "max_vel_th";
 const std::string SCALE_LINEAR_PARAM   = "scale_linear";
 const std::string SCALE_ANGULAR_PARAM  = "scale_angular";
+const std::string Z_POS_PARAM          = "z_pos";
+const std::string DISABLE_DRIVER_PARAM = "disable_driver";
 
 /**
  * Default parameter values
@@ -50,6 +52,7 @@ const double DEFAULT_MAX_VEL_Y       = 0.1;
 const double DEFAULT_MAX_VEL_TH      = 0.1;
 const double DEFAULT_SCALE_LINEAR    = 0.1;
 const double DEFAULT_SCALE_ANGULAR   = 0.1;
+const double DEFAULT_Z_POS           = 0.15;
 
 }
 
