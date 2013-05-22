@@ -47,7 +47,8 @@ import std_msgs.msg
 import std_srvs.srv
 
 import rospy
-from roslib import rosenv
+from rosgraph import rosenv
+#from roslib import rosenv
 
 from os import path
 import threading
