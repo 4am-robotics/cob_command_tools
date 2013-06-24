@@ -15,9 +15,12 @@
     <depend package="std_msgs"/>
     <depend package="pr2_power_board"/>
     <depend package="pr2_msgs"/>
-    <!--depend package="pr2_dashboard"/--> <!-- temporary fix: package is deprecated, should be migrated to rqt (see rqt_pr2_dashboard) -->
+    <depend package="rqt_gui"/>
+    <depend package="rqt_pr2_dashboard"/>
     
-  <!--rosdep name="wxwidgets"/--> <!-- temporary fix: package is deprecated, should be migrated to rqt (see rqt_pr2_dashboard) -->
-  <!--rosdep name="wxpython"/--> <!-- temporary fix: package is deprecated, should be migrated to rqt (see rqt_pr2_dashboard) -->
+    <export>
+        <rqt_gui plugin="${prefix}/plugin.xml"/>
+    </export>
+
 </package>
 
