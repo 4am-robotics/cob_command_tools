@@ -1,0 +1,12 @@
+<library path="src">
+  <class name="CobDashboard" type="cob_dashboard.cob_dashboard.CobDashboard" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      A Python GUI plugin for displaying a dashboard that displays and interacts with low level pr2 states.
+    </description>
+    <qtgui>
+      <label>Care-O-bot Dashboard</label>
+      <icon type="theme">task-past-due</icon>
+      <statustip>A Python GUI plugin for displaying a dashboard that displays and interacts with low level pr2 states.</statustip>
+    </qtgui>
+  </class>
+</library>
