@@ -1,4 +1,4 @@
 #/bin/bash
-source $ROS_ROOT/tools/rosbash/rosbash
+source $ROS_ROOT/../rosbash/rosbash
 roscd cob_script_server/src
-ipython cob_console.py
+ipython -i cob_console.py
