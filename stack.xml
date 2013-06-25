@@ -20,7 +20,7 @@
   <depend stack="pr2_apps" /> <!-- pr2_teleop -->
   <depend stack="pr2_common" /> <!-- pr2_msgs -->
   <depend stack="pr2_controllers" /> <!-- pr2_controllers_msgs -->
-  <depend stack="pr2_gui" /> <!-- pr2_dashboard -->
+  <depend stack="rqt_gui" /> <!-- rqt_gui -->
   <depend stack="pr2_power_drivers" /> <!-- pr2_power_board -->
   <depend stack="ros" /> <!-- roslib -->
   <depend stack="ros_comm" /> <!-- std_srvs, roscpp, message_filters, std_msgs, rostest, rospy -->

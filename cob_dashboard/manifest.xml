@@ -1,13 +1,13 @@
 <package>
     <description brief="Care-O-bot Dashboard">
     
-      cob_dashboard is a modified version of [[pr2_dashboard]].
+      cob_dashboard is a modified version of [[rqt_pr2_dashboard]].
     
     </description>
     <author>Alexander Bubeck</author>
     <license>LGPL</license>
     <url>http://ros.org/wiki/cob_dashboard</url>
-    <!--depend package="rxtools"/--> <!-- temporary fix: package is deprecated, should be migrated to rqt (see rqt_pr2_dashboard) -->
+
     <depend package="robot_monitor"/>
     <depend package="rospy"/>
     <depend package="roslib"/>
