@@ -76,11 +76,11 @@ from trajectory_msgs.msg import *
 from geometry_msgs.msg import *
 #from pr2_controllers_msgs.msg import *	#replaced by control_msgs.msg (FollowJointTrajectoryAction)
 from move_base_msgs.msg import *
-from arm_navigation_msgs.msg import *
-from arm_navigation_msgs.srv import *
+#from arm_navigation_msgs.msg import *
+#from arm_navigation_msgs.srv import *
 from tf.transformations import *
 from std_msgs.msg import String,ColorRGBA
-from kinematics_msgs.srv import *
+#from kinematics_msgs.srv import *
 from control_msgs.msg import *
 
 # care-o-bot includes
@@ -563,9 +563,10 @@ class simple_script_server:
 		ah.wait_inside()
 		return ah
 		
-	def move_planned(self, component_name, parameter_name, blocking=True): # for backward compatibility
-		return self.move_joint_goal_planned(component_name, parameter_name, blocking)
+	'''def move_planned(self, component_name, parameter_name, blocking=True): # for backward compatibility
+		return self.move_joint_goal_planned(component_name, parameter_name, blocking)'''
 	
+	'''
 	def move_joint_goal_planned(self, component_name, parameter_name, blocking=True):
 		ah = action_handle("move_joint_goal_planned", component_name, parameter_name, blocking, self.parse)
 		if(self.parse):
@@ -680,10 +681,10 @@ class simple_script_server:
 			#print "traj_endpoint[%d]: %f", k, traj_endpoint[k]
 			goal_constraints.joint_constraints[k].position = traj_endpoint[k]
 
-		return self.move_constrained_planned(component_name, goal_constraints, blocking, ah)
+		return self.move_constrained_planned(component_name, goal_constraints, blocking, ah)'''
 
 
-	def move_constrained_planned(self, component_name, parameter_name, blocking=True, ah=None):
+	'''def move_constrained_planned(self, component_name, parameter_name, blocking=True, ah=None):
 		if ah is None:
 			ah = action_handle("move_constrained_planned", component_name, "constraint_goal", blocking, self.parse)
 			if(self.parse):
@@ -732,7 +733,7 @@ class simple_script_server:
 		ah.set_client(client)
 
 		ah.wait_inside()
-		return ah
+		return ah'''
 	## Relative movement of the base
 	#
 	# \param component_name Name of component; here always "base".
