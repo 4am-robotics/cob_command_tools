@@ -5,6 +5,9 @@ project(cob_dashboard)
 
 find_package(catkin REQUIRED COMPONENTS )
 
+catkin_python_setup()
+
+
 # TODO: fill in what other packages will need to use this package
 ## DEPENDS: system dependencies of this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
