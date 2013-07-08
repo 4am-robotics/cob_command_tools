@@ -25,7 +25,6 @@
   <depend stack="pr2_power_drivers" /> <!-- pr2_power_board -->
   <depend stack="ros" /> <!-- roslib -->
   <depend stack="ros_comm" /> <!-- std_srvs, roscpp, message_filters, std_msgs, rostest, rospy -->
-  <depend stack="rx" /> <!-- rxtools -->
   <depend stack="visualization" /> <!-- interactive_markers, rviz -->
 
 </stack>
