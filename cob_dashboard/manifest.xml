@@ -1,13 +1,13 @@
 <package>
     <description brief="Care-O-bot Dashboard">
     
-      cob_dashboard is a modified version of [[pr2_dashboard]].
+      cob_dashboard is a modified version of [[rqt_pr2_dashboard]].
     
     </description>
     <author>Alexander Bubeck</author>
     <license>LGPL</license>
     <url>http://ros.org/wiki/cob_dashboard</url>
-    <depend package="rxtools"/>
+
     <depend package="robot_monitor"/>
     <depend package="rospy"/>
     <depend package="roslib"/>
@@ -15,12 +15,12 @@
     <depend package="std_msgs"/>
     <depend package="pr2_power_board"/>
     <depend package="pr2_msgs"/>
-    <depend package="pr2_dashboard"/>
+    <depend package="rqt_gui"/>
+    <depend package="rqt_pr2_dashboard"/>
     
-  <rosdep name="wxwidgets"/>
-  <rosdep name="wxpython"/>
-  <platform os="ubuntu" version="9.04"/>
-  <platform os="ubuntu" version="9.10"/>
-  <platform os="ubuntu" version="10.04"/>
+    <export>
+        <rqt_gui plugin="${prefix}/plugin.xml"/>
+    </export>
+
 </package>
 
