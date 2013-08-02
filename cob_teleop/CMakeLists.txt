@@ -11,8 +11,8 @@ find_package(catkin REQUIRED COMPONENTS std_msgs roscpp geometry_msgs sensor_msg
 ###################################
 
 catkin_package(
-    DEPENDS std_msgs roscpp geometry_msgs sensor_msgs trajectory_msgs cob_srvs brics_actuator
-    CATKIN_DEPENDS # TODO
+    DEPENDS
+    CATKIN_DEPENDS std_msgs roscpp geometry_msgs sensor_msgs trajectory_msgs cob_srvs brics_actuator
     INCLUDE_DIRS
     LIBRARIES # TODO
 )
@@ -27,6 +27,9 @@ include_directories(${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 add_executable(${PROJECT_NAME} ros/src/cob_teleop.cpp)
 add_executable(${PROJECT_NAME}_keyboard ros/src/cob_teleop_keyboard.cpp)
 add_executable(keyboard_publisher ros/src/keyboard_publisher.cpp)
+
+add_dependencies(${PROJECT_NAME} cob_srvs_gencpp)
+
 
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_keyboard ${catkin_LIBRARIES})
