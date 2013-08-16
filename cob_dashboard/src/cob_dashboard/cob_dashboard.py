@@ -43,7 +43,7 @@ from rqt_robot_dashboard.widgets import MonitorDashWidget, ConsoleDashWidget
 from python_qt_binding.QtCore import QSize
 from python_qt_binding.QtGui import QMessageBox
 
-from rqt_pr2_dashboard.pr2_battery import PR2Battery
+from cob_battery import COBBattery
 from rqt_pr2_dashboard.pr2_runstop import PR2Runstops
 
 
@@ -68,7 +68,7 @@ class CobDashboard(Dashboard):
         self._console = ConsoleDashWidget(self.context, minimal=False)
         self._monitor = MonitorDashWidget(self.context)
         self._runstop = PR2Runstops('RunStops')
-        self._batteries = [PR2Battery(self.context)]
+        self._batteries = [COBBattery(self.context)]
 
         self._dashboard_agg_sub = rospy.Subscriber('dashboard_agg', DashboardState, self.dashboard_callback)
 
