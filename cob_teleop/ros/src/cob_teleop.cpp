@@ -649,7 +649,7 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 			}
 		}
 
-		if(joint_modules_["torso"].req_joint_vel_.size() >=4)
+		if(joint_modules_["torso"].req_joint_vel_.size() >=3)
 		{
 			//upper neck
 			if(upper_neck_button_>=0 &&
