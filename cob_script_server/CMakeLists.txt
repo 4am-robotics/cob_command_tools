@@ -34,7 +34,7 @@ generate_messages(
 ###################################
 
 catkin_package(
-    DEPENDS actionlib message_runtime actionlib_msgs tf std_msgs cob_srvs trajectory_msgs kinematics_msgs geometry_msgs control_msgs move_base_msgs arm_navigation_msgs cob_sound
+    DEPENDS actionlib message_runtime actionlib_msgs tf std_msgs cob_srvs trajectory_msgs geometry_msgs control_msgs move_base_msgs cob_sound
     CATKIN_DEPENDS # TODO
     INCLUDE_DIRS 
     LIBRARIES # TODO
