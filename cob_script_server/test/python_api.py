@@ -9,7 +9,6 @@ import rospy
 import rostest
 from trajectory_msgs.msg import *
 from simple_script_server import *
-from pr2_controllers_msgs.msg import *
 from control_msgs.msg import *
 from cob_srvs.srv import *
 

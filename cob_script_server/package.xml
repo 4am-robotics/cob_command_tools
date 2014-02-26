@@ -32,11 +32,9 @@
   <run_depend>std_msgs</run_depend>
   <run_depend>cob_srvs</run_depend>
   <run_depend>trajectory_msgs</run_depend>
-  <run_depend>kinematics_msgs</run_depend>
   <run_depend>geometry_msgs</run_depend>
   <run_depend>control_msgs</run_depend>
   <run_depend>move_base_msgs</run_depend>
-  <run_depend>arm_navigation_msgs</run_depend>
   <run_depend>cob_sound</run_depend>
     <!-- <test_depend>rospy</test_depend> -->
   <!-- <test_depend>actionlib</test_depend> -->
@@ -45,12 +43,9 @@
   <!-- <test_depend>std_msgs</test_depend> -->
   <!-- <test_depend>cob_srvs</test_depend> -->
   <!-- <test_depend>trajectory_msgs</test_depend> -->
-  <!-- <test_depend>kinematics_msgs</test_depend> -->
   <!-- <test_depend>geometry_msgs</test_depend> -->
   <!-- <test_depend>control_msgs</test_depend> -->
-  <!-- <test_depend>pr2_controllers_msgs</test_depend> -->
   <!-- <test_depend>move_base_msgs</test_depend> -->
-  <!-- <test_depend>arm_navigation_msgs</test_depend> -->
   <!-- <test_depend>cob_sound</test_depend> -->
   <!-- <test_depend>rostest</test_depend> -->
 
