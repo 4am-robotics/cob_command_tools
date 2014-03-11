@@ -1,0 +1,42 @@
+<package>
+  <name>cob_teleop</name>
+  <version>0.5.0</version>
+  <description>This Package enables remote controll of Care-O-bot via a joystick or keyboard. Currently tray, torso, arm and base are supported.</description>
+  <!-- <maintainer>Florian Weisshardt</maintainer> -->
+
+  <license>LGPL</license>
+
+  <url type="website">http://www.ros.org/wiki/cob_teleop</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>
+  <author email="fmw@ipa.fhg.de">Florian Weisshardt</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>cob_srvs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>trajectory_msgs</build_depend>
+  <build_depend>cob_srvs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>brics_actuator</build_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>cob_srvs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>trajectory_msgs</run_depend>
+  <run_depend>cob_srvs</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>brics_actuator</run_depend>
+  <!-- <test_depend>roscpp</test_depend> -->
+  <!-- <test_depend>geometry_msgs</test_depend> -->
+  <!-- <test_depend>sensor_msgs</test_depend> -->
+  <!-- <test_depend>trajectory_msgs</test_depend> -->
+  <!-- <test_depend>cob_srvs</test_depend> -->
+  <!-- <test_depend>brics_actuator</test_depend> -->
+
+  <export>
+
+  </export>
+</package>

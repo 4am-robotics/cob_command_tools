@@ -1,0 +1,55 @@
+<package>
+  <name>cob_script_server</name>
+  <version>0.5.0</version>
+  <description>The cob_script_server package provides a simple interface to operate Care-O-bot. It can be used via the python API or the actionlib interface.</description>
+  
+  <license>LGPL</license>
+
+  <url type="website">http://ros.org/wiki/cob_script_server</url>
+  <!-- <url type="bugtracker"></url> -->
+
+  <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>
+  <author email="fmw@ipa.fhg.de">Florian Weisshardt</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>actionlib</build_depend>
+  <build_depend>actionlib_msgs</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>cob_srvs</build_depend>
+  <build_depend>trajectory_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>control_msgs</build_depend>
+  <build_depend>cob_sound</build_depend>
+  <build_depend>message_generation</build_depend>
+  
+  <run_depend>rospy</run_depend>
+  <run_depend>message_runtime</run_depend>
+  <run_depend>actionlib</run_depend>
+  <run_depend>actionlib_msgs</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>cob_srvs</run_depend>
+  <run_depend>trajectory_msgs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>control_msgs</run_depend>
+  <run_depend>move_base_msgs</run_depend>
+  <run_depend>cob_sound</run_depend>
+    <!-- <test_depend>rospy</test_depend> -->
+  <!-- <test_depend>actionlib</test_depend> -->
+  <!-- <test_depend>actionlib_msgs</test_depend> -->
+  <!-- <test_depend>tf</test_depend> -->
+  <!-- <test_depend>std_msgs</test_depend> -->
+  <!-- <test_depend>cob_srvs</test_depend> -->
+  <!-- <test_depend>trajectory_msgs</test_depend> -->
+  <!-- <test_depend>geometry_msgs</test_depend> -->
+  <!-- <test_depend>control_msgs</test_depend> -->
+  <!-- <test_depend>move_base_msgs</test_depend> -->
+  <!-- <test_depend>cob_sound</test_depend> -->
+  <!-- <test_depend>rostest</test_depend> -->
+
+  <export>
+    <cpp cflags="-I${prefix}/msg/cpp"/>
+  </export>
+</package>

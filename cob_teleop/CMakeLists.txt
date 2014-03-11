@@ -1,38 +1,53 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+cmake_minimum_required(VERSION 2.8.3)
+project(cob_teleop)
 
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-#set(ROS_BUILD_TYPE RelWithDebInfo)
 
-rosbuild_init()
 
-#set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/bin)
-#set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/ros/lib)
 
-#uncomment if you have defined messages
-#rosbuild_genmsg()
-#uncomment if you have defined services
-#rosbuild_gensrv()
+find_package(catkin REQUIRED COMPONENTS std_msgs roscpp geometry_msgs sensor_msgs trajectory_msgs cob_srvs brics_actuator)
 
-#common commands for building c++ executables and libraries
-#rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
-#target_link_libraries(${PROJECT_NAME} another_library)
-#rosbuild_add_boost_directories()
-#rosbuild_link_boost(${PROJECT_NAME} thread)
-#rosbuild_add_executable(example examples/example.cpp)
-#target_link_libraries(example ${PROJECT_NAME})
+###################################
+## catkin specific configuration ##
+###################################
 
-# add project executable
-rosbuild_add_executable(${PROJECT_NAME} ros/src/${PROJECT_NAME}.cpp)
-rosbuild_add_executable(${PROJECT_NAME}_keyboard ros/src/${PROJECT_NAME}_keyboard.cpp)
-rosbuild_add_executable(keyboard_publisher ros/src/keyboard_publisher.cpp)
+catkin_package(
+    DEPENDS
+    CATKIN_DEPENDS std_msgs roscpp geometry_msgs sensor_msgs trajectory_msgs cob_srvs brics_actuator
+    INCLUDE_DIRS
+    LIBRARIES # TODO
+)
 
-# rostest
-rosbuild_add_roslaunch_check(ros/launch)
+
+###########
+## Build ##
+###########
+
+include_directories(${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+
+add_executable(${PROJECT_NAME} ros/src/cob_teleop.cpp)
+add_executable(${PROJECT_NAME}_keyboard ros/src/cob_teleop_keyboard.cpp)
+add_executable(keyboard_publisher ros/src/keyboard_publisher.cpp)
+
+add_dependencies(${PROJECT_NAME} cob_srvs_gencpp)
+
+
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_keyboard ${catkin_LIBRARIES})
+target_link_libraries(keyboard_publisher ${catkin_LIBRARIES})
+
+
+#############
+## Install ##
+#############
+
+## Mark executables and/or libraries for installation
+install(TARGETS cob_teleop
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+
+#OLD
+#find_package(catkin REQUIRED COMPONENTS roscpp std_msgs geometry_msgs sensor_msgs trajectory_msgs cob_srvs brics_actuator)
+#DEPENDS roscpp geometry_msgs std_msgs sensor_msgs trajectory_msgs cob_srvs brics_actuator

@@ -1,46 +1,42 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
-
-# Set the build type.  Options are:
-#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug          : w/ debug symbols, w/o optimization
-#  Release        : w/o debug symbols, w/ optimization
-#  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-set(ROS_BUILD_TYPE RelWithDebInfo)
+cmake_minimum_required(VERSION 2.8.3)
+project(cob_interactive_teleop)
 
 
-rosbuild_init()
-
-#set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-#set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
-
-#uncomment if you have defined messages
-#rosbuild_genmsg()
-
-#uncomment if you have defined services
-#rosbuild_gensrv()
-
-#common commands for building c++ executables and libraries
-#rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
-#target_link_libraries(${PROJECT_NAME} another_library)
-
-#rosbuild_add_boost_directories()
-#rosbuild_link_boost( thread)
-
-#rosbuild_add_executable(example examples/example.cpp)
-#target_link_libraries(example ${PROJECT_NAME})
 
 
-# BUT cob teleop
-set( COB_TELEOP_SOURCE_FILES src/interactive_markers_tools.cpp
-                             src/teleop_cob_marker.cpp 
-                             src/cob_interactive_teleop.cpp )
+find_package(catkin REQUIRED COMPONENTS roscpp interactive_markers rviz roscpp visualization_msgs interactive_markers std_msgs tf geometry_msgs sensor_msgs message_filters)
 
-set( COB_TELEOP_PROJECT_NAME interactive_teleop )
-rosbuild_add_executable( ${COB_TELEOP_PROJECT_NAME} ${COB_TELEOP_SOURCE_FILES} )
+###################################
+## catkin specific configuration ##
+###################################
 
-# rostest 
-rosbuild_add_roslaunch_check(launch)
+catkin_package(
+    DEPENDS roscpp interactive_markers rviz roscpp visualization_msgs interactive_markers std_msgs tf geometry_msgs sensor_msgs message_filters
+    CATKIN_DEPENDS # TODO
+    INCLUDE_DIRS include
+    LIBRARIES # TODO
+)
+
+
+###########
+## Build ##
+###########
+
+include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+
+add_executable(interactive_teleop src/interactive_markers_tools.cpp src/teleop_cob_marker.cpp src/cob_interactive_teleop.cpp)
+
+target_link_libraries(interactive_teleop ${catkin_LIBRARIES})
+
+
+#############
+## Install ##
+#############
+
+## Mark executables and/or libraries for installation
+install(TARGETS interactive_teleop
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
