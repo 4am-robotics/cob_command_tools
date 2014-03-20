@@ -17,5 +17,5 @@ install(PROGRAMS ros/src/knoeppkes.py
 )
 
 install(PROGRAMS ros/src/buttons.py
-  DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
