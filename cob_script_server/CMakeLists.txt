@@ -40,11 +40,23 @@ catkin_package(
     LIBRARIES # TODO
 )
 
-
-
 #############
 ## Install ##
 #############
+
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+)
+
+install(DIRECTORY test/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/test
+)
+
+
+install(PROGRAMS src/cob_console.py src/script_server.py src/script_to_graph.py src/script_viewer.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 
 #install(PROGRAMS src/simple_script_server.py
 #         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
