@@ -2,8 +2,8 @@
 Changelog for package cob_interactive_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.1 (2014-03-20)
+------------------
 * removed compiler warning
 * Fixed CMakefiles for teleop stuff.
 * merged catkin version
