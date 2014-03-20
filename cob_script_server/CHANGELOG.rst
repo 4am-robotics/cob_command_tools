@@ -1,0 +1,371 @@
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changelog for package cob_script_server
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Forthcoming
+-----------
+* Install tags
+* removed a lot of code related to packages not available in hydro anymore
+* deactivate tests
+* needed for python import
+* removed old scriptserver location
+* changed location of script server for installation
+* remove arm navigation stuff, now using moveit anyway
+* python catkin stuff
+* merged catkin version
+* Initial catkinization.
+* removing some earlier commits 3
+* removing some earlier commits 2
+* removing some earlier commits
+* fix cob_console
+* removed blocking from Script.action because blocking or non-blocking behaviour can be specified by actionlib directly
+* set blocking to True by default
+* change test script
+* removed deprecated scripts
+* Modify execute_cb in script_server to support any function in sss
+  Add blocking, service_name, duration and planning to Script.action to support script_server change
+  return ah from sleep() in sss
+* Modify execute_cb in script_server to support any function in sss
+  Add blocking, service_name, duration and planning to Script.action to support script_server change
+  return ah from sleep() in sss
+* add cob_console
+* updated test_script
+* Revert "changed component names to explicitly contain full namespace"
+  This reverts commit b3cf8a5e500a754d19091aba25a9fe442518556d.
+* Merge branch 'master' of github.com:ipa-fmw/cob_command_tools
+* changed component names to explicitly contain full namespace
+* fix action handle for light
+* Merge remote-tracking branch 'origin-ipa320/master' into automerge
+* switched from pr2_controllers_msgs::JointTrajectoryAction to control_msgs::FollowJointTrajectory
+* removed functions used for cartesian motion and ik
+* unified script_server: removed all functions related to planned cartesian motion for the arm + some fixes
+* removed unecessary code
+* fix action result for play
+* fixed issues with action handle state for non actionlib functions
+* use constraint_aware ik-solver; some minor modifications
+* fixed typo
+* use follow_joint_trajectory instead of joint_trajectory_action; fixed hardcoded length for velocities in trajectory points_msg
+* removed call to set_planning_scene_diff in move_constrained_planned
+* removed cartesian-related functions
+* Merge branch 'master' of github.com:ipa320/cob_command_tools
+* removed hard-code call to set_planning_scene_diff
+* removed call to transfrom pose service
+* Merge branch 'review-ipa320'
+* fix typo
+* changed light to std_msgs/ColorRGBA message
+* fixed whitespace
+* fixed calculate_ik
+* fixed parse_cartesian_parameters
+* disabled GetPoseStampedTransformed calls
+* more output for move_planned_constraint
+* fixed parse_cartesian_parameters
+* introduced parse_cartesian_parameters
+* Merge pull request `#1 <https://github.com/ipa320/cob_command_tools/issues/1>`_ from ipa-fmw-ws/master
+  Check_plan im sss
+* move_base_rel with safe topic
+* Merge branch 'review-ipa320'
+* changed to cartesian goal and start in joint space
+* for testing check_plan function in sss
+* removed dummy velocities
+* Merge remote-tracking branch 'origin-ipa320/master' into automerge
+* non blocking service calls working
+* added support for setting manipulation velocity
+* Added check_plan: Check if a trajectory to a specific goal exists
+* test script for ik calculation and motion plan
+* support for init_all and recover_all based on loaded robot modules in command_gui
+* Merge branch 'master' of https://github.com/abubeck/cob_command_tools into review-abubeck
+* Merge branch 'review-ipa320'
+* TEST: added planning_scene_diff to MoveArmGoal for considering collision_objects during move_constrained_planned
+* base stop wirking
+* fix service stop
+* added ah.cancel and stop for base
+* changed follow joint trajectory name
+* fixed dependency on pygraphviz
+* updated dependencies
+* moved GetPoseStampedTransformed.srv to cob_srvs
+* Merge branch 'master' of github.com:ipa320/cob_command_tools
+* added initial version of move_cart_planned
+* added component_name guard for _planned functions
+* fixed indention error
+* minor changes for HW tests
+* intergrated pose transform service call
+* fuerte rosdep migration
+* changed script server to followjointtrajectory action
+* introduced move_pose_goal_planned
+* renamed move_planned to move_joint_goal_planned, keeping old name for compatibility reasons
+* added move_constrained_planned, move_planned is now calling it
+* read ik_link_name directly from /cob_arm_kinematics/arm/tip_name
+* read joint names directly from /arm_controller/state
+* modified calculate_ik to use solver from cob_arm_navigation
+* adapt roslaunch tests
+* more informative error messages
+* merge conflict
+* added relative motion to script server
+* bugfix
+* add sss.calculate_ik for ik pre calculation and therefore removed move_cart
+* test for script server
+* remove hack
+* new cob_command_tools stack
+* fix random moves
+* ros navigation working mostly fine
+* added missing scriptserver functions
+* remove compiler warnings
+* removed failing test
+* deaktivate test because fails on hudson
+* longer timeout for tests
+* disable move base omni test
+* fix arm movements in script_server
+* added ENV variables to tests
+* start generic states
+* fix navigation
+* modified test
+* beautify tests
+* added actionlib tests
+* added launch file checks
+* new test files for cob_script_server
+* switched to electric
+* removed dependency to cob_msgs
+* interaid adaptions
+* fetch and carry on cob3-3
+* say test
+* changed script server details
+* update script_server for linear base movement
+* test cooler
+* calibration scrit for cob3-1
+* modified scrit server with modes for base movements
+* merge
+* added potential field nav to simplescriptserver
+* added calibration script cob3-1
+* testcooler
+* calib script for cob3-3
+* update for cob3-3
+* solved merge conflict
+* merge
+* adapted china_cup initial position
+* wimicare project: modifications
+* remove sound_play from script_server
+* commit after merge
+* modifications for wimicare project
+* removed detection section from simple_script_server
+* implemented all object_handler functions
+* start integrating object_handler to script_server
+* Merge branch 'review-aub'
+* Merge branch 'review-320'
+* changed say interface to cob_sound
+* cleanup script_server
+* implementation of move_cart_planned in cob_script_server
+* Merge branch 'master' of github.com:ipa-uhr-fm/cob_apps into review-uhr-fm
+* merged with 320
+* restructured cob_arm_navigation
+* fix
+* state checking while parsing
+* change to executable mode
+* Merge branch 'review-320'
+* extended script server test
+* back to 3 sec er movemement
+* Merge branch 'review-320'
+* reordered kitchen objects
+* added autostart
+* first version of ToF sensor data to collision map for dynamic environment
+* merge ipa320
+* merge with ipa320
+* fixed colliding trajectories (tablet_padding)
+* renamed move action to script action
+* Merge branch 'review-uhr-fm'
+* Merge branch 'review-aub'
+* Merge branch 'master' of github.com:abubeck/cob_apps into review-aub
+* monday evening commit
+* Merge branch 'master' of https://github.com/ipa-uhr-fm/cob_apps into review-uhr-fm
+* changed trajectory time to 10 seconds
+* typo
+* dep to actionlib_msgs
+* Merge branch 'master' of https://github.com/ipa320/cob_apps into review-320
+* update stacks
+* fix
+* error handling for detect ojbect
+* Merge branch 'review-taj-dm'
+* moved ultiple message files out of cob_msgs to their own packages
+* get milk is working
+* Merge branch 'review-320'
+* integrated object detection into script server
+* added detect object funtion
+* added switchable planning mode to dashboard, added cob_arm_navigation to cob_bringup for simulation
+* added all trigger tests
+* added python api test for script server
+* return handle for trigger commands
+* integrated planning in script_server
+* prepare script server for smach
+* separate script server from action handle
+* added test script for head joints
+* added depencency
+* Merge branch 'master' of github.com:ipa-uhr-fm/cob_apps into review-uhr-fm
+* removed deprecated dependencies
+* Merge branch 'master' of github.com:ipa320/cob_apps into ipa320-review
+* implemented pause in script server
+* script to graph working
+* grasping china_cup is working
+* merge with review-320
+* removed config files from apps packages
+* implemented points inside trajectories
+* read joint_names from parameter server
+* added platfrom test script
+* changed launchfile to use cob_default_config package
+* added support for multiple arms on the dashboard
+* commit local changes
+* added bringup with camera starting
+* preparing release
+* debugged service interface for gazebo
+* partial merge with ipa-uhr-fm
+* calibration script for neck-camera on cob3-1
+* calibration script
+* changed trigger service
+* typo
+* merge
+* cleanup in cob_apps and updated stack.xml's
+* Merge branch 'master' of github.com:ipa-fmw/care-o-bot into fmw-messmerf
+  Conflicts:
+  cob_apps/cob_arm_navigation/CMakeLists.txt
+* joint_state aggregator working on cob3-1, calibration script update
+* added head
+* calib script for cob3-1
+* typo
+* update script_server
+* auto linking inifiles with ROBOT variable
+* corrected base position
+* script and parameter for planned motion
+* HeadAxis working
+* random moves test script
+* sound test
+* translation has to be in mm
+* cob3-1 grasp script modifications
+* sound_play node overlay
+* Merge branch 'master' of git@github.com:ipa-fmw/care-o-bot
+* bugfix
+* changes for using planned motion; to be tested on real cob
+* scripts using planned motion
+* upaload ipa_kitchen params
+* end of research-camp
+* fix script server
+* scrift server fix
+* research camp challenge
+* research camp challenge
+* update folded position
+* moved ekf domo publisher to nav; update positions for new urdf trafos; moved controller_manager to cob_controller_configuration_gazebo
+* fix for global frame names
+* brics exercise 3 working again
+* Merge branch 'master' of github.com:ipa-fmw/care-o-bot
+* lbr working on cob
+* changed trajecotry time back to 3 sec
+* Merge branch 'master' of github.com:ipa-fmw/care-o-bot
+* new interafaces for kdl solver
+* new arm transformation for lbr, set_operation_mode with service interface
+* new script table cup, modified time_from_start for all trajectories
+* deleted deprecated cob_actions package
+* modifications for cob3-1
+* allow multiple instances of dashboard
+* small modification to script_server
+* cleanup in urdfs
+* fixes for cob3-1
+* added drive by script
+* preparation for blocklaser
+* head axis working in simulation
+* Merged with ipa-320
+* Merge completed
+* older changes in simple_script_server
+* obstacles on floor
+* grasp script optimisations
+* update urdf to be compatible with ctrutle, add 64bit support for libntcan
+* modified script with working cartesian movement
+* modified some poses for scripting, changed behaivour of move_cart_rel action
+* added joint limit support to ik solver
+* testing cart interface
+* Merge branch 'master' of github.com:ipa-fmw/care-o-bot
+* small fix
+* small fixes
+* wait for last thred to finish
+* bugfix
+* added live vizualisation of states
+* state information working correctly
+* restructured script_server, put more functionality to action handle
+* live script_viewer is working
+* defined script messages
+* script_server levels are working for graph
+* publishing is working
+* merge with aub, bugfix
+* preparing for grasp script
+* Merge branch 'scriptserver' of github.com:ipa-fmw/care-o-bot into scriptserver
+* merge with aub scriptserver
+* graph name is filename
+* Merge branch 'scriptserver' of github.com:ipa-fmw/care-o-bot into scriptserver
+* graph generation with level
+* update positions for lbr
+* merge
+* performance tuning
+* speech suppport for script_server
+* update documentation
+* source documentation for script server
+* added support for live visualization of scripts, lightening up current running procedure has not been done yet
+* modified names
+* merge
+* modified trajectory starttime for better controller performance
+* changes to script_server, move_cart_rel still not working
+* Merge branch 'review-aub-sss' into scriptserver
+* function names changed in script_server
+* fixed bug with graph on non string parameters
+* merge
+* sdh changes and calibration script and parameter
+* deps for script_server graph
+* working visualization for scripts, needs to be tested, rosrun cob_script_server graph <scriptfile>
+* script for camera calibration data
+* added graphviz visualization for script server scripts
+* modified urdf and adapted xaml files
+* Added another file
+* Added Mike's Script
+* modification for cob3-2
+* modi from Reza sample
+* temp from reza
+* merge and wave files for script server
+* Merge branch 'master' of github.com:ipa-uh/care-o-bot
+* theo told me to
+* bugfix for script_server
+* Material for cob_script_server tutorials
+* Testing tutorial for cob_script_server
+* improved simulation for schunk arm and cleanup in 2dnav package
+* fixed init bug
+* update dashboard
+* update on robot
+* dashboard working with script_server
+* changed service names to small letters and extended script_server
+* grasp from cooler scenarion running
+* update script server yaml and lbr urdf description
+* update script server yaml and lbr urdf description
+* script_server update
+* Merge branch 'master' of git@github.com:ipa-fmw/care-o-bot
+* First implementation of script to grasp from water cooler
+* script server upload files
+* Merge branch 'master' of git@github.com:ipa-taj/care-o-bot into review-taj
+* small fixes for script_server
+* First, untested version of script to grasp from water cooler
+* correced files after wrong merge
+* Merge branch 'review-fmw'
+* Merge branch 'master' of github.com:ipa-taj/care-o-bot
+  Conflicts:
+  cob_apps/cob_script_server/scripts/test_script.py
+  cob_apps/cob_script_server/src/simple_script_server.py
+* Sound now tested and working
+* update of script_server
+* merge with taj
+* merge with taj
+* rotation around z-axis working, x and y to be changed
+* minor modifications to script_server
+* Bugfixing on sound section of simple_script_server
+* cartesian arm movement is working with script_server
+* debuged sound, still not working properly
+* merge with taj
+* script server working with navigation
+* Added sound functionality to simple script server (untested)
+* bugfix
+* added actionhandler to script_server
+* expanded script_server
+* moved script_server to open-source repository
+* Contributors: Alexander Bubeck, Felix Messmer, Florian Weißhardt, Georg Arbeiter, LucaLattanzi, Mathias Lüdtke, Michael Bowler, Nathan Burke, Tobias Sing, Witalij Siebert, Your full name, abubeck, b-it-bots-secure, cu-noyvirt, fmw, fmw-jiehou, fmw-jk, ipa-fmw, ipa-fxm, ipa-goa, ipa-nhg, ipa-rmb, ipa-taj, ipa-taj-dm, ipa-uhr, ipa-uhr-fm, ipa320, snilsson, uh, uh-mb, uh-reza
