@@ -11,3 +11,15 @@ catkin_package(
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )
+
+install(PROGRAMS ros/src/knoeppkes.py 
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(PROGRAMS ros/src/buttons.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY common
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/common
+)
