@@ -47,7 +47,17 @@ install(TARGETS cob_teleop
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+install(TARGETS cob_teleop_keyboard
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
+install(TARGETS keyboard_publisher 
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 #OLD
 #find_package(catkin REQUIRED COMPONENTS roscpp std_msgs geometry_msgs sensor_msgs trajectory_msgs cob_srvs brics_actuator)
 #DEPENDS roscpp geometry_msgs std_msgs sensor_msgs trajectory_msgs cob_srvs brics_actuator

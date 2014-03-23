@@ -11,9 +11,9 @@ find_package(catkin REQUIRED COMPONENTS roscpp interactive_markers rviz roscpp v
 ###################################
 
 catkin_package(
-    DEPENDS roscpp interactive_markers rviz roscpp visualization_msgs interactive_markers std_msgs tf geometry_msgs sensor_msgs message_filters
-    CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS include
+    CATKIN_DEPENDS roscpp interactive_markers rviz roscpp visualization_msgs interactive_markers std_msgs tf geometry_msgs sensor_msgs message_filters
+    DEPENDS # TODO
+    INCLUDE_DIRS #include
     LIBRARIES # TODO
 )
 
