@@ -58,6 +58,11 @@ install(TARGETS keyboard_publisher
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+install(DIRECTORY ros/launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
 #OLD
 #find_package(catkin REQUIRED COMPONENTS roscpp std_msgs geometry_msgs sensor_msgs trajectory_msgs cob_srvs brics_actuator)
 #DEPENDS roscpp geometry_msgs std_msgs sensor_msgs trajectory_msgs cob_srvs brics_actuator
