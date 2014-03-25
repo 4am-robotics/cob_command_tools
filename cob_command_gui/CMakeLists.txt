@@ -15,7 +15,7 @@ catkin_package(
 )
 
 install(PROGRAMS src/knoeppkes.py 
-  DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/src
 )
 
 install(DIRECTORY common

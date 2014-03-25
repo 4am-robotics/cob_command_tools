@@ -61,11 +61,11 @@ install(DIRECTORY msg
 )
 
 install(PROGRAMS src/cob_console src/cob_console.py src/script_server.py src/script_to_graph.py src/script_viewer.py src/xdot.py
-  DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}/src
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/src
 )
 
 install(PROGRAMS test/action_interface.py test/move.py test/python_api.py test/test_say.py test/trigger.py
-  DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}/test
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/test
 )
 
 #install(PROGRAMS src/simple_script_server.py
