@@ -60,7 +60,7 @@
 import roslib
 roslib.load_manifest('cob_command_gui')
 from cob_relayboard.msg import EmergencyStopState
-from buttons import *
+from command_gui_buttons import *
 import thread
 import pygtk
 pygtk.require('2.0')
@@ -261,7 +261,7 @@ class Knoeppkes():
     vbox = gtk.VBox(False, 1)
     self.hbox = gtk.HBox(True, 10)
     vbox.pack_start(self.hbox, True, True, 0)
-    b = buttons()
+    b = command_gui_buttons()
     self.gpanel = GtkGeneralPanel(b)
     self.hbox.pack_start(self.gpanel,True, True, 3)
     panels = b.panels

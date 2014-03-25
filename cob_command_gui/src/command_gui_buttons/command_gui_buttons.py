@@ -61,7 +61,7 @@ import rospy
 from simple_script_server import *
 
 ## Implements configurable buttons
-class buttons:
+class command_gui_buttons:
 	def __init__(self):
 		self.sss = simple_script_server()
 		self.panels = []

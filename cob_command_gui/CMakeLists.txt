@@ -5,6 +5,8 @@ project(cob_command_gui)
 
 find_package(catkin REQUIRED COMPONENTS)
 
+catkin_python_setup()
+
 catkin_package(
     CATKIN_DEPENDS
     DEPENDS # TODO
@@ -12,12 +14,8 @@ catkin_package(
     LIBRARIES # TODO
 )
 
-install(PROGRAMS ros/src/knoeppkes.py 
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(PROGRAMS ros/src/buttons.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+install(PROGRAMS src/knoeppkes.py 
+  DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}
 )
 
 install(DIRECTORY common
