@@ -14,8 +14,8 @@ catkin_python_setup()
 ## INCLUDE_DIRS: 
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 catkin_package(
-    DEPENDS rxtools robot_monitor rospy roslib std_srvs std_msgs pr2_power_board pr2_msgs pr2_dashboard wxwidgets wxpython
-    CATKIN_DEPENDS # TODO
+    CATKIN_DEPENDS rospy roslib std_srvs pr2_msgs rqt_pr2_dashboard
+    DEPENDS # TODO
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )
@@ -24,10 +24,6 @@ install(PROGRAMS scripts/cob_dashboard
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(PROGRAMS src/cob_dashboard/cob_battery.py src/cob_dashboard/cob_dashboard.py src/cob_dashboard/__init__.py
-  DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}
+install(FILES plugin.xml
+   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
-
-install(FILES
-   plugin.xml
-   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

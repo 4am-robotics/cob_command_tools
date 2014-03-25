@@ -13,9 +13,6 @@
   <author email="fmw@ipa.fhg.de">Florian Weisshardt</author>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>rospy</build_depend>
-  <build_depend>cob_script_server</build_depend>
-  <build_depend>cob_relayboard</build_depend>
   <run_depend>rospy</run_depend>
   <run_depend>cob_script_server</run_depend>
   <run_depend>cob_relayboard</run_depend>

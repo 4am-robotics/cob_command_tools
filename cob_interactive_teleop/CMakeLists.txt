@@ -11,9 +11,9 @@ find_package(catkin REQUIRED COMPONENTS roscpp interactive_markers rviz roscpp v
 ###################################
 
 catkin_package(
-    DEPENDS roscpp interactive_markers rviz roscpp visualization_msgs interactive_markers std_msgs tf geometry_msgs sensor_msgs message_filters
-    CATKIN_DEPENDS # TODO
-    INCLUDE_DIRS include
+    CATKIN_DEPENDS roscpp interactive_markers rviz roscpp visualization_msgs interactive_markers std_msgs tf geometry_msgs sensor_msgs message_filters
+    DEPENDS # TODO
+    INCLUDE_DIRS #include
     LIBRARIES # TODO
 )
 
@@ -40,10 +40,16 @@ install(TARGETS interactive_teleop
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(DIRECTORY launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+install(DIRECTORY include/${PROJECT_NAME}/
+   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+   FILES_MATCHING PATTERN "*.h"
+   PATTERN ".svn" EXCLUDE
 )
 
-install(DIRECTORY config/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config
+install(DIRECTORY launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+install(DIRECTORY config
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

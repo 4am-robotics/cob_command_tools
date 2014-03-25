@@ -34,8 +34,8 @@ generate_messages(
 ###################################
 
 catkin_package(
-    DEPENDS actionlib message_runtime actionlib_msgs tf std_msgs cob_srvs trajectory_msgs geometry_msgs control_msgs move_base_msgs cob_sound
-    CATKIN_DEPENDS # TODO
+    CATKIN_DEPENDS actionlib message_runtime actionlib_msgs tf std_msgs cob_srvs trajectory_msgs geometry_msgs control_msgs move_base_msgs cob_sound
+    DEPENDS # TODO
     INCLUDE_DIRS 
     LIBRARIES # TODO
 )
@@ -44,20 +44,28 @@ catkin_package(
 ## Install ##
 #############
 
-install(DIRECTORY launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+install(DIRECTORY action
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
-install(DIRECTORY test/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/test
+install(DIRECTORY common
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
-install(PROGRAMS src/cob_console.py src/script_server.py src/script_to_graph.py src/xdot.py
+install(DIRECTORY launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+install(DIRECTORY msg
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+install(PROGRAMS src/cob_console src/cob_console.py src/script_server.py src/script_to_graph.py src/script_viewer.py src/xdot.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(PROGRAMS src/script_viewer.py
-  DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}
+install(PROGRAMS test/action_interface.py test/move.py test/python_api.py test/test_say.py test/trigger.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 #install(PROGRAMS src/simple_script_server.py

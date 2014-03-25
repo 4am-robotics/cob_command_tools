@@ -13,23 +13,16 @@
   <author email="aub@ipa.fhg.de">Alexander Bubeck</author>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>rospy</build_depend>
-
   <run_depend>rospy</run_depend>
   <run_depend>roslib</run_depend>
   <run_depend>std_srvs</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>pr2_power_board</run_depend>
   <run_depend>pr2_msgs</run_depend>
   <run_depend>rqt_pr2_dashboard</run_depend>
+  <run_depend>rqt_gui</run_depend>
   <run_depend>rqt_gui_cpp</run_depend>
-  <!-- <test_depend>rxtools</test_depend> -->
-  <!-- <test_depend>robot_monitor</test_depend> -->
   <!-- <test_depend>rospy</test_depend> -->
   <!-- <test_depend>roslib</test_depend> -->
   <!-- <test_depend>std_srvs</test_depend> -->
-  <!-- <test_depend>std_msgs</test_depend> -->
-  <!-- <test_depend>pr2_power_board</test_depend> -->
   <!-- <test_depend>pr2_msgs</test_depend> -->
   <!-- <test_depend>pr2_dashboard</test_depend> -->
 
