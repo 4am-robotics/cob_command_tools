@@ -21,7 +21,7 @@ catkin_package(
 )
 
 install(PROGRAMS scripts/cob_dashboard
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION}
 )
 
 install(FILES plugin.xml
