@@ -86,6 +86,8 @@ public:
 class cob_teleop_cob4_impl
 {
     /* protected region user member variables on begin */
+    brics_actuator::JointValue test_sring;
+    
     /* protected region user member variables end */
 
 public:
@@ -153,11 +155,19 @@ public:
 		break;
 		
 		case 3: //sensorring head torso 
-		data.out_sensorring_controller_command.velocities[0].timeStamp=ros::Time::now();
-		data.out_sensorring_controller_command.velocities[0].joint_uri='sensorring_joint';
-		data.out_sensorring_controller_command.velocities[0].unit='rad';
-		data.out_sensorring_controller_command.velocities[0].value=27;
+		test_sring.timeStamp=ros::Time::now();
+		test_sring.joint_uri="sensorring_joint";
+		test_sring.unit="rad";
+		test_sring.value=data.in_joy.axes[0];
+		if (data.out_sensorring_controller_command.velocities.size()==0)
+		{
+		    data.out_sensorring_controller_command.velocities.push_back(test_sring);//only thing I got working for init.
+		    ROS_WARN("Setting size");
+		}
+		data.out_sensorring_controller_command.velocities[0]=test_sring;//now it's possible to overwrite
 		data.out_sensorring_controller_command_active=1;
+		ROS_WARN("SR Active");
+		break;
 		
 		}
 		
