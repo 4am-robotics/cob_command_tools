@@ -7,7 +7,7 @@
     <publisher name="arm_cart_right" msg="brics_actuator::CartesianTwist"/>
     <publisher name="arm_joint_right" msg="brics_actuator::JointVelocities"/>
     <publisher name="arm_joint_left" msg="brics_actuator::JointVelocities"/>
-    <publisher name="head_controller command" msg="geometry_msgs::Twist"/>
+    <publisher name="head_controller command" msg="trajectory_msgs::JointTrajectory"/>
     <publisher name="sensorring_controller command" msg="brics_actuator::JointVelocities"/>
     <publisher name="torso_controller command" msg="geometry_msgs::Twist"/>
     <subscriber name="joy" msg="sensor_msgs::Joy"/>
@@ -52,4 +52,5 @@
   <depend>geometry_msgs</depend>
   <depend>brics_actuator</depend>
   <depend>std_msgs</depend>
+  <depend>trajectory_msgs</depend>
 </ros:Package>

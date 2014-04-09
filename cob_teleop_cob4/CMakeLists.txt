@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
 	geometry_msgs
 	brics_actuator
 	std_msgs
+	trajectory_msgs
 )
 
 # protected region additional user defined REQUIREMENTS on begin #
@@ -36,6 +37,7 @@ catkin_package(
 	geometry_msgs
 	brics_actuator
 	std_msgs
+	trajectory_msgs
    
 )
 

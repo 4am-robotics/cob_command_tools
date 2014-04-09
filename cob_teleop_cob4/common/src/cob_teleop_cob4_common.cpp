@@ -6,7 +6,7 @@
 #include <brics_actuator/CartesianTwist.h>
 #include <brics_actuator/JointVelocities.h>
 #include <brics_actuator/JointVelocities.h>
-#include <geometry_msgs/Twist.h>
+#include <trajectory_msgs/JointTrajectory.h>
 #include <brics_actuator/JointVelocities.h>
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/Joy.h>
@@ -75,7 +75,7 @@ public:
     bool out_arm_joint_right_active;
     brics_actuator::JointVelocities out_arm_joint_left;
     bool out_arm_joint_left_active;
-    geometry_msgs::Twist out_head_controller_command;
+    trajectory_msgs::JointTrajectory out_head_controller_command;
     bool out_head_controller_command_active;
     brics_actuator::JointVelocities out_sensorring_controller_command;
     bool out_sensorring_controller_command_active;
@@ -86,8 +86,9 @@ public:
 class cob_teleop_cob4_impl
 {
     /* protected region user member variables on begin */
+    float run;
     brics_actuator::JointValue test_sring;
-    
+    trajectory_msgs::JointTrajectory head_velocity;
     /* protected region user member variables end */
 
 public:
@@ -106,87 +107,102 @@ public:
     void update(cob_teleop_cob4_data &data, cob_teleop_cob4_config config)
     {
         /* protected region user update on begin */
-	if (data.in_joy.buttons.size()!=17)//wait for full joypad
-	{	
-		ROS_WARN("joypad inactive! waiting for vector of buttons");
-		return;
-	}
-	
-	if (data.in_joy.buttons.at(config.button_mode_switch))//switch mode. gets executed multiple times
-	{
-		++mode;
-		if (mode >= 4)
-		{
-			mode = 0;
-		}
-		ROS_WARN("Mode switched to: %d",mode);
-		ros::Duration(0.5).sleep();//wait (bad place)
-		return;
-	}
+    if (data.in_joy.buttons.size()!=17)//wait for full joypad
+  {  
+    ROS_WARN("joypad inactive! waiting for vector of buttons. Move the Controller");
+    return;
+  }
+  
+  if (data.in_joy.buttons.at(config.button_mode_switch))//switch mode. gets executed multiple times
+  {
+    ++mode;
+    if (mode >= 4)
+    {
+      mode = 0;
+    }
+    ROS_WARN("Mode switched to: %d",mode);
+    ros::Duration(0.5).sleep();//wait (bad place)
+    //deactivate publishing during mode switch (or allow mode selection only if deadman is not pressed?)
+    data.out_base_controller_command_active=0;
+    data.out_sensorring_controller_command_active=0;
+    return;
+  }
 
 
-	if (data.in_joy.buttons.at(config.button_deadman))
-	{
-		switch (mode)
-		{
-		case 0: //Base
-		data.out_base_controller_command.linear.x=data.in_joy.axes[config.base_x]*config.base_max_linear;
-		data.out_base_controller_command.linear.y=data.in_joy.axes[config.base_y]*config.base_max_linear;
-		data.out_base_controller_command.angular.z=data.in_joy.axes[config.base_yaw]*config.base_max_angular;
-		data.out_base_controller_command_active=1;
-		break;
-		
-		case 1: //arm cartesian left
-		data.out_arm_cart_left.translation.x=(data.in_joy.axes[config.arm_x])*config.arm_cartesian_max_linear;
-		data.out_arm_cart_left.translation.y=(data.in_joy.axes[config.arm_y])*config.arm_cartesian_max_linear;
-		data.out_arm_cart_left.rotation.z=(data.in_joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular;
-		data.out_arm_cart_left.translation.z=(data.in_joy.buttons[config.arm_z_up]*run_factor(data)-data.in_joy.buttons[config.arm_z_down])*run_factor(data)*config.arm_cartesian_max_linear;
-		data.out_arm_cart_left.rotation.x=(data.in_joy.buttons[config.arm_roll_left_and_ellbow]*run_factor(data)-data.in_joy.buttons[config.arm_roll_right_and_ellbow])*run_factor(data)*config.arm_cartesian_max_angular;
-		data.out_arm_cart_left.rotation.y=(data.in_joy.buttons[config.arm_pitch_up]*run_factor(data)-data.in_joy.buttons[config.arm_pitch_down])*run_factor(data)*config.arm_cartesian_max_angular;
-		break;
-		
-		case 2: //arm_cartesian right
-		data.out_arm_cart_right.translation.x=(data.in_joy.axes[config.arm_x])*config.arm_cartesian_max_linear;
-		data.out_arm_cart_right.translation.y=(data.in_joy.axes[config.arm_y])*config.arm_cartesian_max_linear;
-		data.out_arm_cart_right.rotation.z=(data.in_joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular;
-		data.out_arm_cart_right.translation.z=(data.in_joy.buttons[config.arm_z_up]*run_factor(data)-data.in_joy.buttons[config.arm_z_down])*run_factor(data)*config.arm_cartesian_max_linear;
-		data.out_arm_cart_right.rotation.x=(data.in_joy.buttons[config.arm_roll_left_and_ellbow]*run_factor(data)-data.in_joy.buttons[config.arm_roll_right_and_ellbow])*run_factor(data)*config.arm_cartesian_max_angular;
-		data.out_arm_cart_right.rotation.y=(data.in_joy.buttons[config.arm_pitch_up]*run_factor(data)-data.in_joy.buttons[config.arm_pitch_down])*run_factor(data)*config.arm_cartesian_max_angular;
-		break;
-		
-		case 3: //sensorring head torso 
-		test_sring.timeStamp=ros::Time::now();
-		test_sring.joint_uri="sensorring_joint";
-		test_sring.unit="rad";
-		test_sring.value=data.in_joy.axes[0];
-		if (data.out_sensorring_controller_command.velocities.size()==0)
-		{
-		    data.out_sensorring_controller_command.velocities.push_back(test_sring);//only thing I got working for init.
-		    ROS_WARN("Setting size");
-		}
-		data.out_sensorring_controller_command.velocities[0]=test_sring;//now it's possible to overwrite
-		data.out_sensorring_controller_command_active=1;
-		ROS_WARN("SR Active");
-		break;
-		
-		}
-		
-	}
-	else 
-	{
-		data.out_base_controller_command_active=0;
-		data.out_sensorring_controller_command_active=0;
-	}
+  if (data.in_joy.buttons.at(config.button_deadman))
+  {
+    run=run_factor(data);
+    ROS_WARN("RF: %f",run);
+    switch (mode)
+    {
+    case 0: //Base
+    data.out_base_controller_command.linear.x=data.in_joy.axes[config.base_x]*config.base_max_linear*run;
+    data.out_base_controller_command.linear.y=data.in_joy.axes[config.base_y]*config.base_max_linear*run;
+    data.out_base_controller_command.angular.z=data.in_joy.axes[config.base_yaw]*config.base_max_angular*run;
+    data.out_base_controller_command_active=1;
+    break;
+    
+    case 1: //arm cartesian left
+    data.out_arm_cart_left.translation.x=(data.in_joy.axes[config.arm_x])*config.arm_cartesian_max_linear;
+    data.out_arm_cart_left.translation.y=(data.in_joy.axes[config.arm_y])*config.arm_cartesian_max_linear;
+    data.out_arm_cart_left.rotation.z=(data.in_joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular;
+    data.out_arm_cart_left.translation.z=(data.in_joy.buttons[config.arm_z_up]-data.in_joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
+    data.out_arm_cart_left.rotation.x=(data.in_joy.buttons[config.arm_roll_left_and_ellbow]-data.in_joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
+    data.out_arm_cart_left.rotation.y=(data.in_joy.buttons[config.arm_pitch_up]-data.in_joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
+    break; //maybe these blocks should be smaller
+    
+    case 2: //arm_cartesian right
+    data.out_arm_cart_right.translation.x=(data.in_joy.axes[config.arm_x])*config.arm_cartesian_max_linear;
+    data.out_arm_cart_right.translation.y=(data.in_joy.axes[config.arm_y])*config.arm_cartesian_max_linear;
+    data.out_arm_cart_right.rotation.z=(data.in_joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular;
+    data.out_arm_cart_right.translation.z=(data.in_joy.buttons[config.arm_z_up]-data.in_joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
+    data.out_arm_cart_right.rotation.x=(data.in_joy.buttons[config.arm_roll_left_and_ellbow]-data.in_joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
+    data.out_arm_cart_right.rotation.y=(data.in_joy.buttons[config.arm_pitch_up]-data.in_joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
+    break;
+    
+    case 3: //sensorring head torso 
+    //sensorring
+    test_sring.timeStamp=ros::Time::now();
+    test_sring.joint_uri="sensorring_joint";
+    test_sring.unit="rad";
+    test_sring.value=data.in_joy.axes[0];
+    if (data.out_sensorring_controller_command.velocities.size()==0) //only required once, need better place
+    {
+        data.out_sensorring_controller_command.velocities.push_back(test_sring);//only thing I got working for init.
+        ROS_WARN("Setting size");
+    }
+    data.out_sensorring_controller_command.velocities[0]=test_sring;//now it's possible to overwrite
+    data.out_sensorring_controller_command_active=1;
+    //head 
+    //head_velocity.joint_names.at(0)="head_1_joint";
+    //head_velocity.joint_names.at(1)="head_2_joint";
+    //head_velocity.joint_names.at(2)="head_3_joint";
+    //head_velocity.points.at(0).velocities.at(0)=data.in_joy.axes[1]; //something like one of these three?
+    //head_velocity.points.velocities.at(1)=data.in_joy.axes[2];
+    //head_velocity.points.at(2).velocities=data.in_joy.axes[3];
+    //head_velocity.points.time_from_start=ros::Time::now; //not even this works. Probably also push_back or similar required
+    //torso
+    break;
+    
+    
+    }
+    
+  }
+  else 
+  {
+    data.out_base_controller_command_active=0;
+    data.out_sensorring_controller_command_active=0;
+  }
         /* protected region user update end */
     }
 
 
     /* protected region user additional functions on begin */
-    float run_factor(cob_teleop_cob4_data &data)
-    {
-	float result;
-	result = -data.in_joy.axes.at(9);//negative values
-	return result;
-    }
+  float run_factor(cob_teleop_cob4_data &data) //doesnt need a real function for this, will be removed
+  {
+  float result;
+  result = 1-data.in_joy.axes.at(9);//value between 1 and 2
+  return result;
+  }
     /* protected region user additional functions end */
 };

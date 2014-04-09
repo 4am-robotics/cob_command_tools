@@ -10,7 +10,7 @@
 #include <brics_actuator/CartesianTwist.h>
 #include <brics_actuator/JointVelocities.h>
 #include <brics_actuator/JointVelocities.h>
-#include <geometry_msgs/Twist.h>
+#include <trajectory_msgs/JointTrajectory.h>
 #include <brics_actuator/JointVelocities.h>
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/Joy.h>
@@ -54,7 +54,7 @@ class cob_teleop_cob4_ros
         arm_cart_right_ = n_.advertise<brics_actuator::CartesianTwist>("arm_cart_right", 1);
         arm_joint_right_ = n_.advertise<brics_actuator::JointVelocities>("arm_joint_right", 1);
         arm_joint_left_ = n_.advertise<brics_actuator::JointVelocities>("arm_joint_left", 1);
-        head_controller_command_ = n_.advertise<geometry_msgs::Twist>("head_controller_command", 1);
+        head_controller_command_ = n_.advertise<trajectory_msgs::JointTrajectory>("head_controller_command", 1);
         sensorring_controller_command_ = n_.advertise<brics_actuator::JointVelocities>("sensorring_controller_command", 1);
         torso_controller_command_ = n_.advertise<geometry_msgs::Twist>("torso_controller_command", 1);
         joy_ = n_.subscribe("joy", 1, &cob_teleop_cob4_ros::topicCallback_joy, this);
