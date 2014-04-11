@@ -87,8 +87,10 @@ class cob_teleop_cob4_impl
 {
     /* protected region user member variables on begin */
     float run;
-    brics_actuator::JointValue test_sring;
+    brics_actuator::JointValue sring;
     trajectory_msgs::JointTrajectory head_velocity;
+    geometry_msgs::Twist base;
+    sensor_msgs::Joy joy;
     /* protected region user member variables end */
 
 public:
@@ -131,47 +133,48 @@ public:
 
   if (data.in_joy.buttons.at(config.button_deadman))
   {
-    run=run_factor(data);
-    ROS_WARN("RF: %f",run);
+    joy=data.in_joy;//bit smaller
+    run=1-joy.axes[config.axis_runfactor];
     switch (mode)
     {
     case 0: //Base
-    data.out_base_controller_command.linear.x=data.in_joy.axes[config.base_x]*config.base_max_linear*run;
-    data.out_base_controller_command.linear.y=data.in_joy.axes[config.base_y]*config.base_max_linear*run;
-    data.out_base_controller_command.angular.z=data.in_joy.axes[config.base_yaw]*config.base_max_angular*run;
+    base.linear.x=joy.axes[config.base_x]*config.base_max_linear*run;
+    base.linear.y=joy.axes[config.base_y]*config.base_max_linear*run;
+    base.angular.z=joy.axes[config.base_yaw]*config.base_max_angular*run;
+    data.out_base_controller_command=base;
     data.out_base_controller_command_active=1;
     break;
     
     case 1: //arm cartesian left
-    data.out_arm_cart_left.translation.x=(data.in_joy.axes[config.arm_x])*config.arm_cartesian_max_linear;
-    data.out_arm_cart_left.translation.y=(data.in_joy.axes[config.arm_y])*config.arm_cartesian_max_linear;
-    data.out_arm_cart_left.rotation.z=(data.in_joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular;
-    data.out_arm_cart_left.translation.z=(data.in_joy.buttons[config.arm_z_up]-data.in_joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
-    data.out_arm_cart_left.rotation.x=(data.in_joy.buttons[config.arm_roll_left_and_ellbow]-data.in_joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
-    data.out_arm_cart_left.rotation.y=(data.in_joy.buttons[config.arm_pitch_up]-data.in_joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
+    data.out_arm_cart_left.translation.x=(joy.axes[config.arm_x])*config.arm_cartesian_max_linear*run;
+    data.out_arm_cart_left.translation.y=(joy.axes[config.arm_y])*config.arm_cartesian_max_linear*run;
+    data.out_arm_cart_left.rotation.z=(joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular*run;
+    data.out_arm_cart_left.translation.z=(joy.buttons[config.arm_z_up]-joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
+    data.out_arm_cart_left.rotation.x=(joy.buttons[config.arm_roll_left_and_ellbow]-joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
+    data.out_arm_cart_left.rotation.y=(joy.buttons[config.arm_pitch_up]-joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
     break; //maybe these blocks should be smaller
     
     case 2: //arm_cartesian right
-    data.out_arm_cart_right.translation.x=(data.in_joy.axes[config.arm_x])*config.arm_cartesian_max_linear;
-    data.out_arm_cart_right.translation.y=(data.in_joy.axes[config.arm_y])*config.arm_cartesian_max_linear;
-    data.out_arm_cart_right.rotation.z=(data.in_joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular;
-    data.out_arm_cart_right.translation.z=(data.in_joy.buttons[config.arm_z_up]-data.in_joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
-    data.out_arm_cart_right.rotation.x=(data.in_joy.buttons[config.arm_roll_left_and_ellbow]-data.in_joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
-    data.out_arm_cart_right.rotation.y=(data.in_joy.buttons[config.arm_pitch_up]-data.in_joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
+    data.out_arm_cart_right.translation.x=(joy.axes[config.arm_x])*config.arm_cartesian_max_linear*run;
+    data.out_arm_cart_right.translation.y=(joy.axes[config.arm_y])*config.arm_cartesian_max_linear*run;
+    data.out_arm_cart_right.rotation.z=(joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular*run;
+    data.out_arm_cart_right.translation.z=(joy.buttons[config.arm_z_up]-joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
+    data.out_arm_cart_right.rotation.x=(joy.buttons[config.arm_roll_left_and_ellbow]-joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
+    data.out_arm_cart_right.rotation.y=(joy.buttons[config.arm_pitch_up]-joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
     break;
     
     case 3: //sensorring head torso 
     //sensorring
-    test_sring.timeStamp=ros::Time::now();
-    test_sring.joint_uri="sensorring_joint";
-    test_sring.unit="rad";
-    test_sring.value=data.in_joy.axes[0];
+    sring.timeStamp=ros::Time::now();
+    sring.joint_uri="sensorring_joint";
+    sring.unit="rad";
+    sring.value=joy.axes[0];
     if (data.out_sensorring_controller_command.velocities.size()==0) //only required once, need better place
     {
-        data.out_sensorring_controller_command.velocities.push_back(test_sring);//only thing I got working for init.
+        data.out_sensorring_controller_command.velocities.push_back(sring);//only thing I got working for init.
         ROS_WARN("Setting size");
     }
-    data.out_sensorring_controller_command.velocities[0]=test_sring;//now it's possible to overwrite
+    data.out_sensorring_controller_command.velocities[0]=sring;//now it's possible to overwrite
     data.out_sensorring_controller_command_active=1;
     //head 
     //head_velocity.joint_names.at(0)="head_1_joint";
@@ -198,7 +201,8 @@ public:
 
 
     /* protected region user additional functions on begin */
-  float run_factor(cob_teleop_cob4_data &data) //doesnt need a real function for this, will be removed
+    //Todo: overload parameter and function, so 2Inputs for pair of buttons, one for axis
+  float run_factor(cob_teleop_cob4_data &data) //dont need a function for this, will be removed
   {
   float result;
   result = 1-data.in_joy.axes.at(9);//value between 1 and 2
