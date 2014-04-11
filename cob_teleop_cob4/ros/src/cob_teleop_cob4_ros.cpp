@@ -95,6 +95,10 @@ class cob_teleop_cob4_ros
         n_.param("button_safety_override", component_config_.button_safety_override, (int)9);
         n_.param("button_init_recover", component_config_.button_init_recover, (int)3);
         n_.param("button_mode_switch", component_config_.button_mode_switch, (int)0);
+        n_.param("torso_roll", component_config_.torso_roll, (int)0);
+        n_.param("torso_pitch", component_config_.torso_pitch, (int)1);
+        n_.param("torso_yaw_left", component_config_.torso_yaw_left, (int)15);
+        n_.param("torso_yaw_right", component_config_.torso_yaw_right, (int)13);
         }
 
     void topicCallback_joy(const sensor_msgs::Joy::ConstPtr& msg)
@@ -140,6 +144,10 @@ class cob_teleop_cob4_ros
         component_config_.button_safety_override = config.button_safety_override;
         component_config_.button_init_recover = config.button_init_recover;
         component_config_.button_mode_switch = config.button_mode_switch;
+        component_config_.torso_roll = config.torso_roll;
+        component_config_.torso_pitch = config.torso_pitch;
+        component_config_.torso_yaw_left = config.torso_yaw_left;
+        component_config_.torso_yaw_right = config.torso_yaw_right;
     }
 
     void configure()

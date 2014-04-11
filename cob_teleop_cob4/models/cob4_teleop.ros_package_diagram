@@ -147,6 +147,22 @@
         <element xmi:type="ros:Parameter" href="cob4_teleop.ros_package#//@node.0/@parameter.35"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_VWWHwbjcEeOIpveAYFudbg"/>
       </children>
+      <children xmi:type="notation:Node" xmi:id="_m40EMMGIEeOSk4gQ42atYg" type="3001">
+        <element xmi:type="ros:Parameter" href="cob4_teleop.ros_package#//@node.0/@parameter.36"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_m40EMcGIEeOSk4gQ42atYg"/>
+      </children>
+      <children xmi:type="notation:Node" xmi:id="_pmub8MGIEeOSk4gQ42atYg" type="3001">
+        <element xmi:type="ros:Parameter" href="cob4_teleop.ros_package#//@node.0/@parameter.37"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_pmub8cGIEeOSk4gQ42atYg"/>
+      </children>
+      <children xmi:type="notation:Node" xmi:id="_ra5vUMGIEeOSk4gQ42atYg" type="3001">
+        <element xmi:type="ros:Parameter" href="cob4_teleop.ros_package#//@node.0/@parameter.38"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_ra5vUcGIEeOSk4gQ42atYg"/>
+      </children>
+      <children xmi:type="notation:Node" xmi:id="_tAIAsMGIEeOSk4gQ42atYg" type="3001">
+        <element xmi:type="ros:Parameter" href="cob4_teleop.ros_package#//@node.0/@parameter.39"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_tAIAscGIEeOSk4gQ42atYg"/>
+      </children>
       <styles xmi:type="notation:TitleStyle" xmi:id="_LgqaIbW9EeOeLd2S4hsWIw" showTitle="true"/>
       <styles xmi:type="notation:SortingStyle" xmi:id="_LgqaIrW9EeOeLd2S4hsWIw"/>
       <styles xmi:type="notation:FilteringStyle" xmi:id="_LgqaI7W9EeOeLd2S4hsWIw"/>

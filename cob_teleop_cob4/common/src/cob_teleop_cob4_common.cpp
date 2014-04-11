@@ -54,6 +54,10 @@ public:
     int button_safety_override;
     int button_init_recover;
     int button_mode_switch;
+    int torso_roll;
+    int torso_pitch;
+    int torso_yaw_left;
+    int torso_yaw_right;
 };
 
 class cob_teleop_cob4_data
@@ -87,9 +91,12 @@ class cob_teleop_cob4_impl
 {
     /* protected region user member variables on begin */
     float run;
+    float updown;
+    float leftright;    
     brics_actuator::JointValue sring;
     trajectory_msgs::JointTrajectory head_velocity;
     geometry_msgs::Twist base;
+    geometry_msgs::Twist torso;
     sensor_msgs::Joy joy;
     /* protected region user member variables end */
 
@@ -109,92 +116,124 @@ public:
     void update(cob_teleop_cob4_data &data, cob_teleop_cob4_config config)
     {
         /* protected region user update on begin */
-    if (data.in_joy.buttons.size()!=17)//wait for full joypad
-  {  
-    ROS_WARN("joypad inactive! waiting for vector of buttons. Move the Controller");
-    return;
-  }
-  
-  if (data.in_joy.buttons.at(config.button_mode_switch))//switch mode. gets executed multiple times
-  {
-    ++mode;
-    if (mode >= 4)
-    {
-      mode = 0;
+    if (data.in_joy.buttons.size()!=17)//wait for complete joypad!
+    {  
+      ROS_WARN("joypad inactive! waiting for vector of buttons. Move the Controller");
+      return;
     }
-    ROS_WARN("Mode switched to: %d",mode);
-    ros::Duration(0.5).sleep();//wait (bad place)
-    //deactivate publishing during mode switch (or allow mode selection only if deadman is not pressed?)
-    data.out_base_controller_command_active=0;
-    data.out_sensorring_controller_command_active=0;
-    return;
-  }
-
-
-  if (data.in_joy.buttons.at(config.button_deadman))
-  {
+    
     joy=data.in_joy;//bit smaller
     run=1-joy.axes[config.axis_runfactor];
-    switch (mode)
+    updown=joy.buttons[config.arm_joint_up]-joy.buttons[config.arm_joint_down];
+    leftright=joy.buttons[config.arm_joint_left]-joy.buttons[config.arm_joint_right];    
+  
+    if (joy.buttons.at(config.button_mode_switch) && not joy.buttons[config.button_deadman])//switch mode. gets executed multiple times
     {
-    case 0: //Base
-    base.linear.x=joy.axes[config.base_x]*config.base_max_linear*run;
-    base.linear.y=joy.axes[config.base_y]*config.base_max_linear*run;
-    base.angular.z=joy.axes[config.base_yaw]*config.base_max_angular*run;
-    data.out_base_controller_command=base;
-    data.out_base_controller_command_active=1;
-    break;
-    
-    case 1: //arm cartesian left
-    data.out_arm_cart_left.translation.x=(joy.axes[config.arm_x])*config.arm_cartesian_max_linear*run;
-    data.out_arm_cart_left.translation.y=(joy.axes[config.arm_y])*config.arm_cartesian_max_linear*run;
-    data.out_arm_cart_left.rotation.z=(joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular*run;
-    data.out_arm_cart_left.translation.z=(joy.buttons[config.arm_z_up]-joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
-    data.out_arm_cart_left.rotation.x=(joy.buttons[config.arm_roll_left_and_ellbow]-joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
-    data.out_arm_cart_left.rotation.y=(joy.buttons[config.arm_pitch_up]-joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
-    break; //maybe these blocks should be smaller
-    
-    case 2: //arm_cartesian right
-    data.out_arm_cart_right.translation.x=(joy.axes[config.arm_x])*config.arm_cartesian_max_linear*run;
-    data.out_arm_cart_right.translation.y=(joy.axes[config.arm_y])*config.arm_cartesian_max_linear*run;
-    data.out_arm_cart_right.rotation.z=(joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular*run;
-    data.out_arm_cart_right.translation.z=(joy.buttons[config.arm_z_up]-joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
-    data.out_arm_cart_right.rotation.x=(joy.buttons[config.arm_roll_left_and_ellbow]-joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
-    data.out_arm_cart_right.rotation.y=(joy.buttons[config.arm_pitch_up]-joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
-    break;
-    
-    case 3: //sensorring head torso 
-    //sensorring
-    sring.timeStamp=ros::Time::now();
-    sring.joint_uri="sensorring_joint";
-    sring.unit="rad";
-    sring.value=joy.axes[0];
-    if (data.out_sensorring_controller_command.velocities.size()==0) //only required once, need better place
-    {
-        data.out_sensorring_controller_command.velocities.push_back(sring);//only thing I got working for init.
-        ROS_WARN("Setting size");
-    }
-    data.out_sensorring_controller_command.velocities[0]=sring;//now it's possible to overwrite
-    data.out_sensorring_controller_command_active=1;
-    //head 
-    //head_velocity.joint_names.at(0)="head_1_joint";
-    //head_velocity.joint_names.at(1)="head_2_joint";
-    //head_velocity.joint_names.at(2)="head_3_joint";
-    //head_velocity.points.at(0).velocities.at(0)=data.in_joy.axes[1]; //something like one of these three?
-    //head_velocity.points.velocities.at(1)=data.in_joy.axes[2];
-    //head_velocity.points.at(2).velocities=data.in_joy.axes[3];
-    //head_velocity.points.time_from_start=ros::Time::now; //not even this works. Probably also push_back or similar required
-    //torso
-    break;
-    
-    
+      ++mode;
+      if (mode >= 4)
+      {
+        mode = 0;
+      }
+      ROS_WARN("Mode switched to: %d",mode);
+      ros::Duration(0.5).sleep();//wait (bad place)
+      return;
     }
     
-  }
+    if (joy.buttons[config.button_deadman])
+    {
+  
+      switch (mode)
+      {
+      case 0: //Base
+      base.linear.x=joy.axes[config.base_x]*config.base_max_linear*run;
+      base.linear.y=joy.axes[config.base_y]*config.base_max_linear*run;
+      base.angular.z=joy.axes[config.base_yaw]*config.base_max_angular*run;
+      data.out_base_controller_command=base;
+      data.out_base_controller_command_active=1;
+      break;
+      
+      case 1: //arm cartesian left
+      data.out_arm_cart_left.translation.x=(joy.axes[config.arm_x])*config.arm_cartesian_max_linear*run;
+      data.out_arm_cart_left.translation.y=(joy.axes[config.arm_y])*config.arm_cartesian_max_linear*run;
+      data.out_arm_cart_left.rotation.z=(joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular*run;
+      data.out_arm_cart_left.translation.z=(joy.buttons[config.arm_z_up]-joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
+      data.out_arm_cart_left.rotation.x=(joy.buttons[config.arm_roll_left_and_ellbow]-joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
+      data.out_arm_cart_left.rotation.y=(joy.buttons[config.arm_pitch_up]-joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
+      break; //maybe these blocks should be smaller
+      
+      case 2: //arm_cartesian right
+      data.out_arm_cart_right.translation.x=(joy.axes[config.arm_x])*config.arm_cartesian_max_linear*run;
+      data.out_arm_cart_right.translation.y=(joy.axes[config.arm_y])*config.arm_cartesian_max_linear*run;
+      data.out_arm_cart_right.rotation.z=(joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular*run;
+      data.out_arm_cart_right.translation.z=(joy.buttons[config.arm_z_up]-joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
+      data.out_arm_cart_right.rotation.x=(joy.buttons[config.arm_roll_left_and_ellbow]-joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
+      data.out_arm_cart_right.rotation.y=(joy.buttons[config.arm_pitch_up]-joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
+      break;
+      /*
+      case 3: //arm_joints_left    
+      left.joint_1=updown*joy.buttons[config.arm_joint_12]*run;
+      left.joint_2=leftright*joy.buttons[config.arm_joint_12]*run;
+      left.joint_3=updown*joy.buttons[config.arm_joint_34]*run;
+      left.joint_4=leftright*joy.buttons[config.arm_joint_34]*run;
+      left.joint_5=updown*joy.buttons[config.arm_joint_56]*run;
+      left.joint_6=leftright*joy.buttons[config.arm_joint_56]*run;
+      left.joint_5=updown*joy.buttons[config.arm_joint_7_gripper]*run;
+      left.joint_gripper=leftright*joy.buttons[config.arm_joint_7_gripper]*run;
+      break;
+      
+      case 4: //arm_joints_right    
+      left.joint_1=updown*joy.buttons[config.arm_joint_12]*run;
+      left.joint_2=leftright*joy.buttons[config.arm_joint_12]*run;
+      left.joint_3=updown*joy.buttons[config.arm_joint_34]*run;
+      left.joint_4=leftright*joy.buttons[config.arm_joint_34]*run;
+      left.joint_5=updown*joy.buttons[config.arm_joint_56]*run;
+      left.joint_6=leftright*joy.buttons[config.arm_joint_56]*run;
+      left.joint_5=updown*joy.buttons[config.arm_joint_7_gripper]*run;
+      left.joint_gripper=leftright*joy.buttons[config.arm_joint_7_gripper]*run;
+      break;
+      * 
+      case 5 : //automoves
+      //Todo
+      break;
+      */
+      
+      case 3: //6 sensorring head torso 
+      //sensorring
+      sring.timeStamp=ros::Time::now();
+      sring.joint_uri="sensorring_joint";
+      sring.unit="rad";
+      sring.value=joy.axes[0];
+      if (data.out_sensorring_controller_command.velocities.size()==0) //only required once, need better place
+      {
+          data.out_sensorring_controller_command.velocities.push_back(sring);//only thing I got working for init.
+          ROS_WARN("Setting size");
+      }
+      data.out_sensorring_controller_command.velocities[0]=sring;//now it's possible to overwrite
+      data.out_sensorring_controller_command_active=1;
+      //head 
+      //head_velocity.joint_names.at(0)="head_1_joint";
+      //head_velocity.joint_names.at(1)="head_2_joint";
+      //head_velocity.joint_names.at(2)="head_3_joint";
+      //head_velocity.points.at(0).velocities.at(0)=data.in_joy.axes[1]; //something like one of these three?
+      //head_velocity.points.velocities.at(1)=data.in_joy.axes[2];
+      //head_velocity.points.at(2).velocities=data.in_joy.axes[3];
+      //head_velocity.points.time_from_start=ros::Time::now; //not even this works. Probably also push_back or similar required
+      //torso
+      torso.angular.x=joy.axes[config.torso_roll]*config.torso_max_angular*run;
+      torso.angular.y=joy.axes[config.torso_pitch]*config.torso_max_angular*run;
+      torso.angular.z=(joy.buttons[config.torso_yaw_left]-joy.buttons[config.torso_yaw_right])*config.torso_max_angular*run;
+      data.out_torso_controller_command=torso;
+      data.out_torso_controller_command_active=1;
+      
+      break;
+      }
+    
+    }
   else 
   {
     data.out_base_controller_command_active=0;
     data.out_sensorring_controller_command_active=0;
+    data.out_torso_controller_command_active=0;
   }
         /* protected region user update end */
     }

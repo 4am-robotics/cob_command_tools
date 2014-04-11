@@ -47,6 +47,10 @@
     <parameter name="button_safety_override" value="9"/>
     <parameter name="button_init_recover" value="3"/>
     <parameter name="button_mode_switch" value="0"/>
+    <parameter name="torso_roll" value="0"/>
+    <parameter name="torso_pitch" value="1"/>
+    <parameter name="torso_yaw_left" value="15"/>
+    <parameter name="torso_yaw_right" value="13"/>
   </node>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
