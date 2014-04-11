@@ -171,27 +171,27 @@ public:
       break;
       /*
       case 3: //arm_joints_left    
-      left.joint_1=updown*joy.buttons[config.arm_joint_12]*run;
-      left.joint_2=leftright*joy.buttons[config.arm_joint_12]*run;
-      left.joint_3=updown*joy.buttons[config.arm_joint_34]*run;
-      left.joint_4=leftright*joy.buttons[config.arm_joint_34]*run;
-      left.joint_5=updown*joy.buttons[config.arm_joint_56]*run;
-      left.joint_6=leftright*joy.buttons[config.arm_joint_56]*run;
-      left.joint_5=updown*joy.buttons[config.arm_joint_7_gripper]*run;
-      left.joint_gripper=leftright*joy.buttons[config.arm_joint_7_gripper]*run;
+      left.joint_1=updown*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
+      left.joint_2=leftright*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
+      left.joint_3=updown*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
+      left.joint_4=leftright*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
+      left.joint_5=updown*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
+      left.joint_6=leftright*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
+      left.joint_5=updown*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
+      left.joint_gripper=leftright*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
       break;
       
       case 4: //arm_joints_right    
-      left.joint_1=updown*joy.buttons[config.arm_joint_12]*run;
-      left.joint_2=leftright*joy.buttons[config.arm_joint_12]*run;
-      left.joint_3=updown*joy.buttons[config.arm_joint_34]*run;
-      left.joint_4=leftright*joy.buttons[config.arm_joint_34]*run;
-      left.joint_5=updown*joy.buttons[config.arm_joint_56]*run;
-      left.joint_6=leftright*joy.buttons[config.arm_joint_56]*run;
-      left.joint_5=updown*joy.buttons[config.arm_joint_7_gripper]*run;
-      left.joint_gripper=leftright*joy.buttons[config.arm_joint_7_gripper]*run;
+      left.joint_1=updown*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
+      left.joint_2=leftright*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
+      left.joint_3=updown*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
+      left.joint_4=leftright*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
+      left.joint_5=updown*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
+      left.joint_6=leftright*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
+      left.joint_5=updown*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
+      left.joint_gripper=leftright*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
       break;
-      * 
+      
       case 5 : //automoves
       //Todo
       break;
