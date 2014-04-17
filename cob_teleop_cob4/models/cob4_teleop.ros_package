@@ -5,8 +5,8 @@
     <publisher name="base_controller command" msg="geometry_msgs::Twist"/>
     <publisher name="arm_cart_left" msg="brics_actuator::CartesianTwist"/>
     <publisher name="arm_cart_right" msg="brics_actuator::CartesianTwist"/>
-    <publisher name="arm_joint_right" msg="brics_actuator::JointVelocities"/>
-    <publisher name="arm_joint_left" msg="brics_actuator::JointVelocities"/>
+    <publisher name="arm_joint_right" msg="trajectory_msgs::JointTrajectory"/>
+    <publisher name="arm_joint_left" msg="trajectory_msgs::JointTrajectory"/>
     <publisher name="head_controller command" msg="trajectory_msgs::JointTrajectory"/>
     <publisher name="sensorring_controller command" msg="brics_actuator::JointVelocities"/>
     <publisher name="torso_controller command" msg="geometry_msgs::Twist"/>
@@ -36,7 +36,7 @@
     <parameter name="gripper_open" value="15"/>
     <parameter name="gripper_close" value="13"/>
     <parameter name="arm_joint_up" value="4"/>
-    <parameter name="arm_joint_down" value="5"/>
+    <parameter name="arm_joint_down" value="6"/>
     <parameter name="arm_joint_left" value="7"/>
     <parameter name="arm_joint_right" value="5"/>
     <parameter name="arm_joint_12" value="15"/>
@@ -51,6 +51,8 @@
     <parameter name="torso_pitch" value="1"/>
     <parameter name="torso_yaw_left" value="15"/>
     <parameter name="torso_yaw_right" value="13"/>
+    <parameter name="sensorring_yaw_left" value="4"/>
+    <parameter name="sensorring_yaw_right" value="6"/>
   </node>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>

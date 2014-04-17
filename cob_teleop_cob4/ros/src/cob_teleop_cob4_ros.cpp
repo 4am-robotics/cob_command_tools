@@ -8,8 +8,8 @@
 #include <geometry_msgs/Twist.h>
 #include <brics_actuator/CartesianTwist.h>
 #include <brics_actuator/CartesianTwist.h>
-#include <brics_actuator/JointVelocities.h>
-#include <brics_actuator/JointVelocities.h>
+#include <trajectory_msgs/JointTrajectory.h>
+#include <trajectory_msgs/JointTrajectory.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <brics_actuator/JointVelocities.h>
 #include <geometry_msgs/Twist.h>
@@ -52,8 +52,8 @@ class cob_teleop_cob4_ros
         base_controller_command_ = n_.advertise<geometry_msgs::Twist>("base_controller_command", 1);
         arm_cart_left_ = n_.advertise<brics_actuator::CartesianTwist>("arm_cart_left", 1);
         arm_cart_right_ = n_.advertise<brics_actuator::CartesianTwist>("arm_cart_right", 1);
-        arm_joint_right_ = n_.advertise<brics_actuator::JointVelocities>("arm_joint_right", 1);
-        arm_joint_left_ = n_.advertise<brics_actuator::JointVelocities>("arm_joint_left", 1);
+        arm_joint_right_ = n_.advertise<trajectory_msgs::JointTrajectory>("arm_joint_right", 1);
+        arm_joint_left_ = n_.advertise<trajectory_msgs::JointTrajectory>("arm_joint_left", 1);
         head_controller_command_ = n_.advertise<trajectory_msgs::JointTrajectory>("head_controller_command", 1);
         sensorring_controller_command_ = n_.advertise<brics_actuator::JointVelocities>("sensorring_controller_command", 1);
         torso_controller_command_ = n_.advertise<geometry_msgs::Twist>("torso_controller_command", 1);
@@ -84,7 +84,7 @@ class cob_teleop_cob4_ros
         n_.param("gripper_open", component_config_.gripper_open, (int)15);
         n_.param("gripper_close", component_config_.gripper_close, (int)13);
         n_.param("arm_joint_up", component_config_.arm_joint_up, (int)4);
-        n_.param("arm_joint_down", component_config_.arm_joint_down, (int)5);
+        n_.param("arm_joint_down", component_config_.arm_joint_down, (int)6);
         n_.param("arm_joint_left", component_config_.arm_joint_left, (int)7);
         n_.param("arm_joint_right", component_config_.arm_joint_right, (int)5);
         n_.param("arm_joint_12", component_config_.arm_joint_12, (int)15);
@@ -99,6 +99,8 @@ class cob_teleop_cob4_ros
         n_.param("torso_pitch", component_config_.torso_pitch, (int)1);
         n_.param("torso_yaw_left", component_config_.torso_yaw_left, (int)15);
         n_.param("torso_yaw_right", component_config_.torso_yaw_right, (int)13);
+        n_.param("sensorring_yaw_left", component_config_.sensorring_yaw_left, (int)4);
+        n_.param("sensorring_yaw_right", component_config_.sensorring_yaw_right, (int)6);
         }
 
     void topicCallback_joy(const sensor_msgs::Joy::ConstPtr& msg)
@@ -148,6 +150,8 @@ class cob_teleop_cob4_ros
         component_config_.torso_pitch = config.torso_pitch;
         component_config_.torso_yaw_left = config.torso_yaw_left;
         component_config_.torso_yaw_right = config.torso_yaw_right;
+        component_config_.sensorring_yaw_left = config.sensorring_yaw_left;
+        component_config_.sensorring_yaw_right = config.sensorring_yaw_right;
     }
 
     void configure()

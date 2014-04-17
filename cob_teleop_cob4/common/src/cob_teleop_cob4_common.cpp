@@ -4,8 +4,8 @@
 #include <geometry_msgs/Twist.h>
 #include <brics_actuator/CartesianTwist.h>
 #include <brics_actuator/CartesianTwist.h>
-#include <brics_actuator/JointVelocities.h>
-#include <brics_actuator/JointVelocities.h>
+#include <trajectory_msgs/JointTrajectory.h>
+#include <trajectory_msgs/JointTrajectory.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <brics_actuator/JointVelocities.h>
 #include <geometry_msgs/Twist.h>
@@ -58,6 +58,8 @@ public:
     int torso_pitch;
     int torso_yaw_left;
     int torso_yaw_right;
+    int sensorring_yaw_left;
+    int sensorring_yaw_right;
 };
 
 class cob_teleop_cob4_data
@@ -75,9 +77,9 @@ public:
     bool out_arm_cart_left_active;
     brics_actuator::CartesianTwist out_arm_cart_right;
     bool out_arm_cart_right_active;
-    brics_actuator::JointVelocities out_arm_joint_right;
+    trajectory_msgs::JointTrajectory out_arm_joint_right;
     bool out_arm_joint_right_active;
-    brics_actuator::JointVelocities out_arm_joint_left;
+    trajectory_msgs::JointTrajectory out_arm_joint_left;
     bool out_arm_joint_left_active;
     trajectory_msgs::JointTrajectory out_head_controller_command;
     bool out_head_controller_command_active;
@@ -98,6 +100,8 @@ class cob_teleop_cob4_impl
     geometry_msgs::Twist base;
     geometry_msgs::Twist torso;
     sensor_msgs::Joy joy;
+    trajectory_msgs::JointTrajectory left;
+    trajectory_msgs::JointTrajectory right;
     /* protected region user member variables end */
 
 public:
@@ -110,6 +114,25 @@ public:
     void configure(cob_teleop_cob4_config config) 
     {
         /* protected region user configure on begin */
+      left.joint_names.push_back("arm_left_1_joint");
+      left.joint_names.push_back("arm_left_2_joint");
+      left.joint_names.push_back("arm_left_3_joint");
+      left.joint_names.push_back("arm_left_4_joint");
+      left.joint_names.push_back("arm_left_5_joint");
+      left.joint_names.push_back("arm_left_6_joint");
+      left.joint_names.push_back("arm_left_7_joint");
+      left.points.resize(1);
+      left.points.at(0).velocities.resize(7);
+      right.joint_names.push_back("arm_right_1_joint");
+      right.joint_names.push_back("arm_right_2_joint");
+      right.joint_names.push_back("arm_right_3_joint");
+      right.joint_names.push_back("arm_right_4_joint");
+      right.joint_names.push_back("arm_right_5_joint");
+      right.joint_names.push_back("arm_right_6_joint");
+      right.joint_names.push_back("arm_right_7_joint");
+      right.points.resize(1);
+      right.points.at(0).velocities.resize(7);
+      
         /* protected region user configure end */
     }
 
@@ -124,13 +147,13 @@ public:
     
     joy=data.in_joy;//bit smaller
     run=1-joy.axes[config.axis_runfactor];
-    updown=joy.buttons[config.arm_joint_up]-joy.buttons[config.arm_joint_down];
-    leftright=joy.buttons[config.arm_joint_left]-joy.buttons[config.arm_joint_right];    
+    updown=(joy.buttons[config.arm_joint_up]-joy.buttons[config.arm_joint_down]);
+    leftright=(joy.buttons[config.arm_joint_left]-joy.buttons[config.arm_joint_right]);
   
     if (joy.buttons.at(config.button_mode_switch) && not joy.buttons[config.button_deadman])//switch mode. gets executed multiple times
     {
       ++mode;
-      if (mode >= 4)
+      if (mode >= 6)
       {
         mode = 0;
       }
@@ -169,40 +192,46 @@ public:
       data.out_arm_cart_right.rotation.x=(joy.buttons[config.arm_roll_left_and_ellbow]-joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
       data.out_arm_cart_right.rotation.y=(joy.buttons[config.arm_pitch_up]-joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
       break;
-      /*
-      case 3: //arm_joints_left    
-      left.joint_1=updown*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
-      left.joint_2=leftright*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
-      left.joint_3=updown*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
-      left.joint_4=leftright*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
-      left.joint_5=updown*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
-      left.joint_6=leftright*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
-      left.joint_5=updown*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
-      left.joint_gripper=leftright*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
+      
+      case 3: //arm_joints_left
+      left.points[0].velocities[0]=updown*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
+      left.points[0].velocities[1]=leftright*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
+      left.points[0].velocities[2]=updown*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
+      left.points[0].velocities[3]=leftright*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
+      left.points[0].velocities[4]=updown*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
+      left.points[0].velocities[5]=leftright*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
+      left.points[0].velocities[6]=updown*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
+      left.points[0].time_from_start=ros::Duration(0.1);
+      //left.joint_gripper=leftright*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
+      data.out_arm_joint_left=left;
+      data.out_arm_joint_left_active=1;
       break;
       
       case 4: //arm_joints_right    
-      left.joint_1=updown*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
-      left.joint_2=leftright*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
-      left.joint_3=updown*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
-      left.joint_4=leftright*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
-      left.joint_5=updown*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
-      left.joint_6=leftright*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
-      left.joint_5=updown*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
-      left.joint_gripper=leftright*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
+      right.points[0].velocities[0]=updown*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
+      right.points[0].velocities[1]=leftright*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
+      right.points[0].velocities[2]=updown*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
+      right.points[0].velocities[3]=leftright*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
+      right.points[0].velocities[4]=updown*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
+      right.points[0].velocities[5]=leftright*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
+      right.points[0].velocities[6]=updown*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
+      right.points[0].time_from_start=ros::Duration(0.1);;
+      //right.joint_gripper=rightright*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
+      data.out_arm_joint_right=right;
+      data.out_arm_joint_right_active=1;
       break;
-      
-      case 5 : //automoves
+      /*
+      case 5 : //automoves script
       //Todo
       break;
       */
       
-      case 3: //6 sensorring head torso 
+      case 5: //6 sensorring head torso 
       //sensorring
       sring.timeStamp=ros::Time::now();
       sring.joint_uri="sensorring_joint";
       sring.unit="rad";
-      sring.value=joy.axes[0];
+      sring.value=(joy.buttons[config.sensorring_yaw_left]-joy.buttons[config.sensorring_yaw_right])*config.sensor_ring_max_angular*run;
       if (data.out_sensorring_controller_command.velocities.size()==0) //only required once, need better place
       {
           data.out_sensorring_controller_command.velocities.push_back(sring);//only thing I got working for init.
@@ -234,6 +263,8 @@ public:
     data.out_base_controller_command_active=0;
     data.out_sensorring_controller_command_active=0;
     data.out_torso_controller_command_active=0;
+    data.out_arm_joint_left_active=0;
+    data.out_arm_joint_right_active=0;
   }
         /* protected region user update end */
     }
