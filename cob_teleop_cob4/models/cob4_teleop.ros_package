@@ -57,10 +57,12 @@
     <parameter name="head_pitch" value="3"/>
     <parameter name="head_yaw_left" value="7"/>
     <parameter name="head_yaw_right" value="5"/>
+    <actionclient name="init" ActionType="cob_script_server::Script"/>
   </node>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>brics_actuator</depend>
   <depend>std_msgs</depend>
   <depend>trajectory_msgs</depend>
+  <depend>cob_script_server</depend>
 </ros:Package>

@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 	brics_actuator
 	std_msgs
 	trajectory_msgs
+	cob_script_server
 )
 
 # protected region additional user defined REQUIREMENTS on begin #
@@ -38,6 +39,7 @@ catkin_package(
 	brics_actuator
 	std_msgs
 	trajectory_msgs
+	cob_script_server
    
 )
 

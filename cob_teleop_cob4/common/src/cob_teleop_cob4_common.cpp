@@ -11,9 +11,9 @@
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/Joy.h>
 
-
 /* protected region user include files on begin */
-int mode=0;
+#include <actionlib/client/simple_action_client.h>
+#include <cob_script_server/ScriptAction.h>
 /* protected region user include files end */
 
 class cob_teleop_cob4_config
@@ -97,9 +97,13 @@ public:
 class cob_teleop_cob4_impl
 {
     /* protected region user member variables on begin */
+    cob_script_server::ScriptAction sss;
+    typedef actionlib::SimpleActionClient<cob_script_server::ScriptAction> Client;
+    
+    int mode;
     float run;
     float updown;
-    float leftright;    
+    float leftright;
     brics_actuator::JointVelocities sring;
     geometry_msgs::Twist head;
     geometry_msgs::Twist base;
@@ -108,30 +112,37 @@ class cob_teleop_cob4_impl
     brics_actuator::JointVelocities left;
     brics_actuator::JointVelocities right;
     brics_actuator::JointValue jvalue;
-
     /* protected region user member variables end */
 
 public:
     cob_teleop_cob4_impl() 
     {
         /* protected region user constructor on begin */
+        Client client("script_server", true);
+        ROS_WARN("Connecting to script_server");
+        client.waitForServer();
+        ROS_WARN("Connected");
+        cob_script_server::ScriptAction sss;
+        sss.action_goal.goal.component_name="test";
+        client.sendGoal(sss);
         /* protected region user constructor end */
     }
 
     void configure(cob_teleop_cob4_config config) 
     {
         /* protected region user configure on begin */
+      mode=0;
       jvalue.unit="rad/sec";
       left.velocities.resize(7);
       right.velocities.resize(7);
       int i;
       for (i=0; i<7; i++)
       {
-      //jvalue.joint_uri=("arm_left_%d_joint",(i+1)); //produces crap like:  
+      //jvalue.joint_uri=("arm_left_%d_joint",(i+1)); //produces Ascii crap like:  
       left.velocities.at(i)=jvalue;
       //jvalue.joint_uri=("arm_right_%d_joint",(i+1));
       right.velocities.at(i)=jvalue;
-      }      
+      }
       left.velocities[0].joint_uri="arm_left_1_joint";
       left.velocities[1].joint_uri="arm_left_2_joint";
       left.velocities[2].joint_uri="arm_left_3_joint";
@@ -153,7 +164,7 @@ public:
     }
 
     void update(cob_teleop_cob4_data &data, cob_teleop_cob4_config config)
-    {      
+    {
         /* protected region user update on begin */
     data.out_base_controller_command_active=0; //on begin because default is 1
     data.out_sensorring_controller_command_active=0;
@@ -251,18 +262,18 @@ public:
       break;
       */
       
-      case 5: //6 sensorring head torso 
-      //sensorring
+      case 5: //case 6: sensorring head torso 
+      //sensorring (Joints)
       sring.velocities[0].value=(joy.buttons[config.sensorring_yaw_left]-joy.buttons[config.sensorring_yaw_right])*config.sensor_ring_max_angular*run;
       data.out_sensorring_controller_command=sring;
       data.out_sensorring_controller_command_active=1;
-      //head 
+      //head (Twist)
       head.angular.x=joy.axes[config.head_roll]*config.torso_max_angular*run;
       head.angular.y=joy.axes[config.head_pitch]*config.torso_max_angular*run;
       head.angular.z=(joy.buttons[config.head_yaw_left]-joy.buttons[config.head_yaw_right])*config.torso_max_angular*run;
       data.out_head_controller_command=head;
       data.out_head_controller_command_active=1;
-      //torso
+      //torso (Twist)
       torso.angular.x=joy.axes[config.torso_roll]*config.torso_max_angular*run;
       torso.angular.y=joy.axes[config.torso_pitch]*config.torso_max_angular*run;
       torso.angular.z=(joy.buttons[config.torso_yaw_left]-joy.buttons[config.torso_yaw_right])*config.torso_max_angular*run;
@@ -270,7 +281,6 @@ public:
       data.out_torso_controller_command_active=1;
       break;
       }
-    
     }
     /* protected region user update end */
     }
