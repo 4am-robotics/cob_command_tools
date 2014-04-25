@@ -5,15 +5,15 @@
     <publisher name="base_controller command" msg="geometry_msgs::Twist"/>
     <publisher name="arm_cart_left" msg="brics_actuator::CartesianTwist"/>
     <publisher name="arm_cart_right" msg="brics_actuator::CartesianTwist"/>
-    <publisher name="arm_joint_right" msg="trajectory_msgs::JointTrajectory"/>
-    <publisher name="arm_joint_left" msg="trajectory_msgs::JointTrajectory"/>
-    <publisher name="head_controller command" msg="trajectory_msgs::JointTrajectory"/>
+    <publisher name="arm_joint_right" msg="brics_actuator::JointVelocities"/>
+    <publisher name="arm_joint_left" msg="brics_actuator::JointVelocities"/>
+    <publisher name="head_controller command" msg="geometry_msgs::Twist"/>
     <publisher name="sensorring_controller command" msg="brics_actuator::JointVelocities"/>
     <publisher name="torso_controller command" msg="geometry_msgs::Twist"/>
     <subscriber name="joy" msg="sensor_msgs::Joy"/>
     <parameter name="button_deadman" value="11"/>
     <parameter name="base_max_linear" value="2.0" type="double"/>
-    <parameter name="base_max_angular" value="1.5" type="double"/>
+    <parameter name="base_max_angular" value="5" type="double"/>
     <parameter name="torso_max_angular" value="0.1" type="double"/>
     <parameter name="head_max_angular" value="0.1" type="double"/>
     <parameter name="sensor_ring_max_angular" value="0.1" type="double"/>
@@ -53,6 +53,10 @@
     <parameter name="torso_yaw_right" value="13"/>
     <parameter name="sensorring_yaw_left" value="4"/>
     <parameter name="sensorring_yaw_right" value="6"/>
+    <parameter name="head_roll" value="2"/>
+    <parameter name="head_pitch" value="3"/>
+    <parameter name="head_yaw_left" value="7"/>
+    <parameter name="head_yaw_right" value="5"/>
   </node>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>

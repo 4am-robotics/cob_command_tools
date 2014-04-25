@@ -8,9 +8,9 @@
 #include <geometry_msgs/Twist.h>
 #include <brics_actuator/CartesianTwist.h>
 #include <brics_actuator/CartesianTwist.h>
-#include <trajectory_msgs/JointTrajectory.h>
-#include <trajectory_msgs/JointTrajectory.h>
-#include <trajectory_msgs/JointTrajectory.h>
+#include <brics_actuator/JointVelocities.h>
+#include <brics_actuator/JointVelocities.h>
+#include <geometry_msgs/Twist.h>
 #include <brics_actuator/JointVelocities.h>
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/Joy.h>
@@ -52,16 +52,16 @@ class cob_teleop_cob4_ros
         base_controller_command_ = n_.advertise<geometry_msgs::Twist>("base_controller_command", 1);
         arm_cart_left_ = n_.advertise<brics_actuator::CartesianTwist>("arm_cart_left", 1);
         arm_cart_right_ = n_.advertise<brics_actuator::CartesianTwist>("arm_cart_right", 1);
-        arm_joint_right_ = n_.advertise<trajectory_msgs::JointTrajectory>("arm_joint_right", 1);
-        arm_joint_left_ = n_.advertise<trajectory_msgs::JointTrajectory>("arm_joint_left", 1);
-        head_controller_command_ = n_.advertise<trajectory_msgs::JointTrajectory>("head_controller_command", 1);
+        arm_joint_right_ = n_.advertise<brics_actuator::JointVelocities>("arm_joint_right", 1);
+        arm_joint_left_ = n_.advertise<brics_actuator::JointVelocities>("arm_joint_left", 1);
+        head_controller_command_ = n_.advertise<geometry_msgs::Twist>("head_controller_command", 1);
         sensorring_controller_command_ = n_.advertise<brics_actuator::JointVelocities>("sensorring_controller_command", 1);
         torso_controller_command_ = n_.advertise<geometry_msgs::Twist>("torso_controller_command", 1);
         joy_ = n_.subscribe("joy", 1, &cob_teleop_cob4_ros::topicCallback_joy, this);
 
         n_.param("button_deadman", component_config_.button_deadman, (int)11);
         n_.param("base_max_linear", component_config_.base_max_linear, (double)2.0);
-        n_.param("base_max_angular", component_config_.base_max_angular, (double)1.5);
+        n_.param("base_max_angular", component_config_.base_max_angular, (double)5);
         n_.param("torso_max_angular", component_config_.torso_max_angular, (double)0.1);
         n_.param("head_max_angular", component_config_.head_max_angular, (double)0.1);
         n_.param("sensor_ring_max_angular", component_config_.sensor_ring_max_angular, (double)0.1);
@@ -101,6 +101,10 @@ class cob_teleop_cob4_ros
         n_.param("torso_yaw_right", component_config_.torso_yaw_right, (int)13);
         n_.param("sensorring_yaw_left", component_config_.sensorring_yaw_left, (int)4);
         n_.param("sensorring_yaw_right", component_config_.sensorring_yaw_right, (int)6);
+        n_.param("head_roll", component_config_.head_roll, (int)2);
+        n_.param("head_pitch", component_config_.head_pitch, (int)3);
+        n_.param("head_yaw_left", component_config_.head_yaw_left, (int)7);
+        n_.param("head_yaw_right", component_config_.head_yaw_right, (int)5);
         }
 
     void topicCallback_joy(const sensor_msgs::Joy::ConstPtr& msg)
@@ -152,6 +156,10 @@ class cob_teleop_cob4_ros
         component_config_.torso_yaw_right = config.torso_yaw_right;
         component_config_.sensorring_yaw_left = config.sensorring_yaw_left;
         component_config_.sensorring_yaw_right = config.sensorring_yaw_right;
+        component_config_.head_roll = config.head_roll;
+        component_config_.head_pitch = config.head_pitch;
+        component_config_.head_yaw_left = config.head_yaw_left;
+        component_config_.head_yaw_right = config.head_yaw_right;
     }
 
     void configure()
