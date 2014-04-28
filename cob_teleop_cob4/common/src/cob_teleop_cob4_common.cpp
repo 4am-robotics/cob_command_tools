@@ -14,9 +14,6 @@
 /* protected region user include files on begin */
 #include <actionlib/client/simple_action_client.h>
 #include <cob_script_server/ScriptAction.h>
-#include <iostream>
-#include <string>
-
 /* protected region user include files end */
 
 class cob_teleop_cob4_config
@@ -120,7 +117,7 @@ class cob_teleop_cob4_impl
     /* protected region user member variables end */
 
 public:
-    cob_teleop_cob4_impl() 
+    cob_teleop_cob4_impl()
     {
         /* protected region user constructor on begin */
       Client client("script_server", true);
@@ -131,9 +128,9 @@ public:
         /* protected region user constructor end */
     }
 
-    void configure(cob_teleop_cob4_config config) 
+    void configure(cob_teleop_cob4_config config)
     {
-        /* protected region user configure on begin */     
+        /* protected region user configure on begin */ 
 
       mode=0;
       jvalue.unit="rad/sec";
@@ -183,7 +180,7 @@ public:
     
     if (data.in_joy.buttons.size()!=17)//wait for complete joypad!
     {  
-      ROS_WARN("joypad inactive! waiting for vector of buttons. Move the Controller");
+      ROS_WARN("joypad inactive! waiting for array of buttons. Move the Controller");
       return;
     }
     
@@ -260,12 +257,15 @@ public:
       right.velocities[6].value=updown*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
       //right.joint_gripper=rightright*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
       //right.velocities[0].timeStamp=ros::Time::now();
-      if (joy.buttons[config.button_init_recover])
+      if (!joy.buttons[config.button_init_recover]){once=false;}
+      if (joy.buttons[config.button_init_recover] && !once)
       {
       	init_recover("arm_right");
+      	once=true;
       }
       data.out_arm_joint_right=right;
       data.out_arm_joint_right_active=1;
+      break;
       
       case 5 : //automoves script      
       if (joy.buttons[4]){sss.component_name="head";}
@@ -317,7 +317,7 @@ public:
   	{
   	sss.component_name=(component);
   	sss.function_name=("init");  	
-  	//client.send.Goal(sss);
+  	//client.sendGoal(sss);
   	ROS_INFO("initialising %s",component.c_str());
   	sss.function_name=("recover");
   	ROS_INFO("recovering %s",component.c_str());
