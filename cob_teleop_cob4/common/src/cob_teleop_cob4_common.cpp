@@ -14,6 +14,9 @@
 /* protected region user include files on begin */
 #include <actionlib/client/simple_action_client.h>
 #include <cob_script_server/ScriptAction.h>
+#include <iostream>
+#include <string>
+
 /* protected region user include files end */
 
 class cob_teleop_cob4_config
@@ -97,9 +100,8 @@ public:
 class cob_teleop_cob4_impl
 {
     /* protected region user member variables on begin */
-    //cob_script_server::Script? sss;
     typedef actionlib::SimpleActionClient<cob_script_server::ScriptAction> Client;
-    
+
     int mode;
     float run;
     float updown;
@@ -192,7 +194,7 @@ public:
     if (joy.buttons[config.button_mode_switch] && not joy.buttons[config.button_deadman])//switch mode. gets executed multiple times
     {
       ++mode;
-      if (mode >= 6)
+      if (mode >= 7)
       {
         mode = 0;
       }
@@ -257,6 +259,10 @@ public:
       right.velocities[6].value=updown*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
       //right.joint_gripper=rightright*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
       //right.velocities[0].timeStamp=ros::Time::now();
+      if (joy.buttons[config.button_init_recover])
+      {
+      	init_recover("arm_right");
+      }
       data.out_arm_joint_right=right;
       data.out_arm_joint_right_active=1;
       
@@ -269,6 +275,8 @@ public:
       else if (joy.buttons[15]){sss.component_name="gripper_left";}
       else if (joy.buttons[13]){sss.component_name="gripper_right";}
       else if (joy.buttons[14]){sss.component_name="base";}
+      else break;
+      ROS_INFO("Homing %s",sss.component_name.c_str());
       sss.function_name="move";
       sss.parameter_name="home";
       //client.sendGoal(sss);
@@ -299,6 +307,17 @@ public:
     }
 
 
-    /* protected region user additional functions on begin */
+    /* protected region */
+    void init_recover(std::string component)
+  	{
+  	sss.component_name=(component);
+  	sss.function_name=("init");  	
+  	//client.send.Goal(sss);
+  	ROS_INFO("initialising %s",component.c_str());
+  	sss.function_name=("recover");
+  	ROS_INFO("recovering %s",component.c_str());
+  	//client.sendGoal(sss);
+  	}
+
     /* protected region user additional functions end */
 };
