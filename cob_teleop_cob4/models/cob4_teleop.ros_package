@@ -13,11 +13,11 @@
     <subscriber name="joy" msg="sensor_msgs::Joy"/>
     <parameter name="button_deadman" value="11"/>
     <parameter name="base_max_linear" value="2.0" type="double"/>
-    <parameter name="base_max_angular" value="5" type="double"/>
-    <parameter name="torso_max_angular" value="0.1" type="double"/>
-    <parameter name="head_max_angular" value="0.1" type="double"/>
+    <parameter name="base_max_angular" value="6" type="double"/>
+    <parameter name="torso_max_angular" value="0.2" type="double"/>
+    <parameter name="head_max_angular" value="0.3" type="double"/>
     <parameter name="sensor_ring_max_angular" value="0.1" type="double"/>
-    <parameter name="arm_joint_velocity_max" value="0.1" type="double"/>
+    <parameter name="arm_joint_velocity_max" value="0.3" type="double"/>
     <parameter name="arm_cartesian_max_linear" value="0.1" type="double"/>
     <parameter name="arm_cartesian_max_angular" value="0.1" type="double"/>
     <parameter name="gripper_max_velocity" value="0.1" type="double"/>
@@ -57,6 +57,14 @@
     <parameter name="head_pitch" value="3"/>
     <parameter name="head_yaw_left" value="7"/>
     <parameter name="head_yaw_right" value="5"/>
+    <parameter name="head_home" value="4"/>
+    <parameter name="arm_left_home" value="7"/>
+    <parameter name="arm_right_home" value="5"/>
+    <parameter name="torso_home" value="6"/>
+    <parameter name="sensorring_home" value="12"/>
+    <parameter name="gripper_left_home" value="15"/>
+    <parameter name="gripper_right_home" value="13"/>
+    <parameter name="base_home" value="14"/>
     <actionclient name="init" ActionType="cob_script_server::Script"/>
   </node>
   <depend>sensor_msgs</depend>

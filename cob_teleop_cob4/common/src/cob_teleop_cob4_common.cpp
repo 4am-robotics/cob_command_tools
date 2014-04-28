@@ -97,7 +97,7 @@ public:
 class cob_teleop_cob4_impl
 {
     /* protected region user member variables on begin */
-    cob_script_server::ScriptAction sss;
+    //cob_script_server::Script? sss;
     typedef actionlib::SimpleActionClient<cob_script_server::ScriptAction> Client;
     
     int mode;
@@ -112,25 +112,26 @@ class cob_teleop_cob4_impl
     brics_actuator::JointVelocities left;
     brics_actuator::JointVelocities right;
     brics_actuator::JointValue jvalue;
+       
+    cob_script_server::ScriptGoal sss;
     /* protected region user member variables end */
 
 public:
     cob_teleop_cob4_impl() 
     {
-        /* protected region user constructor on begin */
-        Client client("script_server", true);
-        ROS_WARN("Connecting to script_server");
-        client.waitForServer();
-        ROS_WARN("Connected");
-        cob_script_server::ScriptAction sss;
-        sss.action_goal.goal.component_name="test";
-        client.sendGoal(sss);
-        /* protected region user constructor end */
+	/* protected region user constructor on begin */
+      Client client("script_server", true);
+      ROS_INFO("Connecting to script_server");
+      client.waitForServer();
+      ROS_INFO("Connected");
+       
+	/* protected region user constructor end */
     }
 
     void configure(cob_teleop_cob4_config config) 
     {
-        /* protected region user configure on begin */
+	/* protected region user configure on begin */      
+
       mode=0;
       jvalue.unit="rad/sec";
       left.velocities.resize(7);
@@ -160,12 +161,14 @@ public:
       sring.velocities.resize(1);
       sring.velocities[0].joint_uri="sensorring_joint";
       sring.velocities[0].unit="rad/sec";
-        /* protected region user configure end */
+      
+	/* protected region user configure end */
     }
 
     void update(cob_teleop_cob4_data &data, cob_teleop_cob4_config config)
     {
-        /* protected region user update on begin */
+	/* protected region user update on begin */   
+        
     data.out_base_controller_command_active=0; //on begin because default is 1
     data.out_sensorring_controller_command_active=0;
     data.out_torso_controller_command_active=0;
@@ -193,7 +196,7 @@ public:
       {
         mode = 0;
       }
-      ROS_WARN("Mode switched to: %d",mode);
+      ROS_INFO("Mode switched to: %d",mode);
       ros::Duration(0.2).sleep();//wait (bad place)
       return;
     }
@@ -256,13 +259,23 @@ public:
       //right.velocities[0].timeStamp=ros::Time::now();
       data.out_arm_joint_right=right;
       data.out_arm_joint_right_active=1;
-      /*
-      case 5 : //automoves script
-      //Todo
-      break;
-      */
       
-      case 5: //case 6: sensorring head torso 
+      case 5 : //automoves script
+      if (joy.buttons[4]){sss.component_name="head";}
+      else if (joy.buttons[7]){sss.component_name="arm_left";}
+      else if (joy.buttons[5]){sss.component_name="arm_right";}
+      else if (joy.buttons[6]){sss.component_name="torso";}      
+      else if (joy.buttons[12]){sss.component_name="sensorring";}
+      else if (joy.buttons[15]){sss.component_name="gripper_left";}
+      else if (joy.buttons[13]){sss.component_name="gripper_right";}
+      else if (joy.buttons[14]){sss.component_name="base";}
+      sss.function_name="move";
+      sss.parameter_name="home";
+      //client.sendGoal(sss);
+      break;
+      
+      
+      case 6: //case 6: sensorring head torso 
       //sensorring (Joints)
       sring.velocities[0].value=(joy.buttons[config.sensorring_yaw_left]-joy.buttons[config.sensorring_yaw_right])*config.sensor_ring_max_angular*run;
       data.out_sensorring_controller_command=sring;
