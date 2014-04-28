@@ -101,6 +101,7 @@ class cob_teleop_cob4_impl
 {
     /* protected region user member variables on begin */
     typedef actionlib::SimpleActionClient<cob_script_server::ScriptAction> Client;
+    bool once;
 
     int mode;
     float run;
@@ -121,18 +122,18 @@ class cob_teleop_cob4_impl
 public:
     cob_teleop_cob4_impl() 
     {
-	/* protected region user constructor on begin */
+        /* protected region user constructor on begin */
       Client client("script_server", true);
       ROS_INFO("Connecting to script_server");
       client.waitForServer();
       ROS_INFO("Connected");
        
-	/* protected region user constructor end */
+        /* protected region user constructor end */
     }
 
     void configure(cob_teleop_cob4_config config) 
     {
-	/* protected region user configure on begin */      
+        /* protected region user configure on begin */     
 
       mode=0;
       jvalue.unit="rad/sec";
@@ -164,12 +165,12 @@ public:
       sring.velocities[0].joint_uri="sensorring_joint";
       sring.velocities[0].unit="rad/sec";
       
-	/* protected region user configure end */
+        /* protected region user configure end */
     }
 
     void update(cob_teleop_cob4_data &data, cob_teleop_cob4_config config)
     {
-	/* protected region user update on begin */   
+        /* protected region user update on begin */
         
     data.out_base_controller_command_active=0; //on begin because default is 1
     data.out_sensorring_controller_command_active=0;
@@ -266,7 +267,7 @@ public:
       data.out_arm_joint_right=right;
       data.out_arm_joint_right_active=1;
       
-      case 5 : //automoves script
+      case 5 : //automoves script      
       if (joy.buttons[4]){sss.component_name="head";}
       else if (joy.buttons[7]){sss.component_name="arm_left";}
       else if (joy.buttons[5]){sss.component_name="arm_right";}
@@ -275,11 +276,15 @@ public:
       else if (joy.buttons[15]){sss.component_name="gripper_left";}
       else if (joy.buttons[13]){sss.component_name="gripper_right";}
       else if (joy.buttons[14]){sss.component_name="base";}
-      else break;
-      ROS_INFO("Homing %s",sss.component_name.c_str());
-      sss.function_name="move";
-      sss.parameter_name="home";
-      //client.sendGoal(sss);
+      else {once=false; break;}
+      if (!once)
+      {
+      	once=true;
+      	ROS_INFO("Homing %s",sss.component_name.c_str());
+      	sss.function_name="move";
+      	sss.parameter_name="home";
+      	//client.sendGoal(sss);
+      }
       break;
       
       
@@ -302,12 +307,12 @@ public:
       data.out_torso_controller_command_active=1;
       break;
       }
-    }
-    /* protected region user update end */
+  }
+        /* protected region user update end */
     }
 
 
-    /* protected region */
+    /* protected region user additional functions on begin */
     void init_recover(std::string component)
   	{
   	sss.component_name=(component);
