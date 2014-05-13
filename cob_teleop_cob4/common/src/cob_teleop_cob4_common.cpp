@@ -106,6 +106,8 @@ class cob_teleop_cob4_impl
 {
     /* protected region user member variables on begin */
     typedef actionlib::SimpleActionClient<cob_script_server::ScriptAction> Client;
+    Client * client;
+    
     bool once;
 
     int mode;
@@ -122,15 +124,18 @@ class cob_teleop_cob4_impl
     brics_actuator::JointValue jvalue;
        
     cob_script_server::ScriptGoal sss;
+    
+    
     /* protected region user member variables end */
 
 public:
     cob_teleop_cob4_impl() 
     {
         /* protected region user constructor on begin */
-      Client client("script_server", true);
+      //Client client("script_server", true);
+      client = new Client("script_server", true);
       ROS_INFO("Connecting to script_server");
-      client.waitForServer();
+      client->waitForServer();
       ROS_INFO("Connected");
        
         /* protected region user constructor end */
@@ -285,11 +290,11 @@ public:
       else {once=false; break;}
       if (!once)
       {
-      	once=true;
-      	ROS_INFO("Homing %s",sss.component_name.c_str());
-      	sss.function_name="move";
-      	sss.parameter_name="home";
-      	//client.sendGoal(sss);
+        once=true;
+        ROS_INFO("Homing %s",sss.component_name.c_str());
+        sss.function_name="move";
+        sss.parameter_name="home";
+        client->sendGoal(sss);
       }
       break;
       
@@ -320,15 +325,15 @@ public:
 
     /* protected region user additional functions on begin */
     void init_recover(std::string component)
-  	{
-  	sss.component_name=(component);
-  	sss.function_name=("init");  	
-  	//client.sendGoal(sss);
-  	ROS_INFO("initialising %s",component.c_str());
-  	sss.function_name=("recover");
-  	ROS_INFO("recovering %s",component.c_str());
-  	//client.sendGoal(sss);
-  	}
+  {
+    sss.component_name=(component);
+    sss.function_name=("init");  	
+    client->sendGoal(sss);
+    ROS_INFO("initialising %s",component.c_str());
+    sss.function_name=("recover");
+    ROS_INFO("recovering %s",component.c_str());
+    client->sendGoal(sss);
+  }
 
     /* protected region user additional functions end */
 };
