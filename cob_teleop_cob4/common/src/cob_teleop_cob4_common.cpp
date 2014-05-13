@@ -65,6 +65,14 @@ public:
     int head_pitch;
     int head_yaw_left;
     int head_yaw_right;
+    int head_home;
+    int arm_left_home;
+    int arm_right_home;
+    int torso_home;
+    int sensorring_home;
+    int gripper_left_home;
+    int gripper_right_home;
+    int base_home;
 };
 
 class cob_teleop_cob4_data
@@ -117,7 +125,7 @@ class cob_teleop_cob4_impl
     /* protected region user member variables end */
 
 public:
-    cob_teleop_cob4_impl()
+    cob_teleop_cob4_impl() 
     {
         /* protected region user constructor on begin */
       Client client("script_server", true);
@@ -128,10 +136,9 @@ public:
         /* protected region user constructor end */
     }
 
-    void configure(cob_teleop_cob4_config config)
+    void configure(cob_teleop_cob4_config config) 
     {
-        /* protected region user configure on begin */ 
-
+        /* protected region user configure on begin */
       mode=0;
       jvalue.unit="rad/sec";
       left.velocities.resize(7);
@@ -168,7 +175,6 @@ public:
     void update(cob_teleop_cob4_data &data, cob_teleop_cob4_config config)
     {
         /* protected region user update on begin */
-        
     data.out_base_controller_command_active=0; //on begin because default is 1
     data.out_sensorring_controller_command_active=0;
     data.out_torso_controller_command_active=0;
@@ -269,13 +275,13 @@ public:
       
       case 5 : //automoves script      
       if (joy.buttons[4]){sss.component_name="head";}
-      else if (joy.buttons[7]){sss.component_name="arm_left";}
-      else if (joy.buttons[5]){sss.component_name="arm_right";}
-      else if (joy.buttons[6]){sss.component_name="torso";}      
-      else if (joy.buttons[12]){sss.component_name="sensorring";}
-      else if (joy.buttons[15]){sss.component_name="gripper_left";}
-      else if (joy.buttons[13]){sss.component_name="gripper_right";}
-      else if (joy.buttons[14]){sss.component_name="base";}
+      else if (joy.buttons[config.arm_left_home]){sss.component_name="arm_left";}
+      else if (joy.buttons[config.arm_right_home]){sss.component_name="arm_right";}
+      else if (joy.buttons[config.torso_home]){sss.component_name="torso";}      
+      else if (joy.buttons[config.sensorring_home]){sss.component_name="sensorring";}
+      else if (joy.buttons[config.gripper_left_home]){sss.component_name="gripper_left";}
+      else if (joy.buttons[config.gripper_right_home]){sss.component_name="gripper_right";}
+      else if (joy.buttons[config.base_home]){sss.component_name="base";}
       else {once=false; break;}
       if (!once)
       {
