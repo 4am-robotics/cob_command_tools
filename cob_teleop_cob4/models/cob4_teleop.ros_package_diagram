@@ -219,6 +219,10 @@
         <element xmi:type="ros:Parameter" href="cob4_teleop.ros_package#//@node.0/@parameter.53"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_ri1Bwc65EeO5MosXlJBB0Q"/>
       </children>
+      <children xmi:type="notation:Node" xmi:id="_aVeD4NqsEeOkwPNt0BnsjA" type="3001">
+        <element xmi:type="ros:Parameter" href="cob4_teleop.ros_package#//@node.0/@parameter.54"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_aVeD4dqsEeOkwPNt0BnsjA"/>
+      </children>
       <styles xmi:type="notation:TitleStyle" xmi:id="_LgqaIbW9EeOeLd2S4hsWIw" showTitle="true"/>
       <styles xmi:type="notation:SortingStyle" xmi:id="_LgqaIrW9EeOeLd2S4hsWIw"/>
       <styles xmi:type="notation:FilteringStyle" xmi:id="_LgqaI7W9EeOeLd2S4hsWIw"/>

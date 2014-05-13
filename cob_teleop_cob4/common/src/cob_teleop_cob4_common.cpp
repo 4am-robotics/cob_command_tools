@@ -73,6 +73,7 @@ public:
     int gripper_left_home;
     int gripper_right_home;
     int base_home;
+    XmlRpc::XmlRpcValue arm_left_uri;
 };
 
 class cob_teleop_cob4_data
@@ -151,9 +152,9 @@ public:
       int i;
       for (i=0; i<7; i++)
       {
-      //jvalue.joint_uri=("arm_left_%d_joint",(i+1)); //produces Ascii crap like:  
       left.velocities.at(i)=jvalue;
-      //jvalue.joint_uri=("arm_right_%d_joint",(i+1));
+      ROS_ASSERT(config.arm_left_uri.getType() == XmlRpc::XmlRpcValue::TypeArray);
+      //left.velocities[i].joint_uri=config.arm_left_uri.stringFromXml(i);
       right.velocities.at(i)=jvalue;
       }
       left.velocities[0].joint_uri="arm_left_1_joint";
@@ -326,11 +327,11 @@ public:
     /* protected region user additional functions on begin */
     void init_recover(std::string component)
   {
-    sss.component_name=(component);
-    sss.function_name=("init");  	
+    sss.component_name=component;
+    sss.function_name="init";
     client->sendGoal(sss);
     ROS_INFO("initialising %s",component.c_str());
-    sss.function_name=("recover");
+    sss.function_name="recover";
     ROS_INFO("recovering %s",component.c_str());
     client->sendGoal(sss);
   }

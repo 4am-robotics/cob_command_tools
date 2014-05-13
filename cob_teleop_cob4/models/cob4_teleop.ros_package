@@ -65,6 +65,7 @@
     <parameter name="gripper_left_home" value="15"/>
     <parameter name="gripper_right_home" value="13"/>
     <parameter name="base_home" value="14"/>
+    <parameter name="arm_left_uri" value="&quot;arm_left_1_joint&quot;" type="XmlRpcValue"/>
     <actionclient name="init" ActionType="cob_script_server::Script"/>
   </node>
   <depend>sensor_msgs</depend>
