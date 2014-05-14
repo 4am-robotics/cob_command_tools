@@ -1,5 +1,5 @@
 /*
- * teleop_pr2_keyboard
+ * teleop_keyboard
  * Copyright (c) 2008, Willow Garage, Inc.
  * All rights reserved.
  * 
@@ -29,6 +29,7 @@
  */
 
 // Author: Kevin Watts
+// Modified: Felix Messmer
 
 #include <termios.h>
 #include <signal.h>
@@ -53,7 +54,7 @@
 #define KEYCODE_Q_CAP 0x51
 #define KEYCODE_E_CAP 0x45
 
-class TeleopPR2Keyboard
+class TeleopKeyboard
 {
   private:
   double walk_vel, run_vel, yaw_rate, yaw_rate_run;
@@ -77,7 +78,7 @@ class TeleopPR2Keyboard
 
   }
   
-  ~TeleopPR2Keyboard()   { }
+  ~TeleopKeyboard()   { }
   void keyboardLoop();
 
 };
@@ -93,9 +94,9 @@ void quit(int sig)
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "pr2_base_keyboard");
+  ros::init(argc, argv, "teleop_keyboard");
 
-  TeleopPR2Keyboard tpk;
+  TeleopKeyboard tpk;
   tpk.init();
 
   signal(SIGINT,quit);
@@ -105,7 +106,7 @@ int main(int argc, char** argv)
   return(0);
 }
 
-void TeleopPR2Keyboard::keyboardLoop()
+void TeleopKeyboard::keyboardLoop()
 {
   char c;
   bool dirty=false;
