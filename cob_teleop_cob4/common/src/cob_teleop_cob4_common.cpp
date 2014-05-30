@@ -14,6 +14,7 @@
 /* protected region user include files on begin */
 #include <actionlib/client/simple_action_client.h>
 #include <cob_script_server/ScriptAction.h>
+#include <string>
 /* protected region user include files end */
 
 class cob_teleop_cob4_config
@@ -73,7 +74,8 @@ public:
     int gripper_left_home;
     int gripper_right_home;
     int base_home;
-    XmlRpc::XmlRpcValue arm_left_uri;
+    XmlRpc::XmlRpcValue arm_uri;
+    XmlRpc::XmlRpcValue components;
 };
 
 class cob_teleop_cob4_data
@@ -125,8 +127,6 @@ class cob_teleop_cob4_impl
     brics_actuator::JointValue jvalue;
        
     cob_script_server::ScriptGoal sss;
-    
-    
     /* protected region user member variables end */
 
 public:
@@ -153,8 +153,8 @@ public:
       for (i=0; i<7; i++)
       {
       left.velocities.at(i)=jvalue;
-      ROS_ASSERT(config.arm_left_uri.getType() == XmlRpc::XmlRpcValue::TypeArray);
-      //left.velocities[i].joint_uri=config.arm_left_uri.stringFromXml(i);
+      //ROS_ASSERT(config.arm_uri.getType() == XmlRpc::XmlRpcValue::TypeArray);
+      //left.velocities[i].joint_uri=static_cast<std::string>(config.arm_uri[i]).c_str();
       right.velocities.at(i)=jvalue;
       }
       left.velocities[0].joint_uri="arm_left_1_joint";
@@ -190,7 +190,7 @@ public:
     data.out_arm_cart_left_active=0;
     data.out_arm_cart_right_active=0;
     
-    if (data.in_joy.buttons.size()!=17)//wait for complete joypad!
+    if (data.in_joy.buttons.size()<=5)//wait for complete joypad!
     {  
       ROS_WARN("joypad inactive! waiting for array of buttons. Move the Controller");
       return;
@@ -218,6 +218,10 @@ public:
       switch (mode)
       {
       case 0: //Base
+      int test;
+      test = data.in_joy.buttons.size();
+      ROS_INFO(test.str());
+      
       base.linear.x=joy.axes[config.base_x]*config.base_max_linear*run;
       base.linear.y=joy.axes[config.base_y]*config.base_max_linear*run;
       base.angular.z=joy.axes[config.base_yaw]*config.base_max_angular*run;
@@ -298,7 +302,8 @@ public:
         client->sendGoal(sss);
       }
       break;
-      
+     
+     
       
       case 6: //case 6: sensorring head torso 
       //sensorring (Joints)
@@ -320,6 +325,19 @@ public:
       break;
       }
   }
+/*
+  else 
+  {
+	
+    sss.function_name="stop";
+    int j;
+    for (j=0; j<7; j++)
+    {
+	  sss.component_name=static_cast<std::string>(config.components[j]).c_str();
+	  client->sendGoal(sss);
+    }	  
+  }
+  /* 
         /* protected region user update end */
     }
 

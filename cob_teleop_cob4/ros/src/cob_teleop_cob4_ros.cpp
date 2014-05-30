@@ -114,10 +114,14 @@ class cob_teleop_cob4_ros
         np_.param("gripper_left_home", component_config_.gripper_left_home, (int)15);
         np_.param("gripper_right_home", component_config_.gripper_right_home, (int)13);
         np_.param("base_home", component_config_.base_home, (int)14);
-        if(np_.hasParam("arm_left_uri"))
-            np_.getParam("arm_left_uri", component_config_.arm_left_uri);
+        if(np_.hasParam("arm_uri"))
+            np_.getParam("arm_uri", component_config_.arm_uri);
         else
-            ROS_ERROR("Parameter arm_left_uri not set");
+            ROS_ERROR("Parameter arm_uri not set");
+        if(np_.hasParam("components"))
+            np_.getParam("components", component_config_.components);
+        else
+            ROS_ERROR("Parameter components not set");
         }
 
     void topicCallback_joy(const sensor_msgs::Joy::ConstPtr& msg)
