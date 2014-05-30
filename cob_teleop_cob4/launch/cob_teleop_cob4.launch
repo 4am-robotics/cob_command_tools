@@ -14,8 +14,8 @@
 		<remap from="arm_joint_left" to="arm_left_controller/command_vel"/>
 		<remap from="arm_joint_right" to="arm_right_controller/command_vel"/>
 		<remap from="head_controller_command" to="head_controller/command_twist"/>
-		<!--rosparam command="load" file="$(find cob_teleop_cob4)/cfg/arm_uri.yaml" />
-		<rosparam command="load" file="$(find cob_teleop_cob4)/cfg/component.yaml" /-->
+		<rosparam command="load" file="$(find cob_teleop_cob4)/cfg/arm_uri.yaml" />
+		<rosparam command="load" file="$(find cob_teleop_cob4)/cfg/component.yaml" />
 	</node>
 
 </launch>
