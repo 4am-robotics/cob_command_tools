@@ -14,6 +14,8 @@
 		<remap from="arm_joint_left" to="arm_left_controller/command_vel"/>
 		<remap from="arm_joint_right" to="arm_right_controller/command_vel"/>
 		<remap from="head_controller_command" to="head_controller/command_twist"/>
+		<remap from="arm_cart_left" to="arm_left_controller/command_twist"/>
+		<remap from="arm_cart_right" to="arm_right_controller/command_twist"/>
 	</node>
 
 </launch>

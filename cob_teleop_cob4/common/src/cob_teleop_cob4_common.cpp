@@ -2,8 +2,8 @@
 #include "ros/ros.h"
 #include <sensor_msgs/JoyFeedback.h>
 #include <geometry_msgs/Twist.h>
-#include <brics_actuator/CartesianTwist.h>
-#include <brics_actuator/CartesianTwist.h>
+#include <geometry_msgs/Twist.h>
+#include <geometry_msgs/Twist.h>
 #include <brics_actuator/JointVelocities.h>
 #include <brics_actuator/JointVelocities.h>
 #include <geometry_msgs/Twist.h>
@@ -87,9 +87,9 @@ public:
     bool out_joy_feedback_active;
     geometry_msgs::Twist out_base_controller_command;
     bool out_base_controller_command_active;
-    brics_actuator::CartesianTwist out_arm_cart_left;
+    geometry_msgs::Twist out_arm_cart_left;
     bool out_arm_cart_left_active;
-    brics_actuator::CartesianTwist out_arm_cart_right;
+    geometry_msgs::Twist out_arm_cart_right;
     bool out_arm_cart_right_active;
     brics_actuator::JointVelocities out_arm_joint_right;
     bool out_arm_joint_right_active;
@@ -226,22 +226,22 @@ public:
       break;
       
       case 1: //arm cartesian left
-      data.out_arm_cart_left.translation.x=(joy.axes[config.arm_x])*config.arm_cartesian_max_linear*run;
-      data.out_arm_cart_left.translation.y=(joy.axes[config.arm_y])*config.arm_cartesian_max_linear*run;
-      data.out_arm_cart_left.rotation.z=(joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular*run;
-      data.out_arm_cart_left.translation.z=(joy.buttons[config.arm_z_up]-joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
-      data.out_arm_cart_left.rotation.x=(joy.buttons[config.arm_roll_left_and_ellbow]-joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
-      data.out_arm_cart_left.rotation.y=(joy.buttons[config.arm_pitch_up]-joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
+      data.out_arm_cart_left.linear.x=(joy.axes[config.arm_x])*config.arm_cartesian_max_linear*run;
+      data.out_arm_cart_left.linear.y=(joy.axes[config.arm_y])*config.arm_cartesian_max_linear*run;
+      data.out_arm_cart_left.angular.z=(joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular*run;
+      data.out_arm_cart_left.linear.z=(joy.buttons[config.arm_z_up]-joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
+      data.out_arm_cart_left.angular.x=(joy.buttons[config.arm_roll_left_and_ellbow]-joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
+      data.out_arm_cart_left.angular.y=(joy.buttons[config.arm_pitch_up]-joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
       data.out_arm_cart_left_active=1;
       break; //maybe these blocks should be smaller
       
       case 2: //arm_cartesian right
-      data.out_arm_cart_right.translation.x=(joy.axes[config.arm_x])*config.arm_cartesian_max_linear*run;
-      data.out_arm_cart_right.translation.y=(joy.axes[config.arm_y])*config.arm_cartesian_max_linear*run;
-      data.out_arm_cart_right.rotation.z=(joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular*run;
-      data.out_arm_cart_right.translation.z=(joy.buttons[config.arm_z_up]-joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
-      data.out_arm_cart_right.rotation.x=(joy.buttons[config.arm_roll_left_and_ellbow]-joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
-      data.out_arm_cart_right.rotation.y=(joy.buttons[config.arm_pitch_up]-joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
+      data.out_arm_cart_right.linear.x=(joy.axes[config.arm_x])*config.arm_cartesian_max_linear*run;
+      data.out_arm_cart_right.linear.y=(joy.axes[config.arm_y])*config.arm_cartesian_max_linear*run;
+      data.out_arm_cart_right.angular.z=(joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular*run;
+      data.out_arm_cart_right.linear.z=(joy.buttons[config.arm_z_up]-joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
+      data.out_arm_cart_right.angular.x=(joy.buttons[config.arm_roll_left_and_ellbow]-joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
+      data.out_arm_cart_right.angular.y=(joy.buttons[config.arm_pitch_up]-joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
       data.out_arm_cart_right_active=1;
       break;
       

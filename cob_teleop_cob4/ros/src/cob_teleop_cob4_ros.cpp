@@ -6,8 +6,8 @@
 // ROS message includes
 #include <sensor_msgs/JoyFeedback.h>
 #include <geometry_msgs/Twist.h>
-#include <brics_actuator/CartesianTwist.h>
-#include <brics_actuator/CartesianTwist.h>
+#include <geometry_msgs/Twist.h>
+#include <geometry_msgs/Twist.h>
 #include <brics_actuator/JointVelocities.h>
 #include <brics_actuator/JointVelocities.h>
 #include <geometry_msgs/Twist.h>
@@ -51,8 +51,8 @@ class cob_teleop_cob4_ros
 
         joy_feedback_ = n_.advertise<sensor_msgs::JoyFeedback>("joy_feedback", 1);
         base_controller_command_ = n_.advertise<geometry_msgs::Twist>("base_controller_command", 1);
-        arm_cart_left_ = n_.advertise<brics_actuator::CartesianTwist>("arm_cart_left", 1);
-        arm_cart_right_ = n_.advertise<brics_actuator::CartesianTwist>("arm_cart_right", 1);
+        arm_cart_left_ = n_.advertise<geometry_msgs::Twist>("arm_cart_left", 1);
+        arm_cart_right_ = n_.advertise<geometry_msgs::Twist>("arm_cart_right", 1);
         arm_joint_right_ = n_.advertise<brics_actuator::JointVelocities>("arm_joint_right", 1);
         arm_joint_left_ = n_.advertise<brics_actuator::JointVelocities>("arm_joint_left", 1);
         head_controller_command_ = n_.advertise<geometry_msgs::Twist>("head_controller_command", 1);

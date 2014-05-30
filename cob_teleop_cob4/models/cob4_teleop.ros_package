@@ -3,8 +3,8 @@
   <node name="cob_teleop_cob4" frequency="30.0" paramSource="">
     <publisher name="joy_feedback" msg="sensor_msgs::JoyFeedback"/>
     <publisher name="base_controller command" msg="geometry_msgs::Twist"/>
-    <publisher name="arm_cart_left" msg="brics_actuator::CartesianTwist"/>
-    <publisher name="arm_cart_right" msg="brics_actuator::CartesianTwist"/>
+    <publisher name="arm_cart_left" msg="geometry_msgs::Twist"/>
+    <publisher name="arm_cart_right" msg="geometry_msgs::Twist"/>
     <publisher name="arm_joint_right" msg="brics_actuator::JointVelocities"/>
     <publisher name="arm_joint_left" msg="brics_actuator::JointVelocities"/>
     <publisher name="head_controller command" msg="geometry_msgs::Twist"/>
