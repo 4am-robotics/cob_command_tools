@@ -112,6 +112,7 @@ class cob_teleop_cob4_impl
     Client * client;
     
     bool once;
+    bool stop_once;
 
     int mode;
     float run;
@@ -150,11 +151,12 @@ public:
       left.velocities.resize(7);
       right.velocities.resize(7);
       int i;
-      for (i=0; i<7; i++)
+      for (i=1; i<7; i++)
       {
       left.velocities.at(i)=jvalue;
-      //ROS_ASSERT(config.arm_uri.getType() == XmlRpc::XmlRpcValue::TypeArray);
+      //ROS_ASSERT(config.arm_uri.getType() == XmlRpc::XmlRpcValue::TypeStruct);
       //left.velocities[i].joint_uri=static_cast<std::string>(config.arm_uri[i]).c_str();
+      //ROS_INFO(static_cast<std::string>(config.components[i]).c_str() );
       right.velocities.at(i)=jvalue;
       }
       left.velocities[0].joint_uri="arm_left_1_joint";
@@ -214,13 +216,13 @@ public:
     }
     if (joy.buttons[config.button_deadman])
     {
-  
+	  stop_once=false;
       switch (mode)
       {
       case 0: //Base
-      int test;
-      test = data.in_joy.buttons.size();
-      ROS_INFO(test.str());
+      //int test;
+      //test = data.in_joy.buttons.size();
+      //ROS_INFO(test.str());
       
       base.linear.x=joy.axes[config.base_x]*config.base_max_linear*run;
       base.linear.y=joy.axes[config.base_y]*config.base_max_linear*run;
@@ -325,19 +327,20 @@ public:
       break;
       }
   }
-/*
-  else 
+
+  else if(!stop_once)
   {
-	
+	stop_once=true;
     sss.function_name="stop";
     int j;
-    for (j=0; j<7; j++)
+    for (j=0; j<(config.components.size()); j++)
     {
 	  sss.component_name=static_cast<std::string>(config.components[j]).c_str();
+	  ROS_INFO("Stoping %s",sss.component_name.c_str());
 	  client->sendGoal(sss);
     }	  
   }
-  /* 
+ 
         /* protected region user update end */
     }
 
