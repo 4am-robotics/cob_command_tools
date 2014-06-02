@@ -61,8 +61,8 @@ class cob_teleop_cob4_ros
         joy_ = n_.subscribe("joy", 1, &cob_teleop_cob4_ros::topicCallback_joy, this);
 
         np_.param("button_deadman", component_config_.button_deadman, (int)11);
-        np_.param("base_max_linear", component_config_.base_max_linear, (double)2.0);
-        np_.param("base_max_angular", component_config_.base_max_angular, (double)6);
+        np_.param("base_max_linear", component_config_.base_max_linear, (double)0.5);
+        np_.param("base_max_angular", component_config_.base_max_angular, (double)1.5);
         np_.param("torso_max_angular", component_config_.torso_max_angular, (double)0.2);
         np_.param("head_max_angular", component_config_.head_max_angular, (double)0.3);
         np_.param("sensor_ring_max_angular", component_config_.sensor_ring_max_angular, (double)0.1);
@@ -114,14 +114,20 @@ class cob_teleop_cob4_ros
         np_.param("gripper_left_home", component_config_.gripper_left_home, (int)15);
         np_.param("gripper_right_home", component_config_.gripper_right_home, (int)13);
         np_.param("base_home", component_config_.base_home, (int)14);
-        if(np_.hasParam("arm_uri"))
-            np_.getParam("arm_uri", component_config_.arm_uri);
+        if(np_.hasParam("arm_left_uri"))
+            np_.getParam("arm_left_uri", component_config_.arm_left_uri);
         else
-            ROS_ERROR("Parameter arm_uri not set");
+            ROS_ERROR("Parameter arm_left_uri not set");
         if(np_.hasParam("components"))
             np_.getParam("components", component_config_.components);
         else
             ROS_ERROR("Parameter components not set");
+        np_.param("home_time", component_config_.home_time, (double)5.0);
+        np_.param("stop_time", component_config_.stop_time, (double)0.8);
+        if(np_.hasParam("arm_right_uri"))
+            np_.getParam("arm_right_uri", component_config_.arm_right_uri);
+        else
+            ROS_ERROR("Parameter arm_right_uri not set");
         }
 
     void topicCallback_joy(const sensor_msgs::Joy::ConstPtr& msg)
@@ -185,6 +191,8 @@ class cob_teleop_cob4_ros
         component_config_.gripper_left_home = config.gripper_left_home;
         component_config_.gripper_right_home = config.gripper_right_home;
         component_config_.base_home = config.base_home;
+        component_config_.home_time = config.home_time;
+        component_config_.stop_time = config.stop_time;
     }
 
     void configure()

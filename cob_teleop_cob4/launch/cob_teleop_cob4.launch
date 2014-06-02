@@ -5,7 +5,9 @@
 
 	<include file="$(find cob_script_server)/launch/script_server.launch" />
 
-	<node pkg="joy" type="joy_node" name="joy" />
+	<node pkg="joy" type="joy_node" name="joy" >
+		<param name="deadzone" value="0.12" />
+	</node>
 
 	<node pkg="cob_teleop_cob4" type="cob_teleop_cob4" name="cob_teleop_cob4" output="screen" >
 		<remap from="base_controller_command" to="base_controller/command"/>

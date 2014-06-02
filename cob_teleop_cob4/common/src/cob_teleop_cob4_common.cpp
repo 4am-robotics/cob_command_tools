@@ -74,8 +74,11 @@ public:
     int gripper_left_home;
     int gripper_right_home;
     int base_home;
-    XmlRpc::XmlRpcValue arm_uri;
+    XmlRpc::XmlRpcValue arm_left_uri;
     XmlRpc::XmlRpcValue components;
+    double home_time;
+    double stop_time;
+    XmlRpc::XmlRpcValue arm_right_uri;
 };
 
 class cob_teleop_cob4_data
@@ -151,28 +154,14 @@ public:
       left.velocities.resize(7);
       right.velocities.resize(7);
       int i;
-      for (i=1; i<7; i++)
+      for (i=0; i<7; i++)
       {
-      left.velocities.at(i)=jvalue;
-      //ROS_ASSERT(config.arm_uri.getType() == XmlRpc::XmlRpcValue::TypeStruct);
-      //left.velocities[i].joint_uri=static_cast<std::string>(config.arm_uri[i]).c_str();
-      //ROS_INFO(static_cast<std::string>(config.components[i]).c_str() );
-      right.velocities.at(i)=jvalue;
+        left.velocities.at(i)=jvalue;
+        right.velocities.at(i)=jvalue;
+        left.velocities[i].joint_uri=static_cast<std::string>(config.arm_left_uri[i]).c_str();
+        right.velocities[i].joint_uri=static_cast<std::string>(config.arm_right_uri[i]).c_str();
       }
-      left.velocities[0].joint_uri="arm_left_1_joint";
-      left.velocities[1].joint_uri="arm_left_2_joint";
-      left.velocities[2].joint_uri="arm_left_3_joint";
-      left.velocities[3].joint_uri="arm_left_4_joint";
-      left.velocities[4].joint_uri="arm_left_5_joint";
-      left.velocities[5].joint_uri="arm_left_6_joint";
-      left.velocities[6].joint_uri="arm_left_7_joint";
-      right.velocities[0].joint_uri="arm_right_1_joint";
-      right.velocities[1].joint_uri="arm_right_2_joint";
-      right.velocities[2].joint_uri="arm_right_3_joint";
-      right.velocities[3].joint_uri="arm_right_4_joint";
-      right.velocities[4].joint_uri="arm_right_5_joint";
-      right.velocities[5].joint_uri="arm_right_6_joint";
-      right.velocities[6].joint_uri="arm_right_7_joint";
+
       sring.velocities.resize(1);
       sring.velocities[0].joint_uri="sensorring_joint";
       sring.velocities[0].unit="rad/sec";
@@ -195,6 +184,7 @@ public:
     if (data.in_joy.buttons.size()<=5)//wait for complete joypad!
     {  
       ROS_WARN("joypad inactive! waiting for array of buttons. Move the Controller");
+      ros::Duration(0.5).sleep();
       return;
     }
     
@@ -202,7 +192,7 @@ public:
     run=1-joy.axes[config.axis_runfactor];
     updown=(joy.buttons[config.arm_joint_up]-joy.buttons[config.arm_joint_down]);
     leftright=(joy.buttons[config.arm_joint_left]-joy.buttons[config.arm_joint_right]);
-  
+
     if (joy.buttons[config.button_mode_switch] && not joy.buttons[config.button_deadman])//switch mode. gets executed multiple times
     {
       ++mode;
@@ -216,7 +206,7 @@ public:
     }
     if (joy.buttons[config.button_deadman])
     {
-	  stop_once=false;
+
       switch (mode)
       {
       case 0: //Base
@@ -229,6 +219,12 @@ public:
       base.angular.z=joy.axes[config.base_yaw]*config.base_max_angular*run;
       data.out_base_controller_command=base;
       data.out_base_controller_command_active=1;
+      if (!joy.buttons[config.button_init_recover]){once=false;}
+      if (joy.buttons[config.button_init_recover] && !once)
+      {
+        init_recover("base");
+        once=true;
+      }
       break;
       
       case 1: //arm cartesian left
@@ -239,6 +235,12 @@ public:
       data.out_arm_cart_left.angular.x=(joy.buttons[config.arm_roll_left_and_ellbow]-joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
       data.out_arm_cart_left.angular.y=(joy.buttons[config.arm_pitch_up]-joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
       data.out_arm_cart_left_active=1;
+      if (!joy.buttons[config.button_init_recover]){once=false;}
+      if (joy.buttons[config.button_init_recover] && !once)
+      {
+        init_recover("arm_left");
+        once=true;
+      }
       break; //maybe these blocks should be smaller
       
       case 2: //arm_cartesian right
@@ -249,6 +251,12 @@ public:
       data.out_arm_cart_right.angular.x=(joy.buttons[config.arm_roll_left_and_ellbow]-joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
       data.out_arm_cart_right.angular.y=(joy.buttons[config.arm_pitch_up]-joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
       data.out_arm_cart_right_active=1;
+      if (!joy.buttons[config.button_init_recover]){once=false;}
+      if (joy.buttons[config.button_init_recover] && !once)
+      {
+           init_recover("arm_right");
+           once=true;
+      }
       break;
       
       case 3: //arm_joints_left
@@ -263,6 +271,12 @@ public:
       //left.velocities[0].timeStamp=ros::Time::now();
       data.out_arm_joint_left=left;
       data.out_arm_joint_left_active=1;
+      if (!joy.buttons[config.button_init_recover]){once=false;}
+      if (joy.buttons[config.button_init_recover] && !once)
+      {
+           init_recover("arm_left");
+           once=true;
+      }
       break;
       
       case 4: //arm_joints_right
@@ -278,15 +292,16 @@ public:
       if (!joy.buttons[config.button_init_recover]){once=false;}
       if (joy.buttons[config.button_init_recover] && !once)
       {
-      	init_recover("arm_right");
-      	once=true;
+           init_recover("arm_right");
+           once=true;
       }
       data.out_arm_joint_right=right;
       data.out_arm_joint_right_active=1;
       break;
       
-      case 5 : //automoves script      
-      if (joy.buttons[4]){sss.component_name="head";}
+      case 5 : //automoves script 
+      stop_once=false;     
+      if (joy.buttons[config.head_home]){sss.component_name="head";}
       else if (joy.buttons[config.arm_left_home]){sss.component_name="arm_left";}
       else if (joy.buttons[config.arm_right_home]){sss.component_name="arm_right";}
       else if (joy.buttons[config.torso_home]){sss.component_name="torso";}      
@@ -302,6 +317,9 @@ public:
         sss.function_name="move";
         sss.parameter_name="home";
         client->sendGoal(sss);
+        //client->waitForResult(ros::Duration(config.home_time));//Todo: store all in threads, remove before merge
+         //if (client->getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
+            //ROS_WARN("Could not Home component: %s. Error: %s",sss.component_name.c_str(), client->getState().toString().c_str());
       }
       break;
      
@@ -324,11 +342,20 @@ public:
       torso.angular.z=(joy.buttons[config.torso_yaw_left]-joy.buttons[config.torso_yaw_right])*config.torso_max_angular*run;
       data.out_torso_controller_command=torso;
       data.out_torso_controller_command_active=1;
+      
+      if (!joy.buttons[config.button_init_recover]){once=false;}
+      if (joy.buttons[config.button_init_recover] && !once)
+      {
+           init_recover("sensorring");
+           init_recover("head");
+           init_recover("torso");
+           once=true;
+      }
       break;
       }
   }
 
-  else if(!stop_once)
+  else if(!stop_once && mode==6) 
   {
 	stop_once=true;
     sss.function_name="stop";
@@ -338,8 +365,8 @@ public:
 	  sss.component_name=static_cast<std::string>(config.components[j]).c_str();
 	  ROS_INFO("Stoping %s",sss.component_name.c_str());	  
 	  client->sendGoal(sss);
-	  client->waitForResult(ros::Duration(5.0));
-	  if (client->getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
+	  client->waitForResult(ros::Duration(config.stop_time));//Todo: store all in threads, remove before merge
+	  if (client->getState() != actionlib::SimpleClientGoalState::SUCCEEDED) 
 		ROS_WARN("Could not Stop component: %s. Error: %s",sss.component_name.c_str(), client->getState().toString().c_str());
 		
     }	  

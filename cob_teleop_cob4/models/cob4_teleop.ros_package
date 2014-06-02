@@ -12,8 +12,8 @@
     <publisher name="torso_controller command" msg="geometry_msgs::Twist"/>
     <subscriber name="joy" msg="sensor_msgs::Joy"/>
     <parameter name="button_deadman" value="11"/>
-    <parameter name="base_max_linear" value="2.0" type="double"/>
-    <parameter name="base_max_angular" value="6" type="double"/>
+    <parameter name="base_max_linear" value="0.5" type="double"/>
+    <parameter name="base_max_angular" value="1.5" type="double"/>
     <parameter name="torso_max_angular" value="0.2" type="double"/>
     <parameter name="head_max_angular" value="0.3" type="double"/>
     <parameter name="sensor_ring_max_angular" value="0.1" type="double"/>
@@ -65,8 +65,11 @@
     <parameter name="gripper_left_home" value="15"/>
     <parameter name="gripper_right_home" value="13"/>
     <parameter name="base_home" value="14"/>
-    <parameter name="arm_uri" value="" type="XmlRpcValue"/>
+    <parameter name="arm_left_uri" value="" type="XmlRpcValue"/>
     <parameter name="components" type="XmlRpcValue"/>
+    <parameter name="home_time" value="5.0" type="double"/>
+    <parameter name="stop_time" value="0.8" type="double"/>
+    <parameter name="arm_right_uri" value="" type="XmlRpcValue"/>
     <actionclient name="init" ActionType="cob_script_server::Script"/>
   </node>
   <depend>sensor_msgs</depend>
