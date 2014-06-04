@@ -1,6 +1,6 @@
 // ROS message includes
 #include "ros/ros.h"
-#include <sensor_msgs/JoyFeedback.h>
+#include <sensor_msgs/JoyFeedbackArray.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Twist.h>
@@ -15,6 +15,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <cob_script_server/ScriptAction.h>
 #include <string>
+#include <vector>
 /* protected region user include files end */
 
 class cob_teleop_cob4_config
@@ -88,7 +89,7 @@ public:
     //input data
     sensor_msgs::Joy in_joy;
     //output data
-    sensor_msgs::JoyFeedback out_joy_feedback;
+    sensor_msgs::JoyFeedbackArray out_joy_feedback;
     bool out_joy_feedback_active;
     geometry_msgs::Twist out_base_controller_command;
     bool out_base_controller_command_active;
@@ -129,8 +130,11 @@ class cob_teleop_cob4_impl
     brics_actuator::JointVelocities left;
     brics_actuator::JointVelocities right;
     brics_actuator::JointValue jvalue;
-       
     cob_script_server::ScriptGoal sss;
+    
+    sensor_msgs::JoyFeedbackArray leds_msg;
+    //std::vector<bool> leds;
+    double leds[4];
     /* protected region user member variables end */
 
 public:
@@ -185,6 +189,9 @@ public:
     {  
       ROS_WARN("joypad inactive! waiting for array of buttons. Move the Controller");
       ros::Duration(0.5).sleep();
+      leds[2]=1.0;//leds={1,1,1,0};
+      data.out_joy_feedback=leds_on(leds);
+      data.out_joy_feedback_active=1;
       return;
     }
     
@@ -365,9 +372,9 @@ public:
 	  sss.component_name=static_cast<std::string>(config.components[j]).c_str();
 	  ROS_INFO("Stoping %s",sss.component_name.c_str());	  
 	  client->sendGoal(sss);
-	  client->waitForResult(ros::Duration(config.stop_time));//Todo: store all in threads, remove before merge
-	  if (client->getState() != actionlib::SimpleClientGoalState::SUCCEEDED) 
-		ROS_WARN("Could not Stop component: %s. Error: %s",sss.component_name.c_str(), client->getState().toString().c_str());
+	  //client->waitForResult(ros::Duration(config.stop_time));//Todo: store all in threads, remove before merge
+	  //if (client->getState() != actionlib::SimpleClientGoalState::SUCCEEDED) 
+		//ROS_WARN("Could not Stop component: %s. Error: %s",sss.component_name.c_str(), client->getState().toString().c_str());
 		
     }	  
   }
@@ -387,6 +394,22 @@ public:
     ROS_INFO("recovering %s",component.c_str());
     client->sendGoal(sss);
   }
+  
+  	sensor_msgs::JoyFeedbackArray leds_on(double leds[])
+	{
+		int i;
+		for (i=0; i<3; i++)
+		{
+			leds_msg.array.resize(4);
+			leds_msg.array[i].type=0;
+			leds_msg.array[i].id=i;
+			leds_msg.array[i].intensity=leds[i];
+			ROS_INFO("led: %i",i);
+			//data.out_joy_feedback_active=1;
+		}
+		return leds_msg;
+	}
+	
 
     /* protected region user additional functions end */
 };

@@ -4,7 +4,7 @@
 #include <cob_teleop_cob4/cob_teleop_cob4Config.h>
 
 // ROS message includes
-#include <sensor_msgs/JoyFeedback.h>
+#include <sensor_msgs/JoyFeedbackArray.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Twist.h>
@@ -49,7 +49,7 @@ class cob_teleop_cob4_ros
         server.setCallback(f);
 
 
-        joy_feedback_ = n_.advertise<sensor_msgs::JoyFeedback>("joy_feedback", 1);
+        joy_feedback_ = n_.advertise<sensor_msgs::JoyFeedbackArray>("joy_feedback", 1);
         base_controller_command_ = n_.advertise<geometry_msgs::Twist>("base_controller_command", 1);
         arm_cart_left_ = n_.advertise<geometry_msgs::Twist>("arm_cart_left", 1);
         arm_cart_right_ = n_.advertise<geometry_msgs::Twist>("arm_cart_right", 1);
