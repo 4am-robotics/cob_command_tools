@@ -34,8 +34,8 @@ import roslib
 roslib.load_manifest('cob_dashboard')
 import rospy
 
-from pr2_msgs.msg import PowerBoardState, DashboardState
-import std_srvs.srv
+from cob_relayboard.msg import EmergencyStopState
+from cob_voltage_control.msg import PowerState
 
 from rqt_robot_dashboard.dashboard import Dashboard
 from rqt_robot_dashboard.widgets import MonitorDashWidget, ConsoleDashWidget
@@ -44,7 +44,8 @@ from python_qt_binding.QtCore import QSize
 from python_qt_binding.QtGui import QMessageBox
 
 from cob_battery import COBBattery
-from rqt_pr2_dashboard.pr2_runstop import PR2Runstops
+
+from cob_runstops import COBRunstops
 
 
 class CobDashboard(Dashboard):
@@ -67,42 +68,31 @@ class CobDashboard(Dashboard):
 
         self._console = ConsoleDashWidget(self.context, minimal=False)
         self._monitor = MonitorDashWidget(self.context)
-        self._runstop = PR2Runstops('RunStops')
+        self._runstop = COBRunstops('RunStops')
         self._batteries = [COBBattery(self.context)]
 
-        self._dashboard_agg_sub = rospy.Subscriber('dashboard_agg', DashboardState, self.dashboard_callback)
+        self.em_sub = rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.emcb)
+
+        self._powerstate_sub = rospy.Subscriber('/power_state', PowerState, self.dashboard_callback)
 
     def get_widgets(self):
         return [[self._monitor, self._console], [self._runstop], self._batteries]
 
-    def dashboard_callback(self, msg):
-        """
-        callback to process dashboard_agg messages
-
-        :param msg: dashboard_agg DashboardState message
-        :type msg: pr2_msgs.msg.DashboardState
-        """
-        self._dashboard_message = msg
+    def emcb(self, msg):
         self._last_dashboard_message_time = rospy.get_time()
+        if(not msg.emergency_button_stop):
+            self._runstop.set_button_engaged()
+            self._runstop.setToolTip(self.tr("Button Runstop: Pressed"))
+        if(not msg.scanner_stop):
+            self._runstop.set_scanner_engaged()
+            self._runstop.setToolTip(self.tr("Button Runstop: Unknown\nScanner Runstop: Active"))
+        if(msg.emergency_button_stop and msg.scanner_stop):
+            self._runstop.set_ok()
+            self._runstop.setToolTip(self.tr("Button Runstop: OK\nScanner Runstop: OK"))
 
-        if (msg.power_state_valid):
-            self._batteries[0].set_power_state(msg.power_state)
-        else:
-            self._batteries[0].set_stale()
-
-        if (msg.power_board_state_valid):
-            if msg.power_board_state.run_stop:
-                self._runstop.set_ok()
-                self._runstop.setToolTip(self.tr("Physical Runstop: OK\nWireless Runstop: OK"))
-            elif msg.power_board_state.wireless_stop:
-                self._runstop.set_physical_engaged()
-                self._runstop.setToolTip(self.tr("Physical Runstop: Pressed\nWireless Runstop: OK"))
-            if not msg.power_board_state.wireless_stop:
-                self._runstop.set_wireless_engaged()
-                self._runstop.setToolTip(self.tr("Physical Runstop: Unknown\nWireless Runstop: Pressed"))
-        else:
-            self._runstop.set_stale()
-            self._runstop.setToolTip(self.tr("Physical Runstop: Stale\nWireless Runstop: Stale"))
+    def dashboard_callback(self, msg):
+        self._last_dashboard_message_time = rospy.get_time()
+        self._batteries[0].set_power_state(msg)
 
 
     def shutdown_dashboard(self):
