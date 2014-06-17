@@ -1,0 +1,1 @@
+KERNEL=="js?", ATTRS{address}=="Sony Playstation SixAxis/DS3", NAME="input/js0"
