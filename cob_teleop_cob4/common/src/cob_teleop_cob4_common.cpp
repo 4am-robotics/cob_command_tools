@@ -116,7 +116,8 @@ class cob_teleop_cob4_impl
     Client * client;
     
     bool once;
-    bool stop_once;
+    bool once_stop;
+    bool once_mode;
 
     int mode;
     float run;
@@ -132,7 +133,7 @@ class cob_teleop_cob4_impl
     brics_actuator::JointValue jvalue;
     cob_script_server::ScriptGoal sss;
     
-    sensor_msgs::JoyFeedbackArray leds_msg;
+    sensor_msgs::JoyFeedbackArray joyfb;
     //std::vector<bool> leds;
     double leds[4];
     /* protected region user member variables end */
@@ -189,9 +190,6 @@ public:
     {  
       ROS_WARN("joypad inactive! waiting for array of buttons. Move the Controller");
       ros::Duration(0.5).sleep();
-      leds[2]=1.0;//leds={1,1,1,0};
-      data.out_joy_feedback=leds_on(leds);
-      data.out_joy_feedback_active=1;
       return;
     }
     
@@ -199,16 +197,29 @@ public:
     run=1-joy.axes[config.axis_runfactor];
     updown=(joy.buttons[config.arm_joint_up]-joy.buttons[config.arm_joint_down]);
     leftright=(joy.buttons[config.arm_joint_left]-joy.buttons[config.arm_joint_right]);
-
-    if (joy.buttons[config.button_mode_switch] && not joy.buttons[config.button_deadman])//switch mode. gets executed multiple times
+    if (!joy.buttons[config.button_mode_switch]){once_mode=false;}
+    if (joy.buttons[config.button_mode_switch] && not joy.buttons[config.button_deadman && not once_mode])//switch mode. gets executed multiple times
     {
+      once_mode=true;
       ++mode;
       if (mode >= 7)
       {
         mode = 0;
       }
+      leds[0]=0.0;leds[1]=0.0;leds[2]=0.0;leds[3]=0.0;
+      switch (mode)
+      {
+      case 0: leds[3]=1.0;break;
+      case 1: leds[2]=1.0;leds[3]=1.0;break;
+      case 2: leds[0]=1.0;leds[1]=1.0;break;
+      case 3: leds[2]=1.0;break;
+      case 4: leds[1]=1.0;break;
+      case 5: leds[0]=1.0;leds[1]=1.0;leds[2]=1.0;leds[3]=1.0;break;
+      case 6: leds[0]=1.0;leds[3]=1.0;break;
+      }
       ROS_INFO("Mode switched to: %d",mode);
-      ros::Duration(0.2).sleep();//wait (bad place)
+      data.out_joy_feedback=leds_on(leds);
+      data.out_joy_feedback_active=1;
       return;
     }
     if (joy.buttons[config.button_deadman])
@@ -307,7 +318,7 @@ public:
       break;
       
       case 5 : //automoves script 
-      stop_once=false;     
+      once_stop=false;     
       if (joy.buttons[config.head_home]){sss.component_name="head";}
       else if (joy.buttons[config.arm_left_home]){sss.component_name="arm_left";}
       else if (joy.buttons[config.arm_right_home]){sss.component_name="arm_right";}
@@ -354,7 +365,9 @@ public:
       if (joy.buttons[config.button_init_recover] && !once)
       {
            init_recover("sensorring");
+           ros::Duration(0.8).sleep();
            init_recover("head");
+           ros::Duration(0.8).sleep();
            init_recover("torso");
            once=true;
       }
@@ -362,21 +375,21 @@ public:
       }
   }
 
-  else if(!stop_once && mode==6) 
+  else if(!once_stop && mode==6) 
   {
-	stop_once=true;
+    once_stop=true;
     sss.function_name="stop";
     int j;
     for (j=0; j<(config.components.size()); j++)
     {
-	  sss.component_name=static_cast<std::string>(config.components[j]).c_str();
-	  ROS_INFO("Stoping %s",sss.component_name.c_str());	  
-	  client->sendGoal(sss);
-	  //client->waitForResult(ros::Duration(config.stop_time));//Todo: store all in threads, remove before merge
-	  //if (client->getState() != actionlib::SimpleClientGoalState::SUCCEEDED) 
-		//ROS_WARN("Could not Stop component: %s. Error: %s",sss.component_name.c_str(), client->getState().toString().c_str());
-		
-    }	  
+      sss.component_name=static_cast<std::string>(config.components[j]).c_str();
+      ROS_INFO("Stoping %s",sss.component_name.c_str());      
+      client->sendGoal(sss);
+      //client->waitForResult(ros::Duration(config.stop_time));//Todo: store all in threads, remove before merge
+      //if (client->getState() != actionlib::SimpleClientGoalState::SUCCEEDED) 
+        //ROS_WARN("Could not Stop component: %s. Error: %s",sss.component_name.c_str(), client->getState().toString().c_str());
+        
+    }      
   }
  
         /* protected region user update end */
@@ -395,21 +408,20 @@ public:
     client->sendGoal(sss);
   }
   
-  	sensor_msgs::JoyFeedbackArray leds_on(double leds[])
-	{
-		int i;
-		for (i=0; i<3; i++)
-		{
-			leds_msg.array.resize(4);
-			leds_msg.array[i].type=0;
-			leds_msg.array[i].id=i;
-			leds_msg.array[i].intensity=leds[i];
-			ROS_INFO("led: %i",i);
-			//data.out_joy_feedback_active=1;
-		}
-		return leds_msg;
-	}
-	
+      sensor_msgs::JoyFeedbackArray leds_on(double leds[])
+    {
+        int i;
+        for (i=0; i<4; i++)
+        {
+            joyfb.array.resize(4);
+            joyfb.array[i].type=0;
+            joyfb.array[i].id=i;
+            joyfb.array[i].intensity=leds[i];
+            //data.out_joy_feedback_active=1;
+        }
+        return joyfb;
+    }
+    
 
     /* protected region user additional functions end */
 };
