@@ -128,8 +128,7 @@ class cob_teleop_cob4_ros
             np_.getParam("arm_right_uri", component_config_.arm_right_uri);
         else
             ROS_ERROR("Parameter arm_right_uri not set");
-        }
-
+    }
     void topicCallback_joy(const sensor_msgs::Joy::ConstPtr& msg)
     {
         component_data_.in_joy = *msg;

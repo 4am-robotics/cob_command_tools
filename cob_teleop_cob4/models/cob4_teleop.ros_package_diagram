@@ -322,7 +322,7 @@
       <layoutConstraint xmi:type="notation:Bounds" xmi:id="_Ub-V9Mx_EeORAMsNZpuXzQ" x="-79" y="362"/>
     </children>
     <element xmi:type="ros:Node" href="cob4_teleop.ros_package#//@node.0"/>
-    <layoutConstraint xmi:type="notation:Bounds" xmi:id="_LgmvwbW9EeOeLd2S4hsWIw" x="90" y="45" height="550"/>
+    <layoutConstraint xmi:type="notation:Bounds" xmi:id="_LgmvwbW9EeOeLd2S4hsWIw" x="165" y="33" height="550"/>
   </children>
   <styles xmi:type="notation:DiagramStyle" xmi:id="_IPBqQbW9EeOeLd2S4hsWIw"/>
   <element xmi:type="ros:Package" href="cob4_teleop.ros_package#/"/>
