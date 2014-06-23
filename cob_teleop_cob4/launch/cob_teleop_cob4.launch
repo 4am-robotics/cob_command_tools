@@ -7,6 +7,7 @@
 
 	<node pkg="joy" type="joy_node" name="joy" >
 		<param name="deadzone" value="0.12" />
+		<param name="dev" type="string" value="/dev/input/jsPS3" />
 	</node>
 
 	<node pkg="cob_teleop_cob4" type="cob_teleop_cob4" name="cob_teleop_cob4" output="screen" >
