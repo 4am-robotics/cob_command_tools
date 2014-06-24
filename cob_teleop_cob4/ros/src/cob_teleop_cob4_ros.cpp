@@ -128,6 +128,10 @@ class cob_teleop_cob4_ros
             np_.getParam("arm_right_uri", component_config_.arm_right_uri);
         else
             ROS_ERROR("Parameter arm_right_uri not set");
+        if(np_.hasParam("led_mode"))
+            np_.getParam("led_mode", component_config_.led_mode);
+        else
+            ROS_ERROR("Parameter led_mode not set");
     }
     void topicCallback_joy(const sensor_msgs::Joy::ConstPtr& msg)
     {

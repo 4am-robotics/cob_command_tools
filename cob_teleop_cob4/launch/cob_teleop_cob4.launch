@@ -22,6 +22,7 @@
 		<remap from="joy_feedback" to="joy/set_feedback" />
 		<rosparam command="load" file="$(find cob_teleop_cob4)/cfg/arm_uri.yaml" />
 		<rosparam command="load" file="$(find cob_teleop_cob4)/cfg/component.yaml" />
+		<rosparam command="load" file="$(find cob_teleop_cob4)/cfg/led_mode.yaml" />
 	</node>
 
 </launch>

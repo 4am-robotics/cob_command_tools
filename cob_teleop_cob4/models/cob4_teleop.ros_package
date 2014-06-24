@@ -70,6 +70,7 @@
     <parameter name="home_time" type="double" value="5.0"/>
     <parameter name="stop_time" type="double" value="0.8"/>
     <parameter name="arm_right_uri" type="XmlRpcValue" value=""/>
+    <parameter name="led_mode" type="XmlRpcValue"/>
     <actionclient name="init" ActionType="cob_script_server::Script"/>
   </node>
   <depend>sensor_msgs</depend>

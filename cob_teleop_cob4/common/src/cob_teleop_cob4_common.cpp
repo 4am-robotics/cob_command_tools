@@ -80,6 +80,7 @@ public:
     double home_time;
     double stop_time;
     XmlRpc::XmlRpcValue arm_right_uri;
+    XmlRpc::XmlRpcValue led_mode;
 };
 
 class cob_teleop_cob4_data
@@ -135,7 +136,9 @@ class cob_teleop_cob4_impl
     
     sensor_msgs::JoyFeedbackArray joyfb;
     //std::vector<bool> leds;
-    double leds[4];
+    //double leds[4];
+
+    XmlRpc::XmlRpcValue LEDS;
     /* protected region user member variables end */
 
 public:
@@ -186,6 +189,10 @@ public:
     data.out_arm_cart_left_active=0;
     data.out_arm_cart_right_active=0;
     
+    //test
+   //ROS_INFO("LEDS: %i", (config.led_mode[1].size()));
+
+    
     if (data.in_joy.buttons.size()<=5)//wait for complete joypad!
     {  
       ROS_WARN("joypad inactive! waiting for array of buttons. Move the Controller");
@@ -197,6 +204,8 @@ public:
     run=1-joy.axes[config.axis_runfactor];
     updown=(joy.buttons[config.arm_joint_up]-joy.buttons[config.arm_joint_down]);
     leftright=(joy.buttons[config.arm_joint_left]-joy.buttons[config.arm_joint_right]);
+
+    //mode switching
     if (!joy.buttons[config.button_mode_switch]){once_mode=false;}
     if (joy.buttons[config.button_mode_switch] && not joy.buttons[config.button_deadman && not once_mode])//switch mode. gets executed multiple times
     {
@@ -206,31 +215,21 @@ public:
       {
         mode = 0;
       }
-      leds[0]=0.0;leds[1]=0.0;leds[2]=0.0;leds[3]=0.0;
-      switch (mode)
-      {
-      case 0: leds[3]=1.0;break;
-      case 1: leds[2]=1.0;leds[3]=1.0;break;
-      case 2: leds[0]=1.0;leds[1]=1.0;break;
-      case 3: leds[2]=1.0;break;
-      case 4: leds[1]=1.0;break;
-      case 5: leds[0]=1.0;leds[1]=1.0;leds[2]=1.0;leds[3]=1.0;break;
-      case 6: leds[0]=1.0;leds[3]=1.0;break;
-      }
+
       ROS_INFO("Mode switched to: %d",mode);
-      data.out_joy_feedback=leds_on(leds);
+      //ROS_ASSERT(config.led_mode[0].getType() == XmlRpc::XmlRpcValue::TypeArray);
+      LEDS=config.led_mode[mode];
+      data.out_joy_feedback=leds_on(LEDS);
       data.out_joy_feedback_active=1;
       return;
     }
+    //working
     if (joy.buttons[config.button_deadman])
     {
 
       switch (mode)
       {
       case 0: //Base
-      //int test;
-      //test = data.in_joy.buttons.size();
-      //ROS_INFO(test.str());
       
       base.linear.x=joy.axes[config.base_x]*config.base_max_linear*run;
       base.linear.y=joy.axes[config.base_y]*config.base_max_linear*run;
@@ -408,7 +407,7 @@ public:
     client->sendGoal(sss);
   }
   
-      sensor_msgs::JoyFeedbackArray leds_on(double leds[])
+      sensor_msgs::JoyFeedbackArray leds_on(XmlRpc::XmlRpcValue leds)
     {
         int i;
         for (i=0; i<4; i++)
@@ -416,8 +415,9 @@ public:
             joyfb.array.resize(4);
             joyfb.array[i].type=0;
             joyfb.array[i].id=i;
-            joyfb.array[i].intensity=leds[i];
-            //data.out_joy_feedback_active=1;
+            //ROS_ASSERT(leds[i].getType() == XmlRpc::XmlRpcValue::TypeInt);
+            joyfb.array[i].intensity=static_cast<int>(leds[i]);
+            //data.out_joy_feedback_active=1; //never set to 0
         }
         return joyfb;
     }
