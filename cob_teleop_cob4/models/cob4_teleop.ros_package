@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ros:Package xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ros="http://ros/1.0" name="cob_teleop_cob4" author="Maximilian Sieber" author_email="max-sieber@gmx.de" description="teleop_node_of_cob4" rosdep="">
-  <node name="cob_teleop_cob4" loopRate="40.0" paramSource="">
+  <node name="cob_teleop_cob4" frequency="30.0" paramSource="">
     <publisher name="joy_feedback" msg="sensor_msgs::JoyFeedback"/>
     <publisher name="base_controller command" msg="geometry_msgs::Twist"/>
     <publisher name="arm_cart_left" msg="brics_actuator::CartesianTwist"/>
     <publisher name="arm_cart_right" msg="brics_actuator::CartesianTwist"/>
-    <publisher name="arm_joint_right" msg="trajectory_msgs::JointTrajectory"/>
-    <publisher name="arm_joint_left" msg="trajectory_msgs::JointTrajectory"/>
-    <publisher name="head_controller command" msg="trajectory_msgs::JointTrajectory"/>
+    <publisher name="arm_joint_right" msg="brics_actuator::JointVelocities"/>
+    <publisher name="arm_joint_left" msg="brics_actuator::JointVelocities"/>
+    <publisher name="head_controller command" msg="geometry_msgs::Twist"/>
     <publisher name="sensorring_controller command" msg="brics_actuator::JointVelocities"/>
     <publisher name="torso_controller command" msg="geometry_msgs::Twist"/>
     <subscriber name="joy" msg="sensor_msgs::Joy"/>
     <parameter name="button_deadman" value="11"/>
     <parameter name="base_max_linear" value="2.0" type="double"/>
-    <parameter name="base_max_angular" value="1.5" type="double"/>
-    <parameter name="torso_max_angular" value="0.1" type="double"/>
-    <parameter name="head_max_angular" value="0.1" type="double"/>
+    <parameter name="base_max_angular" value="6" type="double"/>
+    <parameter name="torso_max_angular" value="0.2" type="double"/>
+    <parameter name="head_max_angular" value="0.3" type="double"/>
     <parameter name="sensor_ring_max_angular" value="0.1" type="double"/>
-    <parameter name="arm_joint_velocity_max" value="0.1" type="double"/>
+    <parameter name="arm_joint_velocity_max" value="0.3" type="double"/>
     <parameter name="arm_cartesian_max_linear" value="0.1" type="double"/>
     <parameter name="arm_cartesian_max_angular" value="0.1" type="double"/>
     <parameter name="gripper_max_velocity" value="0.1" type="double"/>
@@ -53,10 +53,25 @@
     <parameter name="torso_yaw_right" value="13"/>
     <parameter name="sensorring_yaw_left" value="4"/>
     <parameter name="sensorring_yaw_right" value="6"/>
+    <parameter name="head_roll" value="2"/>
+    <parameter name="head_pitch" value="3"/>
+    <parameter name="head_yaw_left" value="7"/>
+    <parameter name="head_yaw_right" value="5"/>
+    <parameter name="head_home" value="4"/>
+    <parameter name="arm_left_home" value="7"/>
+    <parameter name="arm_right_home" value="5"/>
+    <parameter name="torso_home" value="6"/>
+    <parameter name="sensorring_home" value="12"/>
+    <parameter name="gripper_left_home" value="15"/>
+    <parameter name="gripper_right_home" value="13"/>
+    <parameter name="base_home" value="14"/>
+    <parameter name="arm_left_uri" value="&quot;arm_left_1_joint&quot;" type="XmlRpcValue"/>
+    <actionclient name="init" ActionType="cob_script_server::Script"/>
   </node>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>brics_actuator</depend>
   <depend>std_msgs</depend>
   <depend>trajectory_msgs</depend>
+  <depend>cob_script_server</depend>
 </ros:Package>

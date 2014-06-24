@@ -9,23 +9,17 @@
   <url type="website">http://ros.org/wiki/cob_dashboard</url>
   <!-- <url type="bugtracker"></url> -->
 
-  <maintainer email="aub@ipa.fhg.de">Alexander Bubeck</maintainer>
+  <maintainer email="nhg@ipa.fhg.de">Nadia Hammoudeh Garcia</maintainer>
   <author email="aub@ipa.fhg.de">Alexander Bubeck</author>
 
   <buildtool_depend>catkin</buildtool_depend>
   <run_depend>rospy</run_depend>
   <run_depend>roslib</run_depend>
-  <run_depend>std_srvs</run_depend>
-  <run_depend>pr2_msgs</run_depend>
-  <run_depend>rqt_pr2_dashboard</run_depend>
+  <run_depend>cob_voltage_control</run_depend>
   <run_depend>rqt_gui</run_depend>
+  <run_depend>cob_relayboard</run_depend>
   <run_depend>rqt_gui_cpp</run_depend>
-  <!-- <test_depend>rospy</test_depend> -->
-  <!-- <test_depend>roslib</test_depend> -->
-  <!-- <test_depend>std_srvs</test_depend> -->
-  <!-- <test_depend>pr2_msgs</test_depend> -->
-  <!-- <test_depend>pr2_dashboard</test_depend> -->
-
+  
   <export>
     <rqt_gui plugin="${prefix}/plugin.xml"/>
   </export>
