@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ros:Package xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ros="http://ros/1.0" name="cob_teleop_cob4" author="Maximilian Sieber" author_email="max-sieber@gmx.de" description="teleop_node_of_cob4">
-  <node name="cob_teleop_cob4" frequency="30.0" paramSource="">
+  <node name="cob_teleop_cob4" paramSource="">
     <publisher name="joy_feedback" msg="sensor_msgs::JoyFeedbackArray"/>
     <publisher name="base_controller command" msg="geometry_msgs::Twist"/>
     <publisher name="arm_cart_left" msg="geometry_msgs::Twist"/>
@@ -11,6 +11,7 @@
     <publisher name="sensorring_controller command" msg="brics_actuator::JointVelocities"/>
     <publisher name="torso_controller command" msg="geometry_msgs::Twist"/>
     <subscriber name="joy" msg="sensor_msgs::Joy"/>
+    <serviceClient name="recover" msg="cob_srvs::Trigger"/>
     <parameter name="button_deadman" value="11"/>
     <parameter name="base_max_linear" type="double" value="0.5"/>
     <parameter name="base_max_angular" type="double" value="1.5"/>
@@ -79,4 +80,5 @@
   <depend>std_msgs</depend>
   <depend>trajectory_msgs</depend>
   <depend>cob_script_server</depend>
+  <depend>cob_srvs</depend>
 </ros:Package>

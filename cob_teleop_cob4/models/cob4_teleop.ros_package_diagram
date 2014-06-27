@@ -325,6 +325,14 @@
       <element xmi:type="ros:ActionClient" href="cob4_teleop.ros_package#//@node.0/@actionclient.0"/>
       <layoutConstraint xmi:type="notation:Bounds" xmi:id="_Ub-V9Mx_EeORAMsNZpuXzQ" x="-79" y="362"/>
     </children>
+    <children xmi:type="notation:Node" xmi:id="_9Jq2MP3YEeOSJrZTYtF35g" type="3003">
+      <children xmi:type="notation:DecorationNode" xmi:id="_9JrdQP3YEeOSJrZTYtF35g" type="5003"/>
+      <styles xmi:type="notation:DescriptionStyle" xmi:id="_9Jq2Mf3YEeOSJrZTYtF35g"/>
+      <styles xmi:type="notation:FontStyle" xmi:id="_9Jq2Mv3YEeOSJrZTYtF35g" fontName="Ubuntu"/>
+      <styles xmi:type="notation:LineStyle" xmi:id="_9Jq2M_3YEeOSJrZTYtF35g"/>
+      <element xmi:type="ros:ServiceClient" href="cob4_teleop.ros_package#//@node.0/@serviceClient.0"/>
+      <layoutConstraint xmi:type="notation:Bounds" xmi:id="_9Jq2NP3YEeOSJrZTYtF35g"/>
+    </children>
     <element xmi:type="ros:Node" href="cob4_teleop.ros_package#//@node.0"/>
     <layoutConstraint xmi:type="notation:Bounds" xmi:id="_LgmvwbW9EeOeLd2S4hsWIw" x="165" y="33" height="550"/>
   </children>

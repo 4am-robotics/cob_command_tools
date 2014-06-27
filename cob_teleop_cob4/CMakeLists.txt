@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
 	std_msgs
 	trajectory_msgs
 	cob_script_server
+	cob_srvs
 )
 
 # protected region additional user defined REQUIREMENTS on begin #
@@ -40,6 +41,7 @@ catkin_package(
 	std_msgs
 	trajectory_msgs
 	cob_script_server
+	cob_srvs
    
 )
 

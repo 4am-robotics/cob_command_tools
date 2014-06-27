@@ -249,14 +249,8 @@ int main(int argc, char** argv)
     cob_teleop_cob4_ros node;
     node.configure();
 
-    ros::Rate loop_rate(30.0);
-
-    while(node.n_.ok())
-    {
-        node.update();
-        loop_rate.sleep();
-        ros::spinOnce();
-    }
+ // if cycle time == 0 do a spin() here without calling node.update()
+    ros::spin();
 
     return 0;
 }

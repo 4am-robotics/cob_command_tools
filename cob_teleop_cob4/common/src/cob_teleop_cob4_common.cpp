@@ -16,6 +16,7 @@
 #include <cob_script_server/ScriptAction.h>
 #include <string>
 #include <vector>
+#include <cob_srvs/Trigger.h>
 /* protected region user include files end */
 
 class cob_teleop_cob4_config
@@ -139,6 +140,9 @@ class cob_teleop_cob4_impl
     //double leds[4];
 
     XmlRpc::XmlRpcValue LEDS;
+
+    cob_srvs::Trigger trigger;
+
     /* protected region user member variables end */
 
 public:
@@ -150,7 +154,8 @@ public:
       ROS_INFO("Connecting to script_server");
       client->waitForServer();
       ROS_INFO("Connected");
-       
+
+
         /* protected region user constructor end */
     }
 
@@ -188,10 +193,6 @@ public:
     data.out_head_controller_command_active=0;
     data.out_arm_cart_left_active=0;
     data.out_arm_cart_right_active=0;
-    
-    //test
-   //ROS_INFO("LEDS: %i", (config.led_mode[1].size()));
-
     
     if (data.in_joy.buttons.size()<=5)//wait for complete joypad!
     {  
@@ -398,13 +399,17 @@ public:
     /* protected region user additional functions on begin */
     void init_recover(std::string component)
   {
-    sss.component_name=component;
-    sss.function_name="init";
-    client->sendGoal(sss);
+    //sss.component_name=component;
+    //sss.function_name="init";
+    //client->sendGoal(sss);
     ROS_INFO("initialising %s",component.c_str());
-    sss.function_name="recover";
+    //sss.function_name="recover";
     ROS_INFO("recovering %s",component.c_str());
-    client->sendGoal(sss);
+    //client->sendGoal(sss);
+    ROS_INFO("calling");
+    ros::service::call(("/%s_controler/init",component), trigger);
+    ROS_INFO("calling");
+
   }
   
       sensor_msgs::JoyFeedbackArray leds_on(XmlRpc::XmlRpcValue leds)
