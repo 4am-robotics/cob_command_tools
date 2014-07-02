@@ -13,6 +13,8 @@
 #include <geometry_msgs/Twist.h>
 #include <brics_actuator/JointVelocities.h>
 #include <geometry_msgs/Twist.h>
+#include <brics_actuator/JointVelocities.h>
+#include <brics_actuator/JointVelocities.h>
 #include <sensor_msgs/Joy.h>
 
 // other includes
@@ -37,6 +39,8 @@ class cob_teleop_cob4_ros
     ros::Publisher head_controller_command_;
     ros::Publisher sensorring_controller_command_;
     ros::Publisher torso_controller_command_;
+    ros::Publisher gripper_left_;
+    ros::Publisher gripper_right_;
     ros::Subscriber joy_;
 
     cob_teleop_cob4_data component_data_;
@@ -58,6 +62,8 @@ class cob_teleop_cob4_ros
         head_controller_command_ = n_.advertise<geometry_msgs::Twist>("head_controller_command", 1);
         sensorring_controller_command_ = n_.advertise<brics_actuator::JointVelocities>("sensorring_controller_command", 1);
         torso_controller_command_ = n_.advertise<geometry_msgs::Twist>("torso_controller_command", 1);
+        gripper_left_ = n_.advertise<brics_actuator::JointVelocities>("gripper_left", 1);
+        gripper_right_ = n_.advertise<brics_actuator::JointVelocities>("gripper_right", 1);
         joy_ = n_.subscribe("joy", 1, &cob_teleop_cob4_ros::topicCallback_joy, this);
 
         np_.param("button_deadman", component_config_.button_deadman, (int)11);
@@ -132,6 +138,9 @@ class cob_teleop_cob4_ros
             np_.getParam("led_mode", component_config_.led_mode);
         else
             ROS_ERROR("Parameter led_mode not set");
+        np_.param("gripper_1", component_config_.gripper_1, (int)3);
+        np_.param("gripper_2", component_config_.gripper_2, (int)4);
+        np_.param("gripper_max_angular", component_config_.gripper_max_angular, (double)0.2);
     }
     void topicCallback_joy(const sensor_msgs::Joy::ConstPtr& msg)
     {
@@ -196,6 +205,9 @@ class cob_teleop_cob4_ros
         component_config_.base_home = config.base_home;
         component_config_.home_time = config.home_time;
         component_config_.stop_time = config.stop_time;
+        component_config_.gripper_1 = config.gripper_1;
+        component_config_.gripper_2 = config.gripper_2;
+        component_config_.gripper_max_angular = config.gripper_max_angular;
     }
 
     void configure()
@@ -214,6 +226,8 @@ class cob_teleop_cob4_ros
         component_data_.out_head_controller_command_active = true;
         component_data_.out_sensorring_controller_command_active = true;
         component_data_.out_torso_controller_command_active = true;
+        component_data_.out_gripper_left_active = true;
+        component_data_.out_gripper_right_active = true;
     }
 
     void update()
@@ -238,6 +252,10 @@ class cob_teleop_cob4_ros
             sensorring_controller_command_.publish(component_data_.out_sensorring_controller_command);
         if (component_data_.out_torso_controller_command_active)
             torso_controller_command_.publish(component_data_.out_torso_controller_command);
+        if (component_data_.out_gripper_left_active)
+            gripper_left_.publish(component_data_.out_gripper_left);
+        if (component_data_.out_gripper_right_active)
+            gripper_right_.publish(component_data_.out_gripper_right);
     }
 };
 

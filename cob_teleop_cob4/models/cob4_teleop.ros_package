@@ -10,6 +10,8 @@
     <publisher name="head_controller command" msg="geometry_msgs::Twist"/>
     <publisher name="sensorring_controller command" msg="brics_actuator::JointVelocities"/>
     <publisher name="torso_controller command" msg="geometry_msgs::Twist"/>
+    <publisher name="gripper_left" msg="brics_actuator::JointVelocities"/>
+    <publisher name="gripper_right" eventHandler="" msg="brics_actuator::JointVelocities"/>
     <subscriber name="joy" msg="sensor_msgs::Joy"/>
     <serviceClient name="trigger" msg="cob_srvs::Trigger"/>
     <parameter name="button_deadman" value="11"/>
@@ -72,6 +74,9 @@
     <parameter name="stop_time" type="double" value="0.8"/>
     <parameter name="arm_right_uri" type="XmlRpcValue" value=""/>
     <parameter name="led_mode" type="XmlRpcValue"/>
+    <parameter name="gripper_1" value="3"/>
+    <parameter name="gripper_2" value="2"/>
+    <parameter name="gripper_max_angular" type="double" value="0.2"/>
     <actionclient name="init" ActionType="cob_script_server::Script"/>
   </node>
   <depend>sensor_msgs</depend>

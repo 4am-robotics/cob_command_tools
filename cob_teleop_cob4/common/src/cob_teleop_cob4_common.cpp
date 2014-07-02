@@ -9,6 +9,8 @@
 #include <geometry_msgs/Twist.h>
 #include <brics_actuator/JointVelocities.h>
 #include <geometry_msgs/Twist.h>
+#include <brics_actuator/JointVelocities.h>
+#include <brics_actuator/JointVelocities.h>
 #include <sensor_msgs/Joy.h>
 
 /* protected region user include files on begin */
@@ -82,6 +84,9 @@ public:
     double stop_time;
     XmlRpc::XmlRpcValue arm_right_uri;
     XmlRpc::XmlRpcValue led_mode;
+    int gripper_1;
+    int gripper_2;
+    double gripper_max_angular;
 };
 
 class cob_teleop_cob4_data
@@ -109,6 +114,10 @@ public:
     bool out_sensorring_controller_command_active;
     geometry_msgs::Twist out_torso_controller_command;
     bool out_torso_controller_command_active;
+    brics_actuator::JointVelocities out_gripper_left;
+    bool out_gripper_left_active;
+    brics_actuator::JointVelocities out_gripper_right;
+    bool out_gripper_right_active;
 };
 
 class cob_teleop_cob4_impl
@@ -125,19 +134,19 @@ class cob_teleop_cob4_impl
     float run;
     float updown;
     float leftright;
-    brics_actuator::JointVelocities sring;
     geometry_msgs::Twist head;
     geometry_msgs::Twist base;
     geometry_msgs::Twist torso;
     sensor_msgs::Joy joy;
     brics_actuator::JointVelocities left;
     brics_actuator::JointVelocities right;
-    brics_actuator::JointValue jvalue;
+    brics_actuator::JointVelocities sring;
+    brics_actuator::JointVelocities gleft;
+    brics_actuator::JointVelocities gright;
     cob_script_server::ScriptGoal sss;
     
     sensor_msgs::JoyFeedbackArray joyfb;
-    //std::vector<bool> leds;
-    //double leds[4];
+
 
     XmlRpc::XmlRpcValue LEDS;
 
@@ -153,31 +162,42 @@ public:
       ROS_INFO("Connecting to script_server");
       client->waitForServer();
       ROS_INFO("Connected");
-
-
         /* protected region user constructor end */
     }
 
     void configure(cob_teleop_cob4_config config) 
     {
         /* protected region user configure on begin */
-      mode=0;
-      jvalue.unit="rad/sec";
+      //asign arm joints
+
       left.velocities.resize(7);
       right.velocities.resize(7);
       int i;
       for (i=0; i<7; i++)
       {
-        left.velocities.at(i)=jvalue;
-        right.velocities.at(i)=jvalue;
+        left.velocities[i].unit="rad/sec";
+        right.velocities[i].unit="rad/sec";
         left.velocities[i].joint_uri=static_cast<std::string>(config.arm_left_uri[i]).c_str();
         right.velocities[i].joint_uri=static_cast<std::string>(config.arm_right_uri[i]).c_str();
       }
-
+      //set sensoring joint
       sring.velocities.resize(1);
       sring.velocities[0].joint_uri="sensorring_joint";
       sring.velocities[0].unit="rad/sec";
       
+      //set gripper joints
+      gleft.velocities.resize(2);
+      gright.velocities.resize(2);
+      for (i=0; i<2; i++)
+      {
+      gleft.velocities[i].unit="rad/sec";
+      gright.velocities[i].unit="rad/sec";
+      gleft.velocities[i].joint_uri="Todo:/left";
+      gright.velocities[i].joint_uri="Todo:/right";
+      }
+      //set initial mode after startup
+      mode=0;
+      LEDS=config.led_mode[mode];
         /* protected region user configure end */
     }
 
@@ -192,7 +212,10 @@ public:
     data.out_head_controller_command_active=0;
     data.out_arm_cart_left_active=0;
     data.out_arm_cart_right_active=0;
-    
+    data.out_gripper_left_active=0;
+    data.out_gripper_right_active=0;
+    data.out_joy_feedback=ledsOn(LEDS);//Set Leds always, also on startup
+
     if (data.in_joy.buttons.size()<=5)//wait for complete joypad!
     {  
       ROS_WARN("joypad inactive! waiting for array of buttons. Move the Controller");
@@ -215,12 +238,9 @@ public:
       {
         mode = 0;
       }
-
       ROS_INFO("Mode switched to: %d",mode);
-      //ROS_ASSERT(config.led_mode[0].getType() == XmlRpc::XmlRpcValue::TypeArray);
-      LEDS=config.led_mode[mode]; //Todo: set after startup
-      data.out_joy_feedback=ledsOn(LEDS);
-      data.out_joy_feedback_active=1;
+      LEDS=config.led_mode[mode];
+      //data.out_joy_feedback=ledsOn(LEDS);//already set after startup
       return;
     }
     //working
@@ -284,10 +304,12 @@ public:
       left.velocities[4].value=updown*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
       left.velocities[5].value=leftright*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
       left.velocities[6].value=updown*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
-      //left.joint_gripper=leftright*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
-      //left.velocities[0].timeStamp=ros::Time::now();
+      gleft.velocities[0].value=joy.axes[config.gripper_1]*run*config.gripper_max_angular;
+      gleft.velocities[1].value=joy.axes[config.gripper_2]*run*config.gripper_max_angular;
+      data.out_gripper_left=gleft;
       data.out_arm_joint_left=left;
       data.out_arm_joint_left_active=1;
+      data.out_gripper_left_active=1;
       if (!joy.buttons[config.button_init_recover]){once=false;}
       if (joy.buttons[config.button_init_recover] && !once)
       {
@@ -304,16 +326,18 @@ public:
       right.velocities[4].value=updown*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
       right.velocities[5].value=leftright*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
       right.velocities[6].value=updown*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
-      //right.joint_gripper=rightright*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
-      //right.velocities[0].timeStamp=ros::Time::now();
+      gright.velocities[0].value=joy.axes[config.gripper_1]*run*config.gripper_max_angular;
+      gright.velocities[1].value=joy.axes[config.gripper_2]*run*config.gripper_max_angular;
+      data.out_gripper_right=gright;
+      data.out_arm_joint_right=right;
+      data.out_arm_joint_right_active=1;
+      data.out_gripper_right_active=1;
       if (!joy.buttons[config.button_init_recover]){once=false;}
       if (joy.buttons[config.button_init_recover] && !once)
       {
            initRecover("arm_right");
            once=true;
       }
-      data.out_arm_joint_right=right;
-      data.out_arm_joint_right_active=1;
       break;
       
       case 5 : //automoves script 
@@ -389,7 +413,6 @@ public:
 
 
     /* protected region user additional functions on begin */
-
     void serviceCall(const std::string component, const std::string command)//same as below
   {
     std::stringstream ss;
