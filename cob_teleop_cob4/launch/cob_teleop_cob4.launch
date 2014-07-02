@@ -11,7 +11,7 @@
 	</node>
 
 	<node pkg="cob_teleop_cob4" type="cob_teleop_cob4" name="cob_teleop_cob4" output="screen" >
-		<remap from="base_controller_command" to="base_controller/command_safe"/>
+		<remap from="base_controller_command" to="base_controller/command"/>
 		<remap from="sensorring_controller_command" to="sensorring_controller/command_twist"/>
 		<remap from="torso_controller_command" to="torso_controller/command_twist"/>
 		<remap from="arm_joint_left" to="arm_left_controller/command_vel"/>

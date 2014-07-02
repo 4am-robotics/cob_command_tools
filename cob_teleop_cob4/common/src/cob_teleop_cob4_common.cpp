@@ -142,7 +142,6 @@ class cob_teleop_cob4_impl
     XmlRpc::XmlRpcValue LEDS;
 
     cob_srvs::Trigger trigger;
-
     /* protected region user member variables end */
 
 public:
@@ -208,7 +207,7 @@ public:
 
     //mode switching
     if (!joy.buttons[config.button_mode_switch]){once_mode=false;}
-    if (joy.buttons[config.button_mode_switch] && not joy.buttons[config.button_deadman && not once_mode])//switch mode. gets executed multiple times
+    if (joy.buttons[config.button_mode_switch] && not joy.buttons[config.button_deadman] && not once_mode)
     {
       once_mode=true;
       ++mode;
@@ -219,8 +218,8 @@ public:
 
       ROS_INFO("Mode switched to: %d",mode);
       //ROS_ASSERT(config.led_mode[0].getType() == XmlRpc::XmlRpcValue::TypeArray);
-      LEDS=config.led_mode[mode];
-      data.out_joy_feedback=leds_on(LEDS);
+      LEDS=config.led_mode[mode]; //Todo: set after startup
+      data.out_joy_feedback=ledsOn(LEDS);
       data.out_joy_feedback_active=1;
       return;
     }
@@ -240,7 +239,7 @@ public:
       if (!joy.buttons[config.button_init_recover]){once=false;}
       if (joy.buttons[config.button_init_recover] && !once)
       {
-        init_recover("base");
+        initRecover("base");
         once=true;
       }
       break;
@@ -256,7 +255,7 @@ public:
       if (!joy.buttons[config.button_init_recover]){once=false;}
       if (joy.buttons[config.button_init_recover] && !once)
       {
-        init_recover("arm_left");
+        initRecover("arm_left");
         once=true;
       }
       break; //maybe these blocks should be smaller
@@ -272,7 +271,7 @@ public:
       if (!joy.buttons[config.button_init_recover]){once=false;}
       if (joy.buttons[config.button_init_recover] && !once)
       {
-           init_recover("arm_right");
+           initRecover("arm_right");
            once=true;
       }
       break;
@@ -292,7 +291,7 @@ public:
       if (!joy.buttons[config.button_init_recover]){once=false;}
       if (joy.buttons[config.button_init_recover] && !once)
       {
-           init_recover("arm_left");
+           initRecover("arm_left");
            once=true;
       }
       break;
@@ -310,7 +309,7 @@ public:
       if (!joy.buttons[config.button_init_recover]){once=false;}
       if (joy.buttons[config.button_init_recover] && !once)
       {
-           init_recover("arm_right");
+           initRecover("arm_right");
            once=true;
       }
       data.out_arm_joint_right=right;
@@ -364,30 +363,23 @@ public:
       if (!joy.buttons[config.button_init_recover]){once=false;}
       if (joy.buttons[config.button_init_recover] && !once)
       {
-           init_recover("sensorring");
-           ros::Duration(0.8).sleep();
-           init_recover("head");
-           ros::Duration(0.8).sleep();
-           init_recover("torso");
+           initRecover("sensorring");
+           initRecover("head");
+           initRecover("torso");
            once=true;
       }
       break;
       }
   }
 
-  else if(!once_stop && mode==6) 
+  else if(!once_stop && mode==5)
   {
     once_stop=true;
     sss.function_name="stop";
     int j;
     for (j=0; j<(config.components.size()); j++)
-    {
-      sss.component_name=static_cast<std::string>(config.components[j]).c_str();
-      ROS_INFO("Stoping %s",sss.component_name.c_str());      
-      client->sendGoal(sss);
-      //client->waitForResult(ros::Duration(config.stop_time));//Todo: store all in threads, remove before merge
-      //if (client->getState() != actionlib::SimpleClientGoalState::SUCCEEDED) 
-        //ROS_WARN("Could not Stop component: %s. Error: %s",sss.component_name.c_str(), client->getState().toString().c_str());
+    {	//stop all components
+      serviceCall(static_cast<std::string>(config.components[j]).c_str(),"stop");
         
     }      
   }
@@ -397,22 +389,35 @@ public:
 
 
     /* protected region user additional functions on begin */
-    void init_recover(std::string component)
+
+    void serviceCall(const std::string component, const std::string command)//same as below
+  {
+    std::stringstream ss;
+    ss << "/" << component.c_str() << "_controller/" << command.c_str();
+    ROS_INFO("triggering service: %s",ss.str().c_str());
+    ros::service::call(((ss.str()).c_str()),trigger);
+  }
+    void initRecover(const std::string component)
   {
     //sss.component_name=component;
     //sss.function_name="init";
     //client->sendGoal(sss);
-    ROS_INFO("initialising %s",component.c_str());
+    //ROS_INFO("initialising %s",component.c_str());
     //sss.function_name="recover";
-    ROS_INFO("recovering %s",component.c_str());
+    //ROS_INFO("recovering %s",component.c_str());
     //client->sendGoal(sss);
-    ROS_INFO("calling");
-    ros::service::call(("/%s_controler/init",component), trigger);
-    ROS_INFO("calling");
 
+    std::stringstream ss;
+    ss << "/" << component.c_str() << "_controller/init";
+    ROS_INFO("init %s",component.c_str());
+    ros::service::call(ss.str().c_str(),trigger);
+    ss << "/" << component.c_str() << "_controller/recover";
+    ROS_INFO("recover %s",component.c_str());
+    ros::service::call(ss.str().c_str(),trigger);
   }
   
-      sensor_msgs::JoyFeedbackArray leds_on(XmlRpc::XmlRpcValue leds)
+  
+      sensor_msgs::JoyFeedbackArray ledsOn(XmlRpc::XmlRpcValue leds)
     {
         int i;
         for (i=0; i<4; i++)
