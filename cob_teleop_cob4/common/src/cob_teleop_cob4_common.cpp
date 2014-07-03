@@ -137,6 +137,7 @@ class cob_teleop_cob4_impl
     geometry_msgs::Twist head;
     geometry_msgs::Twist base;
     geometry_msgs::Twist torso;
+    geometry_msgs::Twist arm_cart;
     sensor_msgs::Joy joy;
     brics_actuator::JointVelocities left;
     brics_actuator::JointVelocities right;
@@ -192,8 +193,8 @@ public:
       {
       gleft.velocities[i].unit="rad/sec";
       gright.velocities[i].unit="rad/sec";
-      gleft.velocities[i].joint_uri="Todo:/left";
-      gright.velocities[i].joint_uri="Todo:/right";
+      gleft.velocities[i].joint_uri="Todo/left";
+      gright.velocities[i].joint_uri="Todo/right";
       }
       //set initial mode after startup
       mode=0;
@@ -255,6 +256,7 @@ public:
       base.linear.y=joy.axes[config.base_y]*config.base_max_linear*run;
       base.angular.z=joy.axes[config.base_yaw]*config.base_max_angular*run;
       data.out_base_controller_command=base;
+      //if (joy.buttons[config.button_safety_override]){data.out_base_controller_command=base;}
       data.out_base_controller_command_active=1;
       if (!joy.buttons[config.button_init_recover]){once=false;}
       if (joy.buttons[config.button_init_recover] && !once)
@@ -265,12 +267,13 @@ public:
       break;
       
       case 1: //arm cartesian left
-      data.out_arm_cart_left.linear.x=(joy.axes[config.arm_x])*config.arm_cartesian_max_linear*run;
-      data.out_arm_cart_left.linear.y=(joy.axes[config.arm_y])*config.arm_cartesian_max_linear*run;
-      data.out_arm_cart_left.angular.z=(joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular*run;
-      data.out_arm_cart_left.linear.z=(joy.buttons[config.arm_z_up]-joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
-      data.out_arm_cart_left.angular.x=(joy.buttons[config.arm_roll_left_and_ellbow]-joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
-      data.out_arm_cart_left.angular.y=(joy.buttons[config.arm_pitch_up]-joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
+      arm_cart.linear.x=(joy.axes[config.arm_x])*config.arm_cartesian_max_linear*run;
+      arm_cart.linear.y=(joy.axes[config.arm_y])*config.arm_cartesian_max_linear*run;
+      arm_cart.angular.z=(joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular*run;
+      arm_cart.linear.z=(joy.buttons[config.arm_z_up]-joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
+      arm_cart.angular.x=(joy.buttons[config.arm_roll_left_and_ellbow]-joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
+      arm_cart.angular.y=(joy.buttons[config.arm_pitch_up]-joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
+      data.out_arm_cart_left=arm_cart;
       data.out_arm_cart_left_active=1;
       if (!joy.buttons[config.button_init_recover]){once=false;}
       if (joy.buttons[config.button_init_recover] && !once)
@@ -281,12 +284,13 @@ public:
       break; //maybe these blocks should be smaller
       
       case 2: //arm_cartesian right
-      data.out_arm_cart_right.linear.x=(joy.axes[config.arm_x])*config.arm_cartesian_max_linear*run;
-      data.out_arm_cart_right.linear.y=(joy.axes[config.arm_y])*config.arm_cartesian_max_linear*run;
-      data.out_arm_cart_right.angular.z=(joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular*run;
-      data.out_arm_cart_right.linear.z=(joy.buttons[config.arm_z_up]-joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
-      data.out_arm_cart_right.angular.x=(joy.buttons[config.arm_roll_left_and_ellbow]-joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
-      data.out_arm_cart_right.angular.y=(joy.buttons[config.arm_pitch_up]-joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
+      arm_cart.linear.x=(joy.axes[config.arm_x])*config.arm_cartesian_max_linear*run;
+      arm_cart.linear.y=(joy.axes[config.arm_y])*config.arm_cartesian_max_linear*run;
+      arm_cart.angular.z=(joy.axes[config.arm_yaw])*config.arm_cartesian_max_angular*run;
+      arm_cart.linear.z=(joy.buttons[config.arm_z_up]-joy.buttons[config.arm_z_down])*run*config.arm_cartesian_max_linear;
+      arm_cart.angular.x=(joy.buttons[config.arm_roll_left_and_ellbow]-joy.buttons[config.arm_roll_right_and_ellbow])*run*config.arm_cartesian_max_angular;
+      arm_cart.angular.y=(joy.buttons[config.arm_pitch_up]-joy.buttons[config.arm_pitch_down])*run*config.arm_cartesian_max_angular;
+      data.out_arm_cart_left=arm_cart;
       data.out_arm_cart_right_active=1;
       if (!joy.buttons[config.button_init_recover]){once=false;}
       if (joy.buttons[config.button_init_recover] && !once)
@@ -341,17 +345,19 @@ public:
       break;
       
       case 5 : //automoves script 
-      once_stop=false;     
+      once_stop=false;
+      bool recover;
       if (joy.buttons[config.head_home]){sss.component_name="head";}
       else if (joy.buttons[config.arm_left_home]){sss.component_name="arm_left";}
       else if (joy.buttons[config.arm_right_home]){sss.component_name="arm_right";}
-      else if (joy.buttons[config.torso_home]){sss.component_name="torso";}      
+      else if (joy.buttons[config.torso_home]){sss.component_name="torso";}
       else if (joy.buttons[config.sensorring_home]){sss.component_name="sensorring";}
       else if (joy.buttons[config.gripper_left_home]){sss.component_name="gripper_left";}
       else if (joy.buttons[config.gripper_right_home]){sss.component_name="gripper_right";}
       else if (joy.buttons[config.base_home]){sss.component_name="base";}
-      else {once=false; break;}
-      if (!once)
+      else if (joy.buttons[config.button_init_recover]){recover=true;}
+      else {once=false;recover=false; break;}
+      if (!once && !recover)
       {
         once=true;
         ROS_INFO("Homing %s",sss.component_name.c_str());
@@ -361,6 +367,15 @@ public:
         //client->waitForResult(ros::Duration(config.home_time));//Todo: store all in threads, remove before merge
          //if (client->getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
             //ROS_WARN("Could not Home component: %s. Error: %s",sss.component_name.c_str(), client->getState().toString().c_str());
+      }
+      if (!once && recover)
+      {
+        once=true;
+        int j;
+        for (j=0; j<(config.components.size()); j++)
+        {	//init recover all components
+          initRecover(static_cast<std::string>(config.components[j]).c_str());
+        }
       }
       break;
      
@@ -394,7 +409,7 @@ public:
       }
       break;
       }
-  }
+  }//end if deadman
 
   else if(!once_stop && mode==5)
   {
@@ -413,7 +428,7 @@ public:
 
 
     /* protected region user additional functions on begin */
-    void serviceCall(const std::string component, const std::string command)//same as below
+    void serviceCall(const std::string component, const std::string command)//same as initRecover
   {
     std::stringstream ss;
     ss << "/" << component.c_str() << "_controller/" << command.c_str();
