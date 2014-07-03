@@ -158,7 +158,6 @@ public:
     cob_teleop_cob4_impl() 
     {
         /* protected region user constructor on begin */
-      //Client client("script_server", true);
       client = new Client("script_server", true);
       ROS_INFO("Connecting to script_server");
       client->waitForServer();
@@ -170,7 +169,6 @@ public:
     {
         /* protected region user configure on begin */
       //asign arm joints
-
       left.velocities.resize(7);
       right.velocities.resize(7);
       int i;
@@ -185,7 +183,6 @@ public:
       sring.velocities.resize(1);
       sring.velocities[0].joint_uri="sensorring_joint";
       sring.velocities[0].unit="rad/sec";
-      
       //set gripper joints
       gleft.velocities.resize(2);
       gright.velocities.resize(2);
@@ -215,16 +212,16 @@ public:
     data.out_arm_cart_right_active=0;
     data.out_gripper_left_active=0;
     data.out_gripper_right_active=0;
-    data.out_joy_feedback=ledsOn(LEDS);//Set Leds always, also on startup
+    data.out_joy_feedback=ledsOn(LEDS);//Set Leds immediate after startup
 
-    if (data.in_joy.buttons.size()<=5)//wait for complete joypad!
+    if (data.in_joy.buttons.size()<=5)//wait for joypad!
     {  
       ROS_WARN("joypad inactive! waiting for array of buttons. Move the Controller");
       ros::Duration(0.5).sleep();
       return;
     }
     
-    joy=data.in_joy;//bit smaller
+    joy=data.in_joy;
     run=1-joy.axes[config.axis_runfactor];
     updown=(joy.buttons[config.arm_joint_up]-joy.buttons[config.arm_joint_down]);
     leftright=(joy.buttons[config.arm_joint_left]-joy.buttons[config.arm_joint_right]);
@@ -241,10 +238,9 @@ public:
       }
       ROS_INFO("Mode switched to: %d",mode);
       LEDS=config.led_mode[mode];
-      //data.out_joy_feedback=ledsOn(LEDS);//already set after startup
       return;
     }
-    //working
+    //reading joy and sending commands
     if (joy.buttons[config.button_deadman])
     {
 
@@ -256,7 +252,7 @@ public:
       base.linear.y=joy.axes[config.base_y]*config.base_max_linear*run;
       base.angular.z=joy.axes[config.base_yaw]*config.base_max_angular*run;
       data.out_base_controller_command=base;
-      //if (joy.buttons[config.button_safety_override]){data.out_base_controller_command=base;}
+      //if (joy.buttons[config.button_safety_override]){data.out_base_controller_command_unsafe=base;}
       data.out_base_controller_command_active=1;
       if (!joy.buttons[config.button_init_recover]){once=false;}
       if (joy.buttons[config.button_init_recover] && !once)
@@ -281,7 +277,7 @@ public:
         initRecover("arm_left");
         once=true;
       }
-      break; //maybe these blocks should be smaller
+      break;
       
       case 2: //arm_cartesian right
       arm_cart.linear.x=(joy.axes[config.arm_x])*config.arm_cartesian_max_linear*run;
@@ -344,7 +340,7 @@ public:
       }
       break;
       
-      case 5 : //automoves script 
+      case 5 : //automoves
       once_stop=false;
       bool recover;
       if (joy.buttons[config.head_home]){sss.component_name="head";}
@@ -363,24 +359,20 @@ public:
         ROS_INFO("Homing %s",sss.component_name.c_str());
         sss.function_name="move";
         sss.parameter_name="home";
-        client->sendGoal(sss);
-        //client->waitForResult(ros::Duration(config.home_time));//Todo: store all in threads, remove before merge
-         //if (client->getState() != actionlib::SimpleClientGoalState::SUCCEEDED)
-            //ROS_WARN("Could not Home component: %s. Error: %s",sss.component_name.c_str(), client->getState().toString().c_str());
+        client->sendGoal(sss); //sss gives feedback but has no effect on robot
       }
-      if (!once && recover)
+      if (!once && recover)//init recover all components
       {
         once=true;
         int j;
         for (j=0; j<(config.components.size()); j++)
-        {	//init recover all components
+        {
           initRecover(static_cast<std::string>(config.components[j]).c_str());
         }
       }
       break;
      
      
-      
       case 6: //case 6: sensorring head torso 
       //sensorring (Joints)
       sring.velocities[0].value=(joy.buttons[config.sensorring_yaw_left]-joy.buttons[config.sensorring_yaw_right])*config.sensor_ring_max_angular*run;
@@ -419,8 +411,7 @@ public:
     for (j=0; j<(config.components.size()); j++)
     {	//stop all components
       serviceCall(static_cast<std::string>(config.components[j]).c_str(),"stop");
-        
-    }      
+    }
   }
  
         /* protected region user update end */
@@ -429,22 +420,14 @@ public:
 
     /* protected region user additional functions on begin */
     void serviceCall(const std::string component, const std::string command)//same as initRecover
-  {
+    {
     std::stringstream ss;
     ss << "/" << component.c_str() << "_controller/" << command.c_str();
     ROS_INFO("triggering service: %s",ss.str().c_str());
     ros::service::call(((ss.str()).c_str()),trigger);
-  }
+    }
     void initRecover(const std::string component)
-  {
-    //sss.component_name=component;
-    //sss.function_name="init";
-    //client->sendGoal(sss);
-    //ROS_INFO("initialising %s",component.c_str());
-    //sss.function_name="recover";
-    //ROS_INFO("recovering %s",component.c_str());
-    //client->sendGoal(sss);
-
+    {
     std::stringstream ss;
     ss << "/" << component.c_str() << "_controller/init";
     ROS_INFO("init %s",component.c_str());
@@ -452,24 +435,19 @@ public:
     ss << "/" << component.c_str() << "_controller/recover";
     ROS_INFO("recover %s",component.c_str());
     ros::service::call(ss.str().c_str(),trigger);
-  }
-  
-  
-      sensor_msgs::JoyFeedbackArray ledsOn(XmlRpc::XmlRpcValue leds)
+    }
+
+    sensor_msgs::JoyFeedbackArray ledsOn(XmlRpc::XmlRpcValue leds)
     {
-        int i;
-        for (i=0; i<4; i++)
-        {
-            joyfb.array.resize(4);
-            joyfb.array[i].type=0;
-            joyfb.array[i].id=i;
-            //ROS_ASSERT(leds[i].getType() == XmlRpc::XmlRpcValue::TypeInt);
-            joyfb.array[i].intensity=static_cast<int>(leds[i]);
-            //data.out_joy_feedback_active=1; //never set to 0
+      int i;
+      for (i=0; i<4; i++)
+      {
+          joyfb.array.resize(4);
+          joyfb.array[i].type=0;
+          joyfb.array[i].id=i;
+          joyfb.array[i].intensity=static_cast<int>(leds[i]);
         }
         return joyfb;
     }
-    
-
     /* protected region user additional functions end */
 };
