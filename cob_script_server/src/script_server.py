@@ -66,6 +66,7 @@ import rospy
 import actionlib
 
 from cob_script_server.msg import *
+from cob_script_server.srv import *
 from simple_script_server import *
 
 sss = simple_script_server()
@@ -81,7 +82,18 @@ class script_server():
 		self.ns_global_prefix = "/script_server"
 		self.script_action_server = actionlib.SimpleActionServer(self.ns_global_prefix, ScriptAction, self.execute_cb, False)
 		self.script_action_server.start()
-	
+		self.compose_trajectory_service = rospy.Service('~compose_trajectory', ComposeTrajectory, self.handle_compose_trajectory)
+
+#------------------- Service section -------------------#
+	def handle_compose_trajectory(self, req):
+		print "compose trajectory", req.component_name, req.parameter_name
+		traj_msg, error_code = sss.compose_trajectory(req.component_name, req.parameter_name)
+		if error_code != 0:
+			return None
+		res = ComposeTrajectoryResponse()
+		res.trajectory = traj_msg
+		return res
+
 #------------------- Actionlib section -------------------#
 	## Executes actionlib callbacks.
 	#
