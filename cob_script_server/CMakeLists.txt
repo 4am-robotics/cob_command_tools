@@ -24,8 +24,13 @@ add_message_files(
   ScriptState.msg
 )
 
+add_service_files(
+  FILES
+  ComposeTrajectory.srv
+)
+
 generate_messages(
-  DEPENDENCIES geometry_msgs std_msgs actionlib_msgs
+  DEPENDENCIES geometry_msgs std_msgs actionlib_msgs trajectory_msgs
 )
 
 

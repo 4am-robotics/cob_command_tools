@@ -417,44 +417,27 @@ class simple_script_server:
 
 		return ah
 
-	## Deals with all kind of trajectory movements for different components.
-	#
-	# A trajectory will be sent to the actionlib interface of the corresponding component.
-	#
-	# \param component_name Name of the component.
-	# \param parameter_name Name of the parameter on the ROS parameter server.
-	# \param blocking Bool value to specify blocking behaviour.
-	def move_traj(self,component_name,parameter_name,blocking):
-		ah = action_handle("move", component_name, parameter_name, blocking, self.parse)
-		if(self.parse):
-			return ah
-		else:
-			ah.set_active()
-		
-		rospy.loginfo("Move <<%s>> to <<%s>>",component_name,parameter_name)
-		
+	## Parse and compose trajectory message
+	def compose_trajectory(self, component_name, parameter_name):
 		# get joint_names from parameter server
 		param_string = self.ns_global_prefix + "/" + component_name + "/joint_names"
 		if not rospy.has_param(param_string):
 				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",param_string)
-				ah.set_failed(2)
-				return ah
+				return (JointTrajectory(), 2)
 		joint_names = rospy.get_param(param_string)
 		
 		# check joint_names parameter
 		if not type(joint_names) is list: # check list
 				rospy.logerr("no valid joint_names for %s: not a list, aborting...",component_name)
 				print "joint_names are:",joint_names
-				ah.set_failed(3)
-				return ah
+				return (JointTrajectory(), 3)
 		else:
 			for i in joint_names:
 				#print i,"type1 = ", type(i)
 				if not type(i) is str: # check string
 					rospy.logerr("no valid joint_names for %s: not a list of strings, aborting...",component_name)
 					print "joint_names are:",param
-					ah.set_failed(3)
-					return ah
+					return (JointTrajectory(), 3)
 				else:
 					rospy.logdebug("accepted joint_names for component %s",component_name)
 		
@@ -462,8 +445,7 @@ class simple_script_server:
 		if type(parameter_name) is str:
 			if not rospy.has_param(self.ns_global_prefix + "/" + component_name + "/" + parameter_name):
 				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",self.ns_global_prefix + "/" + component_name + "/" + parameter_name)
-				ah.set_failed(2)
-				return ah
+				return (JointTrajectory(), 2)
 			param = rospy.get_param(self.ns_global_prefix + "/" + component_name + "/" + parameter_name)
 		else:
 			param = parameter_name
@@ -472,8 +454,7 @@ class simple_script_server:
 		if not type(param) is list: # check outer list
 				rospy.logerr("no valid parameter for %s: not a list, aborting...",component_name)
 				print "parameter is:",param
-				ah.set_failed(3)
-				return ah
+				return (JointTrajectory(), 3)
 
 		traj = []
 
@@ -482,8 +463,7 @@ class simple_script_server:
 			if type(point) is str:
 				if not rospy.has_param(self.ns_global_prefix + "/" + component_name + "/" + point):
 					rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",self.ns_global_prefix + "/" + component_name + "/" + point)
-					ah.set_failed(2)
-					return ah
+					return (JointTrajectory(), 2)
 				point = rospy.get_param(self.ns_global_prefix + "/" + component_name + "/" + point)
 				point = point[0] # \todo TODO: hack because only first point is used, no support for trajectories inside trajectories
 				#print point
@@ -492,16 +472,14 @@ class simple_script_server:
 			else:
 				rospy.logerr("no valid parameter for %s: not a list of lists or strings, aborting...",component_name)
 				print "parameter is:",param
-				ah.set_failed(3)
-				return ah
+				return (JointTrajectory(), 3)
 
 			# here: point should be list of floats/ints
 			#print point
 			if not len(point) == len(joint_names): # check dimension
 				rospy.logerr("no valid parameter for %s: dimension should be %d and is %d, aborting...",component_name,len(joint_names),len(point))
 				print "parameter is:",param
-				ah.set_failed(3)
-				return ah
+				return (JointTrajectory(), 3)
 
 			for value in point:
 				#print value,"type2 = ", type(value)
@@ -509,8 +487,7 @@ class simple_script_server:
 					#print type(value)
 					rospy.logerr("no valid parameter for %s: not a list of float or int, aborting...",component_name)
 					print "parameter is:",param
-					ah.set_failed(3)
-					return ah
+					return (JointTrajectory(), 3)
 			
 				rospy.logdebug("accepted value %f for %s",value,component_name)
 			traj.append(point)
@@ -529,6 +506,28 @@ class simple_script_server:
 			point_msg.velocities = [0]*len(joint_names)
 			point_msg.time_from_start=rospy.Duration(3*point_nr) # this value is set to 3 sec per point. \todo TODO: read from parameter
 			traj_msg.points.append(point_msg)
+		return (traj_msg, 0)
+
+	## Deals with all kind of trajectory movements for different components.
+	#
+	# A trajectory will be sent to the actionlib interface of the corresponding component.
+	#
+	# \param component_name Name of the component.
+	# \param parameter_name Name of the parameter on the ROS parameter server.
+	# \param blocking Bool value to specify blocking behaviour.
+	def move_traj(self,component_name,parameter_name,blocking):
+		ah = action_handle("move", component_name, parameter_name, blocking, self.parse)
+		if(self.parse):
+			return ah
+		else:
+			ah.set_active()
+		
+		rospy.loginfo("Move <<%s>> to <<%s>>",component_name,parameter_name)
+		(traj_msg, error_code) = self.compose_trajectory(component_name, parameter_name)
+		if error_code != 0:
+			ah.set_failed(error_code)
+			return ah
+		
 
 		# call action server
 		action_server_name = "/" + component_name + '_controller/follow_joint_trajectory'
