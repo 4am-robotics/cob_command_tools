@@ -4,7 +4,7 @@ project(cob_script_server)
 
 
 
-find_package(catkin REQUIRED COMPONENTS rospy message_generation actionlib actionlib_msgs tf std_msgs cob_srvs trajectory_msgs geometry_msgs control_msgs cob_sound)
+find_package(catkin REQUIRED COMPONENTS rospy message_generation actionlib actionlib_msgs tf std_msgs cob_srvs trajectory_msgs geometry_msgs control_msgs cob_sound move_base_msgs)
 
 catkin_python_setup()
 
@@ -58,6 +58,10 @@ install(DIRECTORY common
 )
 
 install(DIRECTORY launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+install(DIRECTORY scripts
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
