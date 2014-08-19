@@ -15,7 +15,7 @@
   <buildtool_depend>catkin</buildtool_depend>
   <run_depend>rospy</run_depend>
   <run_depend>roslib</run_depend>
-  <run_depend>cob_voltage_control</run_depend>
+  <run_depend>cob_msgs</run_depend>
   <run_depend>rqt_gui</run_depend>
   <run_depend>cob_relayboard</run_depend>
   <run_depend>rqt_gui_cpp</run_depend>
