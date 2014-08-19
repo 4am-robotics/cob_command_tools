@@ -1,0 +1,4 @@
+string component_name
+string parameter_name
+---
+trajectory_msgs/JointTrajectory trajectory
