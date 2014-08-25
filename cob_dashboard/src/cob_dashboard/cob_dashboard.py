@@ -34,7 +34,7 @@ import roslib
 roslib.load_manifest('cob_dashboard')
 import rospy
 
-from cob_relayboard.msg import EmergencyStopState
+from cob_msgs.msg import EmergencyStopState
 from cob_msgs.msg import PowerState, DashboardState
 
 from rqt_robot_dashboard.dashboard import Dashboard
