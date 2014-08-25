@@ -35,7 +35,7 @@ roslib.load_manifest('cob_dashboard')
 import rospy
 
 from cob_relayboard.msg import EmergencyStopState
-from cob_voltage_control.msg import PowerState
+from cob_msgs.msg import PowerState, DashboardState
 
 from rqt_robot_dashboard.dashboard import Dashboard
 from rqt_robot_dashboard.widgets import MonitorDashWidget, ConsoleDashWidget
@@ -71,6 +71,7 @@ class CobDashboard(Dashboard):
         self._runstop = COBRunstops('RunStops')
         self._batteries = [COBBattery(self.context)]
 
+        self._dashboard_agg_sub = rospy.Subscriber("/dashboard_agg", DashboardState, self.db_agg_cb)
         self.em_sub = rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.emcb)
 
         self._powerstate_sub = rospy.Subscriber('/power_state', PowerState, self.dashboard_callback)
@@ -78,6 +79,10 @@ class CobDashboard(Dashboard):
     def get_widgets(self):
         return [[self._monitor, self._console], [self._runstop], self._batteries]
 
+    
+    def db_agg_cb(self, msg):
+        pass
+    
     def emcb(self, msg):
         self._last_dashboard_message_time = rospy.get_time()
         if(not msg.emergency_button_stop):
@@ -93,7 +98,6 @@ class CobDashboard(Dashboard):
     def dashboard_callback(self, msg):
         self._last_dashboard_message_time = rospy.get_time()
         self._batteries[0].set_power_state(msg)
-
 
     def shutdown_dashboard(self):
         self._dashboard_agg_sub.unregister()

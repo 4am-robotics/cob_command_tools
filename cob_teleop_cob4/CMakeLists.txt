@@ -13,12 +13,13 @@ find_package(catkin REQUIRED COMPONENTS
 	std_msgs
 	trajectory_msgs
 	cob_script_server
+	cob_srvs
 )
 
 # protected region additional user defined REQUIREMENTS on begin #
 # protected region additional user defined REQUIREMENTS end #
 
-generate_dynamic_reconfigure_options(cfg/cob_teleop_cob4.cfg)
+generate_dynamic_reconfigure_options(cfg/cob_teleop_cob4.cfg )
 
 ###################################
 ## catkin specific configuration ##
@@ -40,6 +41,7 @@ catkin_package(
 	std_msgs
 	trajectory_msgs
 	cob_script_server
+	cob_srvs
    
 )
 

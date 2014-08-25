@@ -20,7 +20,7 @@ catkin_package(
     LIBRARIES # TODO
 )
 
-install(PROGRAMS scripts/cob_dashboard
+install(PROGRAMS scripts/cob_dashboard cob_dashboard_aggregator.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/scripts
 )
 

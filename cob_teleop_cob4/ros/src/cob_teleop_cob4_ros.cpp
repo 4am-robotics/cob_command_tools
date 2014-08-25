@@ -4,15 +4,17 @@
 #include <cob_teleop_cob4/cob_teleop_cob4Config.h>
 
 // ROS message includes
-#include <sensor_msgs/JoyFeedback.h>
+#include <sensor_msgs/JoyFeedbackArray.h>
 #include <geometry_msgs/Twist.h>
-#include <brics_actuator/CartesianTwist.h>
-#include <brics_actuator/CartesianTwist.h>
-#include <brics_actuator/JointVelocities.h>
-#include <brics_actuator/JointVelocities.h>
+#include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Twist.h>
 #include <brics_actuator/JointVelocities.h>
+#include <brics_actuator/JointVelocities.h>
 #include <geometry_msgs/Twist.h>
+#include <brics_actuator/JointVelocities.h>
+#include <geometry_msgs/Twist.h>
+#include <brics_actuator/JointVelocities.h>
+#include <brics_actuator/JointVelocities.h>
 #include <sensor_msgs/Joy.h>
 
 // other includes
@@ -37,6 +39,8 @@ class cob_teleop_cob4_ros
     ros::Publisher head_controller_command_;
     ros::Publisher sensorring_controller_command_;
     ros::Publisher torso_controller_command_;
+    ros::Publisher gripper_left_;
+    ros::Publisher gripper_right_;
     ros::Subscriber joy_;
 
     cob_teleop_cob4_data component_data_;
@@ -49,20 +53,22 @@ class cob_teleop_cob4_ros
         server.setCallback(f);
 
 
-        joy_feedback_ = n_.advertise<sensor_msgs::JoyFeedback>("joy_feedback", 1);
+        joy_feedback_ = n_.advertise<sensor_msgs::JoyFeedbackArray>("joy_feedback", 1);
         base_controller_command_ = n_.advertise<geometry_msgs::Twist>("base_controller_command", 1);
-        arm_cart_left_ = n_.advertise<brics_actuator::CartesianTwist>("arm_cart_left", 1);
-        arm_cart_right_ = n_.advertise<brics_actuator::CartesianTwist>("arm_cart_right", 1);
+        arm_cart_left_ = n_.advertise<geometry_msgs::Twist>("arm_cart_left", 1);
+        arm_cart_right_ = n_.advertise<geometry_msgs::Twist>("arm_cart_right", 1);
         arm_joint_right_ = n_.advertise<brics_actuator::JointVelocities>("arm_joint_right", 1);
         arm_joint_left_ = n_.advertise<brics_actuator::JointVelocities>("arm_joint_left", 1);
         head_controller_command_ = n_.advertise<geometry_msgs::Twist>("head_controller_command", 1);
         sensorring_controller_command_ = n_.advertise<brics_actuator::JointVelocities>("sensorring_controller_command", 1);
         torso_controller_command_ = n_.advertise<geometry_msgs::Twist>("torso_controller_command", 1);
+        gripper_left_ = n_.advertise<brics_actuator::JointVelocities>("gripper_left", 1);
+        gripper_right_ = n_.advertise<brics_actuator::JointVelocities>("gripper_right", 1);
         joy_ = n_.subscribe("joy", 1, &cob_teleop_cob4_ros::topicCallback_joy, this);
 
         np_.param("button_deadman", component_config_.button_deadman, (int)11);
-        np_.param("base_max_linear", component_config_.base_max_linear, (double)2.0);
-        np_.param("base_max_angular", component_config_.base_max_angular, (double)6);
+        np_.param("base_max_linear", component_config_.base_max_linear, (double)0.5);
+        np_.param("base_max_angular", component_config_.base_max_angular, (double)1.5);
         np_.param("torso_max_angular", component_config_.torso_max_angular, (double)0.2);
         np_.param("head_max_angular", component_config_.head_max_angular, (double)0.3);
         np_.param("sensor_ring_max_angular", component_config_.sensor_ring_max_angular, (double)0.1);
@@ -118,8 +124,24 @@ class cob_teleop_cob4_ros
             np_.getParam("arm_left_uri", component_config_.arm_left_uri);
         else
             ROS_ERROR("Parameter arm_left_uri not set");
-        }
-
+        if(np_.hasParam("components"))
+            np_.getParam("components", component_config_.components);
+        else
+            ROS_ERROR("Parameter components not set");
+        np_.param("home_time", component_config_.home_time, (double)5.0);
+        np_.param("stop_time", component_config_.stop_time, (double)0.8);
+        if(np_.hasParam("arm_right_uri"))
+            np_.getParam("arm_right_uri", component_config_.arm_right_uri);
+        else
+            ROS_ERROR("Parameter arm_right_uri not set");
+        if(np_.hasParam("led_mode"))
+            np_.getParam("led_mode", component_config_.led_mode);
+        else
+            ROS_ERROR("Parameter led_mode not set");
+        np_.param("gripper_1", component_config_.gripper_1, (int)3);
+        np_.param("gripper_2", component_config_.gripper_2, (int)4);
+        np_.param("gripper_max_angular", component_config_.gripper_max_angular, (double)0.2);
+    }
     void topicCallback_joy(const sensor_msgs::Joy::ConstPtr& msg)
     {
         component_data_.in_joy = *msg;
@@ -181,6 +203,11 @@ class cob_teleop_cob4_ros
         component_config_.gripper_left_home = config.gripper_left_home;
         component_config_.gripper_right_home = config.gripper_right_home;
         component_config_.base_home = config.base_home;
+        component_config_.home_time = config.home_time;
+        component_config_.stop_time = config.stop_time;
+        component_config_.gripper_1 = config.gripper_1;
+        component_config_.gripper_2 = config.gripper_2;
+        component_config_.gripper_max_angular = config.gripper_max_angular;
     }
 
     void configure()
@@ -199,6 +226,8 @@ class cob_teleop_cob4_ros
         component_data_.out_head_controller_command_active = true;
         component_data_.out_sensorring_controller_command_active = true;
         component_data_.out_torso_controller_command_active = true;
+        component_data_.out_gripper_left_active = true;
+        component_data_.out_gripper_right_active = true;
     }
 
     void update()
@@ -223,6 +252,10 @@ class cob_teleop_cob4_ros
             sensorring_controller_command_.publish(component_data_.out_sensorring_controller_command);
         if (component_data_.out_torso_controller_command_active)
             torso_controller_command_.publish(component_data_.out_torso_controller_command);
+        if (component_data_.out_gripper_left_active)
+            gripper_left_.publish(component_data_.out_gripper_left);
+        if (component_data_.out_gripper_right_active)
+            gripper_right_.publish(component_data_.out_gripper_right);
     }
 };
 
@@ -234,7 +267,7 @@ int main(int argc, char** argv)
     cob_teleop_cob4_ros node;
     node.configure();
 
-    ros::Rate loop_rate(30.0);
+    ros::Rate loop_rate(50.0);
 
     while(node.n_.ok())
     {
