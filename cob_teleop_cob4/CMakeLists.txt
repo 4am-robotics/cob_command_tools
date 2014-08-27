@@ -6,7 +6,7 @@ project(cob_teleop_cob4)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
 	roscpp
-	dynamic_reconfigure 
+    dynamic_reconfigure 
 	sensor_msgs
 	geometry_msgs
 	brics_actuator
@@ -14,7 +14,6 @@ find_package(catkin REQUIRED COMPONENTS
 	trajectory_msgs
 	cob_script_server
 	cob_srvs
-	actionlib
 )
 
 # protected region additional user defined REQUIREMENTS on begin #
@@ -31,9 +30,11 @@ generate_dynamic_reconfigure_options(cfg/cob_teleop_cob4.cfg )
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
+  INCLUDE_DIRS
+    common/src
   CATKIN_DEPENDS 
-	roscpp
-	dynamic_reconfigure
+  	roscpp
+    dynamic_reconfigure
 	sensor_msgs
 	geometry_msgs
 	brics_actuator
@@ -41,7 +42,7 @@ catkin_package(
 	trajectory_msgs
 	cob_script_server
 	cob_srvs
-	actionlib   
+   
 )
 
 ###########
@@ -50,7 +51,7 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-#include_directories(common/include)
+include_directories(common/include)
 include_directories(common/src)
 include_directories(${catkin_INCLUDE_DIRS})
 
