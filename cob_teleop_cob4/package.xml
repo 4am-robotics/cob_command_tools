@@ -2,7 +2,7 @@
 <package>
   <name>cob_teleop_cob4</name>
   <description>teleop_node_of_cob4</description>
-  <version>0.1.0</version>
+  <version>0.5.1</version>
   <maintainer email="max-sieber@gmx.de">Maximilian Sieber</maintainer>
   <author email="max-sieber@gmx.de">Maximilian Sieber</author>
   <license>LGPL</license>
