@@ -2,6 +2,60 @@
 Changelog for package cob_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Revert "catkin_lint'ing"
+  This reverts commit f7fb5ce0e5d76bc44795beee9a40e9a87a863bc6.
+* catkin_lint'ing
+* Delete .project
+* Delete .cproject
+* Merge branch 'hydro_dev' of github.com:ipa-fxm/cob_command_tools into indigo_dev
+* The license tag must neither be empty
+* add layout as pdf and gimp
+* added README with instructions
+* little cleanup
+* init recover all in automoves
+* gripper support for 2 joints
+* service call with function
+* move from sss to service calls
+* led modes with yaml
+* create symlink for input device
+* fixed udev rules but still unreliable
+* regenerated with newest bride version
+* LED feedback
+* make joaystick available after roscore restart
+* Cleanup for indigo and rewrite of dashboard to run without pr2_msgs
+* starting with ps3 status LEDs
+* removed git specific file
+* picked into old branch
+* removed .metadata again, wasn't in local gitignore
+* check if component stopped
+* merged other repo
+* stop components once via sss after deadman release
+* merged yaml change
+* changed arm twist topic
+* some testing
+* created launch file
+* attempting usage of brides new XmlRpc
+* actionlib working
+* adapted to new bride version
+* init_recover only once per press
+* allowing homing only once per press. Restored protected region
+* attemp init recover for components
+* actionlib moves working except for scope visibility
+* attempt action client for script server
+* added right arm
+* arm joint control working
+* tried arm joints, but get size mismatch from vel_controller
+* forgot arm_joint_velocity_max
+* implemented torso. working
+* some simplifying
+* removed .metadata
+* added comments, fixed runf_factor
+* first time publishing bricsActuator/JointVelocities
+* moved folder
+* Contributors: Alexander Bubeck, Felix Messmer, Florian Weisshardt, ipa-cob4-2, ipa-fmw-ms, ipa-fxm
+
 0.5.1 (2014-03-20)
 ------------------
 * fixed cob_teleop_keyboard

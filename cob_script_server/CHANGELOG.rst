@@ -2,6 +2,16 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* missing dependency
+* added explicit default argument queue_size
+* fix catkin_lint errors
+* add trajectory service
+* add dep to ipython
+* Update package.xml
+* Contributors: Felix Messmer, Florian Weisshardt, ipa-fmw-ms, ipa-fxm, ipa-jenkins, ros
+
 0.5.1 (2014-03-20)
 ------------------
 * Install tags

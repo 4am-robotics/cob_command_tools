@@ -2,6 +2,13 @@
 Changelog for package cob_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* restore original cob_teleop
+* moved folder
+* base works, attemp arm
+* Contributors: ipa-fmw-ms, ipa-fxm
+
 0.5.1 (2014-03-20)
 ------------------
 * fixed cob_teleop_keyboard
