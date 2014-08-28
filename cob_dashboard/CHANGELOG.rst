@@ -2,8 +2,8 @@
 Changelog for package cob_dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.2 (2014-08-28)
+------------------
 * fix install tags
 * move EmergencyStopState.msg to cob_msgs
 * changes related to introduction of cob_msgs

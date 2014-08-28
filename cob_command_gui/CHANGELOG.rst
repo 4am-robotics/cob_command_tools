@@ -2,8 +2,8 @@
 Changelog for package cob_command_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.2 (2014-08-28)
+------------------
 * move EmergencyStopState.msg to cob_msgs
 * Cleanup for indigo and rewrite of dashboard to run without pr2_msgs
 * Contributors: Alexander Bubeck, ipa-fxm

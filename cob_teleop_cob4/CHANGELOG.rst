@@ -2,8 +2,8 @@
 Changelog for package cob_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.2 (2014-08-28)
+------------------
 * Revert "catkin_lint'ing"
   This reverts commit f7fb5ce0e5d76bc44795beee9a40e9a87a863bc6.
 * catkin_lint'ing

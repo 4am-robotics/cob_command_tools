@@ -2,8 +2,8 @@
 Changelog for package cob_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.2 (2014-08-28)
+------------------
 * restore original cob_teleop
 * moved folder
 * base works, attemp arm
