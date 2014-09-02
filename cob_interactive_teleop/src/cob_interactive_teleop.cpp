@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "cob_interactive_teleop");
 
-  TeleopCOBMarker * cobTeleop = new TeleopCOBMarker();
+  new TeleopCOBMarker();
 
   ROS_INFO("COB Interactive Teleop is running...");
 
