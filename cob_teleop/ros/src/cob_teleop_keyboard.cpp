@@ -78,6 +78,13 @@ class TeleopKeyboard
 
   }
   
+  TeleopKeyboard()
+  {
+    walk_vel = 0;
+    run_vel = 0;
+    yaw_rate = 0;
+    yaw_rate_run = 0;
+  }
   ~TeleopKeyboard()   { }
   void keyboardLoop();
 
