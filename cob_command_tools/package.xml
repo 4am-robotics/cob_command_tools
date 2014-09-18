@@ -1,6 +1,6 @@
 <package>
   <name>cob_command_tools</name>
-  <version>0.5.2</version>
+  <version>0.6.0</version>
   <description>The cob_command_tools stack provides tools, for operating Care-O-bot.</description>
  
   <license>LGPL</license>

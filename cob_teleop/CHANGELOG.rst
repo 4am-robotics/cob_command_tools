@@ -2,8 +2,8 @@
 Changelog for package cob_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.0 (2014-09-18)
+------------------
 * fix cppcheck warnings
 * Contributors: Florian Weisshardt
 
