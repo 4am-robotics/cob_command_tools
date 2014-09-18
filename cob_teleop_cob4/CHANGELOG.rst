@@ -2,6 +2,9 @@
 Changelog for package cob_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.5.2 (2014-08-28)
 ------------------
 * Revert "catkin_lint'ing"

@@ -2,6 +2,11 @@
 Changelog for package cob_interactive_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix cppcheck warnings
+* Contributors: Florian Weisshardt
+
 0.5.2 (2014-08-28)
 ------------------
 * Update package.xml
