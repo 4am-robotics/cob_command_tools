@@ -63,6 +63,8 @@ add_executable(cob_teleop_cob4 ros/src/cob_teleop_cob4_ros.cpp)
 ## as an example, message headers may need to be generated before nodes
 add_dependencies(cob_teleop_cob4 cob_teleop_cob4_gencfg)
 add_dependencies(cob_teleop_cob4 ${cob_teleop_cob4_EXPORTED_TARGETS})
+add_dependencies(cob_teleop_cob4 cob_script_server_gencpp)
+add_dependencies(cob_teleop_cob4 brics_actuator_gencpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(cob_teleop_cob4

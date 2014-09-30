@@ -104,7 +104,7 @@ class script():
 		filename = os.path.basename(sys.argv[0])
 		self.basename, extension = os.path.splitext(filename)
 		rospy.init_node(self.basename)
-		self.graph_pub = rospy.Publisher("/script_server/graph", String)
+		self.graph_pub = rospy.Publisher("/script_server/graph", String, queue_size=1)
 
 	## Dummy function for initialization
 	def Initialize(self):
@@ -166,7 +166,7 @@ class simple_script_server:
 		self.parse = parse
 		
 		# init publishers
-		self.pub_light = rospy.Publisher('/light_controller/command', ColorRGBA)
+		self.pub_light = rospy.Publisher('/light_controller/command', ColorRGBA, queue_size=1)
 		
 		rospy.sleep(1) # we have to wait here until publishers are ready, don't ask why
 
@@ -605,7 +605,7 @@ class simple_script_server:
 		rot_vel = parameter_name[2] / duration_sec
 
 		# step 3: send constant velocity command to base_controller for the calculated duration of motion
-		pub = rospy.Publisher('/base_controller/command_safe', Twist)  # todo: use Matthias G.'s safe_command
+		pub = rospy.Publisher('/base_controller/command_safe', Twist, queue_size=1)  # todo: use Matthias G.'s safe_command
 		twist = Twist()
 		twist.linear.x = x_vel
 		twist.linear.y = y_vel
@@ -883,7 +883,7 @@ class action_handle:
 		self.blocking = blocking
 		self.parse = parse
 		self.level = int(rospy.get_param("/script_server/level",100))
-		self.state_pub = rospy.Publisher("/script_server/state", ScriptState)
+		self.state_pub = rospy.Publisher("/script_server/state", ScriptState, queue_size=1)
 		self.AppendNode(blocking)
 		self.client = actionlib.SimpleActionClient("dummy",ScriptAction)
 		self.client_state = 9

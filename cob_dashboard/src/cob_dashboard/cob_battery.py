@@ -62,7 +62,7 @@ class COBBattery(BatteryDashWidget):
         Sets button state based on msg
 
         :param msg: message containing the power state of the COB
-        :type msg: pr2_msgs.PowerState
+        :type msg: cob_msgs.PowerState
         """
         last_pct = self._pct
         last_plugged_in = self._plugged_in

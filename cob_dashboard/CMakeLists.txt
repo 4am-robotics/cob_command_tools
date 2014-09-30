@@ -14,13 +14,13 @@ catkin_python_setup()
 ## INCLUDE_DIRS: 
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 catkin_package(
-    CATKIN_DEPENDS rospy roslib std_srvs pr2_msgs rqt_pr2_dashboard
+    CATKIN_DEPENDS rospy roslib
     DEPENDS # TODO
     INCLUDE_DIRS # TODO include
     LIBRARIES # TODO
 )
 
-install(PROGRAMS scripts/cob_dashboard
+install(PROGRAMS scripts/cob_dashboard scripts/cob_dashboard_aggregator.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/scripts
 )
 
