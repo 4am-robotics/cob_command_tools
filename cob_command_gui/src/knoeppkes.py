@@ -59,7 +59,7 @@
 
 import roslib
 roslib.load_manifest('cob_command_gui')
-from cob_relayboard.msg import EmergencyStopState
+from cob_msgs.msg import EmergencyStopState
 from command_gui_buttons import *
 import thread
 import pygtk

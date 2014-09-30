@@ -39,6 +39,7 @@
   <run_depend>move_base_msgs</run_depend>
   <run_depend>cob_sound</run_depend>
   <run_depend>ipython</run_depend>
+  <run_depend>python-pygraphviz</run_depend>
     <!-- <test_depend>rospy</test_depend> -->
   <!-- <test_depend>actionlib</test_depend> -->
   <!-- <test_depend>actionlib_msgs</test_depend> -->
