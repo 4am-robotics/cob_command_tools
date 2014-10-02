@@ -101,10 +101,14 @@ class command_gui_buttons:
 					if button[2] == "recover":
 						self.recover_buttons.append(component_name)
 				elif button[1] == "stop":
-					buttons.append(self.CreateButton(button[0],self.sss.stop,component_name,button[2]))
+					buttons.append(self.CreateButton(button[0],self.sss.stop,component_name))
 					self.stop_buttons.append(component_name)
-				elif button[1] == "mode":
-					buttons.append(self.CreateButton(button[0],self.sss.set_operation_mode,component_name,button[2]))
+				elif button[1] == "init":
+					buttons.append(self.CreateButton(button[0],self.sss.init,component_name))
+					self.init_buttons.append(component_name)
+				elif button[1] == "recover":
+					buttons.append(self.CreateButton(button[0],self.sss.recover,component_name))
+					self.recover_buttons.append(component_name)
 				else:
 					rospy.logerr("Function <<%s>> not known to command gui",button[1])
 					return False
@@ -123,7 +127,7 @@ class command_gui_buttons:
 				else:
 					rospy.logwarn("parameter %s does not exist on ROS Parameter Server, no nav buttons will be available.",param_prefix)
 			self.panels.append(group)
-		
+
 		# uniqify lists to not have double entries
 		self.stop_buttons = self.uniqify_list(self.stop_buttons)
 		self.init_buttons = self.uniqify_list(self.init_buttons)
@@ -131,8 +135,11 @@ class command_gui_buttons:
 		
 	
 	## Creates one button with functionality
-	def CreateButton(self,button_name,function,component_name,parameter_name):
-		button = (button_name,function,(component_name,parameter_name,False))
+	def CreateButton(self,button_name,function,component_name,parameter_name=None):
+		if parameter_name == None:
+			button = (button_name,function,(component_name,False))
+		else:
+			button = (button_name,function,(component_name,parameter_name,False))
 		return button
 	
 	## Sorts a dictionary alphabetically
