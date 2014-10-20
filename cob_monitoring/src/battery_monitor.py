@@ -12,7 +12,7 @@
 # \note
 #   Project name: care-o-bot
 # \note
-#   ROS stack name: cob_robots
+#   ROS stack name: cob_command_tools
 # \note
 #   ROS package name: cob_monitoring
 #
