@@ -186,16 +186,14 @@ class simple_script_server:
 	# \param component_name Name of the component.
 	def stop(self,component_name,mode="omni",blocking=True):
 		#return self.trigger(component_name,"stop",blocking=blocking)
+		ah = action_handle("stop", component_name, "", False, self.parse)
+		if(self.parse):
+			return ah
+		else:
+			ah.set_active(mode="service")
+
+		rospy.loginfo("<<stop>> <<%s>>", component_name)
 		if component_name == "base":
-			ah = action_handle("stop", component_name, "", False, self.parse)
-			if(self.parse):
-				return ah
-			else:
-				ah.set_active(mode="service")
-	
-			rospy.loginfo("<<stop>> <<%s>>", component_name)
-	
-			# call action server
 			if(mode == None or mode == ""):
 				action_server_name = "/move_base"
 			elif(mode == "omni"):
@@ -209,28 +207,31 @@ class simple_script_server:
 				print "navigation mode is:",mode
 				ah.set_failed(33)
 				return ah
-
-			rospy.logdebug("calling %s action server",action_server_name)
 			client = actionlib.SimpleActionClient(action_server_name, MoveBaseAction)
-			
-			if blocking:
-				# trying to connect to server
-				rospy.logdebug("waiting for %s action server to start",action_server_name)
-				if not client.wait_for_server(rospy.Duration(5)):
-					# error: server did not respond
-					rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
-					ah.set_failed(4)
-					return ah
-				else:
-					rospy.logdebug("%s action server ready",action_server_name)
-
-			# cancel all goals
-			client.cancel_all_goals()
-			
-			ah.set_succeeded() # full success
-			return ah	
 		else:
-			return self.trigger(component_name,"stop",blocking=blocking)
+			action_server_name = "/" + component_name + "/joint_trajectory_controller/follow_joint_trajectory"
+			client = actionlib.SimpleActionClient(action_server_name, FollowJointTrajectoryAction)
+
+		# call action server
+		rospy.logdebug("calling %s action server",action_server_name)
+
+		
+		if blocking:
+			# trying to connect to server
+			rospy.logdebug("waiting for %s action server to start",action_server_name)
+			if not client.wait_for_server(rospy.Duration(5)):
+				# error: server did not respond
+				rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
+				ah.set_failed(4)
+				return ah
+			else:
+				rospy.logdebug("%s action server ready",action_server_name)
+
+		# cancel all goals
+		client.cancel_all_goals()
+		
+		ah.set_succeeded() # full success
+		return ah	
 
 	## Recovers different components.
 	#
@@ -255,12 +256,12 @@ class simple_script_server:
 			ah.set_active(mode="service")
 
 		rospy.loginfo("<<%s>> <<%s>>", service_name, component_name)
-		service_full_name = "/" + component_name + "_controller/" + service_name
+		service_full_name = "/" + component_name + "/driver/" + service_name
 		
 		if blocking:
 			# check if service is available
 			try:
-				rospy.wait_for_service(service_full_name,rospy.get_param('server_timeout',3))
+				rospy.wait_for_service(service_full_name,5)
 			except rospy.ROSException, e:
 				error_message = "%s"%e
 				rospy.logerr("...<<%s>> service of <<%s>> not available, error: %s",service_name, component_name, error_message)
@@ -530,7 +531,7 @@ class simple_script_server:
 		
 
 		# call action server
-		action_server_name = "/" + component_name + '_controller/follow_joint_trajectory'
+		action_server_name = "/" + component_name + '/joint_trajectory_controller/follow_joint_trajectory'
 		rospy.logdebug("calling %s action server",action_server_name)
 		client = actionlib.SimpleActionClient(action_server_name, FollowJointTrajectoryAction)
 		# trying to connect to server
@@ -541,12 +542,7 @@ class simple_script_server:
 			ah.set_failed(4)
 			return ah
 		else:
-			rospy.logdebug("%s action server ready",action_server_name)
-		
-		# set operation mode to position
-		#if not component_name == "arm":
-		#	self.set_operation_mode(component_name,"position")
-		#self.set_operation_mode(component_name,"position")		
+			rospy.logdebug("%s action server ready",action_server_name)		
 
 		# sending goal
 		client_goal = FollowJointTrajectoryGoal()
@@ -618,28 +614,6 @@ class simple_script_server:
 
 		ah.set_succeeded()
 		return ah
-
-	
-	## Set the operation mode for different components.
-	#
-	# Based on the component, the corresponding set_operation_mode service will be called.
-	#
-	# \param component_name Name of the component.
-	# \param mode Name of the operation mode to set.
-	# \param blocking Service calls are always blocking. The parameter is only provided for compatibility with other functions.
-	def set_operation_mode(self,component_name,mode,blocking=True, planning=False):
-		#rospy.loginfo("setting <<%s>> to operation mode <<%s>>",component_name, mode)
-		rospy.set_param("/" + component_name + "_controller/OperationMode",mode) # \todo TODO: remove and only use service call
-		#rospy.wait_for_service("/" + component_name + "_controller/set_operation_mode")
-		try:
-			set_operation_mode = rospy.ServiceProxy("/" + component_name + "_controller/set_operation_mode", SetOperationMode)
-			req = SetOperationModeRequest()
-			req.operation_mode.data = mode
-			#print req
-			resp = set_operation_mode(req)
-			#print resp
-		except rospy.ServiceException, e:
-			print "Service call failed: %s"%e
 		
 #------------------- LED section -------------------#
 	## Set the color of the cob_light component.
