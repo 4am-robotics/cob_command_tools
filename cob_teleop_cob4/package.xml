@@ -20,6 +20,7 @@
   <run_depend>actionlib</run_depend>
 
   <!-- user dependencies -->
+  <run_depend>ps3joy</run_depend>
   <build_depend>sensor_msgs</build_depend>
   <run_depend>sensor_msgs</run_depend>
   <build_depend>geometry_msgs</build_depend>
