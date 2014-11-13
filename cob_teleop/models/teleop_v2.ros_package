@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ros:Package xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ros="http://ros/1.0" name="cob_teleop" author="Florian Weisshardt, Maximilian Sieber" author_email="fmw@ipa.fhg.de" description="teleop_node_of_v2" license="LGPL" url="http://www.ros.org/wiki/cob_teleop">
+  <node name="cob_teleop_v2" frequency="50.0" paramSource="">
+    <publisher name="joy_feedback" msg="sensor_msgs::JoyFeedbackArray"/>
+    <publisher name="base_controller command" msg="geometry_msgs::Twist"/>
+    <publisher name="arm_cart_left" msg="geometry_msgs::Twist"/>
+    <publisher name="arm_cart_right" msg="geometry_msgs::Twist"/>
+    <publisher name="arm_joint_right" msg="brics_actuator::JointVelocities"/>
+    <publisher name="arm_joint_left" msg="brics_actuator::JointVelocities"/>
+    <publisher name="head_controller command" msg="geometry_msgs::Twist"/>
+    <publisher name="sensorring_controller command" msg="brics_actuator::JointVelocities"/>
+    <publisher name="torso_controller command" msg="geometry_msgs::Twist"/>
+    <publisher name="gripper_left" msg="brics_actuator::JointVelocities"/>
+    <publisher name="gripper_right" eventHandler="" msg="brics_actuator::JointVelocities"/>
+    <subscriber name="joy" msg="sensor_msgs::Joy"/>
+    <serviceClient name="trigger" msg="cob_srvs::Trigger"/>
+    <parameter name="button_deadman" value="11"/>
+    <parameter name="base_max_linear" type="double" value="0.5"/>
+    <parameter name="base_max_angular" type="double" value="1.5"/>
+    <parameter name="torso_max_angular" type="double" value="0.2"/>
+    <parameter name="head_max_angular" type="double" value="0.3"/>
+    <parameter name="sensor_ring_max_angular" type="double" value="0.1"/>
+    <parameter name="arm_joint_velocity_max" type="double" value="0.3"/>
+    <parameter name="arm_cartesian_max_linear" type="double" value="0.1"/>
+    <parameter name="arm_cartesian_max_angular" type="double" value="0.1"/>
+    <parameter name="gripper_max_velocity" type="double" value="0.1"/>
+    <parameter name="base_x" value="1"/>
+    <parameter name="base_y" value="0"/>
+    <parameter name="base_yaw" value="2"/>
+    <parameter name="arm_x" value="0"/>
+    <parameter name="arm_y" value="1"/>
+    <parameter name="arm_yaw" value="2"/>
+    <parameter name="arm_pitch_up" value="4"/>
+    <parameter name="arm_pitch_down" value="6"/>
+    <parameter name="arm_roll_right_and_ellbow" value="5"/>
+    <parameter name="arm_roll_left_and_ellbow" value="7"/>
+    <parameter name="arm_z_up" value="12"/>
+    <parameter name="arm_z_down" value="14"/>
+    <parameter name="gripper_open" value="15"/>
+    <parameter name="gripper_close" value="13"/>
+    <parameter name="arm_joint_up" value="4"/>
+    <parameter name="arm_joint_down" value="6"/>
+    <parameter name="arm_joint_left" value="7"/>
+    <parameter name="arm_joint_right" value="5"/>
+    <parameter name="arm_joint_12" value="15"/>
+    <parameter name="arm_joint_34" value="14"/>
+    <parameter name="arm_joint_56" value="13"/>
+    <parameter name="arm_joint_7_gripper" value="12"/>
+    <parameter name="axis_runfactor" value="9"/>
+    <parameter name="button_safety_override" value="9"/>
+    <parameter name="button_init_recover" value="3"/>
+    <parameter name="button_mode_switch" value="0"/>
+    <parameter name="torso_roll" value="0"/>
+    <parameter name="torso_pitch" value="1"/>
+    <parameter name="torso_yaw_left" value="15"/>
+    <parameter name="torso_yaw_right" value="13"/>
+    <parameter name="sensorring_yaw_left" value="4"/>
+    <parameter name="sensorring_yaw_right" value="6"/>
+    <parameter name="head_roll" value="2"/>
+    <parameter name="head_pitch" value="3"/>
+    <parameter name="head_yaw_left" value="7"/>
+    <parameter name="head_yaw_right" value="5"/>
+    <parameter name="head_home" value="4"/>
+    <parameter name="arm_left_home" value="7"/>
+    <parameter name="arm_right_home" value="5"/>
+    <parameter name="torso_home" value="6"/>
+    <parameter name="sensorring_home" value="12"/>
+    <parameter name="gripper_left_home" value="15"/>
+    <parameter name="gripper_right_home" value="13"/>
+    <parameter name="base_home" value="14"/>
+    <parameter name="arm_left_uri" type="XmlRpcValue" value=""/>
+    <parameter name="components" type="XmlRpcValue"/>
+    <parameter name="home_time" type="double" value="5.0"/>
+    <parameter name="stop_time" type="double" value="0.8"/>
+    <parameter name="arm_right_uri" type="XmlRpcValue" value=""/>
+    <parameter name="led_mode" type="XmlRpcValue"/>
+    <parameter name="gripper_1" value="3"/>
+    <parameter name="gripper_2" value="2"/>
+    <parameter name="gripper_max_angular" type="double" value="0.2"/>
+    <actionclient name="init" ActionType="cob_script_server::Script"/>
+  </node>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>brics_actuator</depend>
+  <depend>std_msgs</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>cob_script_server</depend>
+  <depend>cob_srvs</depend>
+</ros:Package>

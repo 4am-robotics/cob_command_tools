@@ -1,0 +1,8 @@
+led_mode:
+  - [1,0,0,0] #mode 0 base
+  - [1,1,0,0] #mode 1 arm left cartesian
+  - [0,0,1,1] #mode 1 arm right cartesian
+  - [0,0,1,0] #mode 1 arm left joints
+  - [0,1,0,0] #mode 1 arm left joints
+  - [1,1,1,1] #mode 1 autmoves
+  - [1,0,0,1] #mode 1 head torso sensorring

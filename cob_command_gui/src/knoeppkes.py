@@ -147,6 +147,10 @@ class GtkGeneralPanel(gtk.Frame):
     butrec.connect("clicked", lambda w: self.recover_all(buttons.recover_buttons))
     self.vbox.pack_start(butrec, False, False, 5)
 
+    butrec = gtk.Button("Halt all")
+    butrec.connect("clicked", lambda w: self.halt_all(buttons.halt_buttons))
+    self.vbox.pack_start(butrec, False, False, 5)
+
     plan_check = gtk.CheckButton("Planning")#
     plan_check.connect("toggled", self.planned_toggle)
     self.vbox.pack_start(plan_check, False, False, 5)
@@ -176,6 +180,11 @@ class GtkGeneralPanel(gtk.Frame):
   def recover_all(self,component_names):
     for component_name in component_names:
       self.sss.recover(component_name,False)
+
+  def halt_all(self,component_names):
+    for component_name in component_names:
+      self.sss.halt(component_name,False)
+
 
   def setEMStop(self, em):
     if(em):
