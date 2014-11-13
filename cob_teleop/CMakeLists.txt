@@ -19,7 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
 # protected region additional user defined REQUIREMENTS on begin #
 # protected region additional user defined REQUIREMENTS end #
 
-generate_dynamic_reconfigure_options(cfg/cob_teleop.cfg )
+generate_dynamic_reconfigure_options(cfg/cob_teleop_v2.cfg )
 
 ###################################
 ## catkin specific configuration ##
@@ -62,9 +62,7 @@ add_executable(cob_teleop_v2 ros/src/cob_teleop_v2_ros.cpp)
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 add_dependencies(cob_teleop_v2 cob_teleop_v2_gencfg)
-add_dependencies(cob_teleop_v2 ${cob_teleop_v2_EXPORTED_TARGETS})
-add_dependencies(cob_teleop_v2 cob_script_server_gencpp)
-add_dependencies(cob_teleop_v2 brics_actuator_gencpp)
+add_dependencies(cob_teleop_v2 ${cob_teleop_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(cob_teleop_v2
@@ -72,6 +70,13 @@ target_link_libraries(cob_teleop_v2
 )
 
 # protected region additional user defined BUILD STATEMENTS on begin #
+add_executable(${PROJECT_NAME} ros/src/cob_teleop.cpp)
+add_executable(${PROJECT_NAME}_keyboard ros/src/cob_teleop_keyboard.cpp)
+add_executable(keyboard_publisher ros/src/keyboard_publisher.cpp)
+
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_keyboard ${catkin_LIBRARIES})
+target_link_libraries(keyboard_publisher ${catkin_LIBRARIES})
 # protected region additional user defined BUILD STATEMENTS end #
 
 
@@ -87,4 +92,25 @@ install(TARGETS cob_teleop_v2
 )
 
 # protected region user Cmake macros on begin #
+install(TARGETS cob_teleop
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(TARGETS cob_teleop_keyboard
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(TARGETS keyboard_publisher 
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY ros/launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 # protected region user Cmake macros end #

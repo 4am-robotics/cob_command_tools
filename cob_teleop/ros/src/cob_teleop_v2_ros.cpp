@@ -1,7 +1,7 @@
 // ROS includes
 #include <ros/ros.h>
 #include <dynamic_reconfigure/server.h>
-#include <cob_teleop_cob4/cob_teleop_cob4Config.h>
+#include <cob_teleop/cob_teleop_v2Config.h>
 
 // ROS message includes
 #include <sensor_msgs/JoyFeedbackArray.h>
@@ -18,17 +18,17 @@
 #include <sensor_msgs/Joy.h>
 
 // other includes
-#include <cob_teleop_cob4_common.cpp>
+#include <cob_teleop_v2_common.cpp>
 
 
-class cob_teleop_cob4_ros
+class cob_teleop_v2_ros
 {
     public:
     ros::NodeHandle n_;
     ros::NodeHandle np_;
 
-    dynamic_reconfigure::Server<cob_teleop_cob4::cob_teleop_cob4Config> server;
-    dynamic_reconfigure::Server<cob_teleop_cob4::cob_teleop_cob4Config>::CallbackType f;
+    dynamic_reconfigure::Server<cob_teleop::cob_teleop_v2Config> server;
+    dynamic_reconfigure::Server<cob_teleop::cob_teleop_v2Config>::CallbackType f;
 
     ros::Publisher joy_feedback_;
     ros::Publisher base_controller_command_;
@@ -43,13 +43,13 @@ class cob_teleop_cob4_ros
     ros::Publisher gripper_right_;
     ros::Subscriber joy_;
 
-    cob_teleop_cob4_data component_data_;
-    cob_teleop_cob4_config component_config_;
-    cob_teleop_cob4_impl component_implementation_;
+    cob_teleop_v2_data component_data_;
+    cob_teleop_v2_config component_config_;
+    cob_teleop_v2_impl component_implementation_;
 
-    cob_teleop_cob4_ros() : np_("~")
+    cob_teleop_v2_ros() : np_("~")
     {
-        f = boost::bind(&cob_teleop_cob4_ros::configure_callback, this, _1, _2);
+        f = boost::bind(&cob_teleop_v2_ros::configure_callback, this, _1, _2);
         server.setCallback(f);
 
 
@@ -64,7 +64,7 @@ class cob_teleop_cob4_ros
         torso_controller_command_ = n_.advertise<geometry_msgs::Twist>("torso_controller_command", 1);
         gripper_left_ = n_.advertise<brics_actuator::JointVelocities>("gripper_left", 1);
         gripper_right_ = n_.advertise<brics_actuator::JointVelocities>("gripper_right", 1);
-        joy_ = n_.subscribe("joy", 1, &cob_teleop_cob4_ros::topicCallback_joy, this);
+        joy_ = n_.subscribe("joy", 1, &cob_teleop_v2_ros::topicCallback_joy, this);
 
         np_.param("button_deadman", component_config_.button_deadman, (int)11);
         np_.param("base_max_linear", component_config_.base_max_linear, (double)0.5);
@@ -139,7 +139,7 @@ class cob_teleop_cob4_ros
         else
             ROS_ERROR("Parameter led_mode not set");
         np_.param("gripper_1", component_config_.gripper_1, (int)3);
-        np_.param("gripper_2", component_config_.gripper_2, (int)4);
+        np_.param("gripper_2", component_config_.gripper_2, (int)2);
         np_.param("gripper_max_angular", component_config_.gripper_max_angular, (double)0.2);
     }
     void topicCallback_joy(const sensor_msgs::Joy::ConstPtr& msg)
@@ -147,7 +147,7 @@ class cob_teleop_cob4_ros
         component_data_.in_joy = *msg;
     }
 
-    void configure_callback(cob_teleop_cob4::cob_teleop_cob4Config &config, uint32_t level)
+    void configure_callback(cob_teleop::cob_teleop_v2Config &config, uint32_t level)
     {
         component_config_.button_deadman = config.button_deadman;
         component_config_.base_max_linear = config.base_max_linear;
@@ -262,9 +262,9 @@ class cob_teleop_cob4_ros
 int main(int argc, char** argv)
 {
 
-    ros::init(argc, argv, "cob_teleop_cob4");
+    ros::init(argc, argv, "cob_teleop_v2");
 
-    cob_teleop_cob4_ros node;
+    cob_teleop_v2_ros node;
     node.configure();
 
     ros::Rate loop_rate(50.0);

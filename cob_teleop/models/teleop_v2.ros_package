@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ros:Package xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ros="http://ros/1.0" name="cob_teleop_cob4" author="Maximilian Sieber" author_email="max-sieber@gmx.de" description="teleop_node_of_cob4">
-  <node name="cob_teleop_cob4" frequency="50.0" paramSource="">
+<ros:Package xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ros="http://ros/1.0" name="cob_teleop" author="Florian Weisshardt, Maximilian Sieber" author_email="fmw@ipa.fhg.de" description="teleop_node_of_v2" license="LGPL" url="http://www.ros.org/wiki/cob_teleop">
+  <node name="cob_teleop_v2" frequency="50.0" paramSource="">
     <publisher name="joy_feedback" msg="sensor_msgs::JoyFeedbackArray"/>
     <publisher name="base_controller command" msg="geometry_msgs::Twist"/>
     <publisher name="arm_cart_left" msg="geometry_msgs::Twist"/>
