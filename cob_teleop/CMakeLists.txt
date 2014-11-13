@@ -70,12 +70,12 @@ target_link_libraries(cob_teleop_v2
 )
 
 # protected region additional user defined BUILD STATEMENTS on begin #
-add_executable(${PROJECT_NAME} ros/src/cob_teleop.cpp)
-add_executable(${PROJECT_NAME}_keyboard ros/src/cob_teleop_keyboard.cpp)
+add_executable(cob_teleop_v1 ros/src/cob_teleop_v1.cpp)
+add_executable(cob_teleop_keyboard ros/src/cob_teleop_keyboard.cpp)
 add_executable(keyboard_publisher ros/src/keyboard_publisher.cpp)
 
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
-target_link_libraries(${PROJECT_NAME}_keyboard ${catkin_LIBRARIES})
+target_link_libraries(cob_teleop_v1 ${catkin_LIBRARIES})
+target_link_libraries(cob_teleop_keyboard ${catkin_LIBRARIES})
 target_link_libraries(keyboard_publisher ${catkin_LIBRARIES})
 # protected region additional user defined BUILD STATEMENTS end #
 
@@ -92,7 +92,7 @@ install(TARGETS cob_teleop_v2
 )
 
 # protected region user Cmake macros on begin #
-install(TARGETS cob_teleop
+install(TARGETS cob_teleop_v1
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
