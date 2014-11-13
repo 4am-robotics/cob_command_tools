@@ -241,6 +241,14 @@ class simple_script_server:
 	def recover(self,component_name,blocking=True):
 		return self.trigger(component_name,"recover",blocking=blocking)
 
+	## Halts different components.
+	#
+	# Based on the component, the corresponding halt service will be called.
+	#
+	# \param component_name Name of the component.
+	def halt(self,component_name,blocking=True):
+		return self.trigger(component_name,"halt",blocking=blocking)
+
 	## Deals with all kind of trigger services for different components.
 	#
 	# Based on the component and service name, the corresponding trigger service will be called.
