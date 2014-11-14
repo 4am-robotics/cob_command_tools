@@ -71,6 +71,8 @@ target_link_libraries(cob_teleop_v2
 
 # protected region additional user defined BUILD STATEMENTS on begin #
 add_executable(cob_teleop_v1 ros/src/cob_teleop_v1.cpp)
+add_dependencies(cob_teleop_v1 cob_srvs_gencpp)
+add_dependencies(cob_teleop_v1 brics_actuator_gencpp)
 add_executable(cob_teleop_keyboard ros/src/cob_teleop_keyboard.cpp)
 add_executable(keyboard_publisher ros/src/keyboard_publisher.cpp)
 
