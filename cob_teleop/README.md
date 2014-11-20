@@ -292,7 +292,7 @@ Node: cob_teleop_v2
 <!--- protected region head_controller command on begin -->
 <!--- protected region head_controller command end -->
 
-**sensorring_controller command** *(brics_actuator::JointVelocities)*   
+**sensorring_controller command** *(std_msgs::Float64MultiArray)*   
 <!--- protected region sensorring_controller command on begin -->
 <!--- protected region sensorring_controller command end -->
 
@@ -300,11 +300,11 @@ Node: cob_teleop_v2
 <!--- protected region torso_controller command on begin -->
 <!--- protected region torso_controller command end -->
 
-**gripper_left** *(brics_actuator::JointVelocities)*   
+**gripper_left** *(std_msgs::Float64MultiArray)*   
 <!--- protected region gripper_left on begin -->
 <!--- protected region gripper_left end -->
 
-**gripper_right** *(brics_actuator::JointVelocities)*   
+**gripper_right** *(std_msgs::Float64MultiArray)*   
 <!--- protected region gripper_right on begin -->
 <!--- protected region gripper_right end -->
 
