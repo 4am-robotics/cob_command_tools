@@ -5,13 +5,13 @@
     <publisher name="base_controller command" msg="geometry_msgs::Twist"/>
     <publisher name="arm_cart_left" msg="geometry_msgs::Twist"/>
     <publisher name="arm_cart_right" msg="geometry_msgs::Twist"/>
-    <publisher name="arm_joint_right" msg="brics_actuator::JointVelocities"/>
-    <publisher name="arm_joint_left" msg="brics_actuator::JointVelocities"/>
+    <publisher name="arm_joint_right" msg="std_msgs::Float64MultiArray"/>
+    <publisher name="arm_joint_left" msg="std_msgs::Float64MultiArray"/>
     <publisher name="head_controller command" msg="geometry_msgs::Twist"/>
-    <publisher name="sensorring_controller command" msg="brics_actuator::JointVelocities"/>
+    <publisher name="sensorring_controller command" msg="std_msgs::Float64MultiArray"/>
     <publisher name="torso_controller command" msg="geometry_msgs::Twist"/>
-    <publisher name="gripper_left" msg="brics_actuator::JointVelocities"/>
-    <publisher name="gripper_right" eventHandler="" msg="brics_actuator::JointVelocities"/>
+    <publisher name="gripper_left" msg="std_msgs::Float64MultiArray"/>
+    <publisher name="gripper_right" eventHandler="" msg="std_msgs::Float64MultiArray"/>
     <subscriber name="joy" msg="sensor_msgs::Joy"/>
     <serviceClient name="trigger" msg="cob_srvs::Trigger"/>
     <parameter name="button_deadman" value="11"/>

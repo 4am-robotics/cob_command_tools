@@ -4,13 +4,13 @@
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Twist.h>
-#include <brics_actuator/JointVelocities.h>
-#include <brics_actuator/JointVelocities.h>
+#include <std_msgs/Float64MultiArray.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <geometry_msgs/Twist.h>
-#include <brics_actuator/JointVelocities.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <geometry_msgs/Twist.h>
-#include <brics_actuator/JointVelocities.h>
-#include <brics_actuator/JointVelocities.h>
+#include <std_msgs/Float64MultiArray.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <sensor_msgs/Joy.h>
 
 /* protected region user include files on begin */
@@ -104,19 +104,19 @@ public:
     bool out_arm_cart_left_active;
     geometry_msgs::Twist out_arm_cart_right;
     bool out_arm_cart_right_active;
-    brics_actuator::JointVelocities out_arm_joint_right;
+    std_msgs::Float64MultiArray out_arm_joint_right;
     bool out_arm_joint_right_active;
-    brics_actuator::JointVelocities out_arm_joint_left;
+    std_msgs::Float64MultiArray out_arm_joint_left;
     bool out_arm_joint_left_active;
     geometry_msgs::Twist out_head_controller_command;
     bool out_head_controller_command_active;
-    brics_actuator::JointVelocities out_sensorring_controller_command;
+    std_msgs::Float64MultiArray out_sensorring_controller_command;
     bool out_sensorring_controller_command_active;
     geometry_msgs::Twist out_torso_controller_command;
     bool out_torso_controller_command_active;
-    brics_actuator::JointVelocities out_gripper_left;
+    std_msgs::Float64MultiArray out_gripper_left;
     bool out_gripper_left_active;
-    brics_actuator::JointVelocities out_gripper_right;
+    std_msgs::Float64MultiArray out_gripper_right;
     bool out_gripper_right_active;
 };
 
@@ -139,11 +139,11 @@ class cob_teleop_v2_impl
     geometry_msgs::Twist torso;
     geometry_msgs::Twist arm_cart;
     sensor_msgs::Joy joy;
-    brics_actuator::JointVelocities left;
-    brics_actuator::JointVelocities right;
-    brics_actuator::JointVelocities sring;
-    brics_actuator::JointVelocities gleft;
-    brics_actuator::JointVelocities gright;
+    std_msgs::Float64MultiArray left;
+    std_msgs::Float64MultiArray right;
+    std_msgs::Float64MultiArray sring;
+    std_msgs::Float64MultiArray gleft;
+    std_msgs::Float64MultiArray gright;
     cob_script_server::ScriptGoal sss;
     
     sensor_msgs::JoyFeedbackArray joyfb;
@@ -169,30 +169,10 @@ public:
     {
         /* protected region user configure on begin */
       //asign arm joints
-      left.velocities.resize(7);
-      right.velocities.resize(7);
+      left.data.resize(7);
+      right.data.resize(7);
       int i;
-      for (i=0; i<7; i++)
-      {
-        left.velocities[i].unit="rad/sec";
-        right.velocities[i].unit="rad/sec";
-        left.velocities[i].joint_uri=static_cast<std::string>(config.arm_left_uri[i]).c_str();
-        right.velocities[i].joint_uri=static_cast<std::string>(config.arm_right_uri[i]).c_str();
-      }
-      //set sensoring joint
-      sring.velocities.resize(1);
-      sring.velocities[0].joint_uri="sensorring_joint";
-      sring.velocities[0].unit="rad/sec";
-      //set gripper joints
-      gleft.velocities.resize(2);
-      gright.velocities.resize(2);
-      for (i=0; i<2; i++)
-      {
-      gleft.velocities[i].unit="rad/sec";
-      gright.velocities[i].unit="rad/sec";
-      gleft.velocities[i].joint_uri="Todo/left";
-      gright.velocities[i].joint_uri="Todo/right";
-      }
+
       //set initial mode after startup
       mode=0;
       LEDS=config.led_mode[mode];
@@ -297,15 +277,15 @@ public:
       break;
       
       case 3: //arm_joints_left
-      left.velocities[0].value=updown*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
-      left.velocities[1].value=leftright*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
-      left.velocities[2].value=updown*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
-      left.velocities[3].value=leftright*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
-      left.velocities[4].value=updown*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
-      left.velocities[5].value=leftright*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
-      left.velocities[6].value=updown*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
-      gleft.velocities[0].value=joy.axes[config.gripper_1]*run*config.gripper_max_angular;
-      gleft.velocities[1].value=joy.axes[config.gripper_2]*run*config.gripper_max_angular;
+      left.data[0]=updown*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
+      left.data[1]=leftright*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
+      left.data[2]=updown*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
+      left.data[3]=leftright*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
+      left.data[4]=updown*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
+      left.data[5]=leftright*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
+      left.data[6]=updown*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
+      gleft.data[0]=joy.axes[config.gripper_1]*run*config.gripper_max_angular;
+      gleft.data[1]=joy.axes[config.gripper_2]*run*config.gripper_max_angular;
       data.out_gripper_left=gleft;
       data.out_arm_joint_left=left;
       data.out_arm_joint_left_active=1;
@@ -319,15 +299,15 @@ public:
       break;
       
       case 4: //arm_joints_right
-      right.velocities[0].value=updown*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
-      right.velocities[1].value=leftright*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
-      right.velocities[2].value=updown*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
-      right.velocities[3].value=leftright*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
-      right.velocities[4].value=updown*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
-      right.velocities[5].value=leftright*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
-      right.velocities[6].value=updown*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
-      gright.velocities[0].value=joy.axes[config.gripper_1]*run*config.gripper_max_angular;
-      gright.velocities[1].value=joy.axes[config.gripper_2]*run*config.gripper_max_angular;
+      right.data[0]=updown*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
+      right.data[1]=leftright*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
+      right.data[2]=updown*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
+      right.data[3]=leftright*joy.buttons[config.arm_joint_34]*run*config.arm_joint_velocity_max;
+      right.data[4]=updown*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
+      right.data[5]=leftright*joy.buttons[config.arm_joint_56]*run*config.arm_joint_velocity_max;
+      right.data[6]=updown*joy.buttons[config.arm_joint_7_gripper]*run*config.arm_joint_velocity_max;
+      gright.data[0]=joy.axes[config.gripper_1]*run*config.gripper_max_angular;
+      gright.data[1]=joy.axes[config.gripper_2]*run*config.gripper_max_angular;
       data.out_gripper_right=gright;
       data.out_arm_joint_right=right;
       data.out_arm_joint_right_active=1;
@@ -375,7 +355,7 @@ public:
      
       case 6: //case 6: sensorring head torso 
       //sensorring (Joints)
-      sring.velocities[0].value=(joy.buttons[config.sensorring_yaw_left]-joy.buttons[config.sensorring_yaw_right])*config.sensor_ring_max_angular*run;
+      sring.data[0]=(joy.buttons[config.sensorring_yaw_left]-joy.buttons[config.sensorring_yaw_right])*config.sensor_ring_max_angular*run;
       data.out_sensorring_controller_command=sring;
       data.out_sensorring_controller_command_active=1;
       //head (Twist)

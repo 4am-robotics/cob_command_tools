@@ -8,13 +8,13 @@
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Twist.h>
-#include <brics_actuator/JointVelocities.h>
-#include <brics_actuator/JointVelocities.h>
+#include <std_msgs/Float64MultiArray.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <geometry_msgs/Twist.h>
-#include <brics_actuator/JointVelocities.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <geometry_msgs/Twist.h>
-#include <brics_actuator/JointVelocities.h>
-#include <brics_actuator/JointVelocities.h>
+#include <std_msgs/Float64MultiArray.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <sensor_msgs/Joy.h>
 
 // other includes
@@ -57,13 +57,13 @@ class cob_teleop_v2_ros
         base_controller_command_ = n_.advertise<geometry_msgs::Twist>("base_controller_command", 1);
         arm_cart_left_ = n_.advertise<geometry_msgs::Twist>("arm_cart_left", 1);
         arm_cart_right_ = n_.advertise<geometry_msgs::Twist>("arm_cart_right", 1);
-        arm_joint_right_ = n_.advertise<brics_actuator::JointVelocities>("arm_joint_right", 1);
-        arm_joint_left_ = n_.advertise<brics_actuator::JointVelocities>("arm_joint_left", 1);
+        arm_joint_right_ = n_.advertise<std_msgs::Float64MultiArray>("arm_joint_right", 1);
+        arm_joint_left_ = n_.advertise<std_msgs::Float64MultiArray>("arm_joint_left", 1);
         head_controller_command_ = n_.advertise<geometry_msgs::Twist>("head_controller_command", 1);
-        sensorring_controller_command_ = n_.advertise<brics_actuator::JointVelocities>("sensorring_controller_command", 1);
+        sensorring_controller_command_ = n_.advertise<std_msgs::Float64MultiArray>("sensorring_controller_command", 1);
         torso_controller_command_ = n_.advertise<geometry_msgs::Twist>("torso_controller_command", 1);
-        gripper_left_ = n_.advertise<brics_actuator::JointVelocities>("gripper_left", 1);
-        gripper_right_ = n_.advertise<brics_actuator::JointVelocities>("gripper_right", 1);
+        gripper_left_ = n_.advertise<std_msgs::Float64MultiArray>("gripper_left", 1);
+        gripper_right_ = n_.advertise<std_msgs::Float64MultiArray>("gripper_right", 1);
         joy_ = n_.subscribe("joy", 1, &cob_teleop_v2_ros::topicCallback_joy, this);
 
         np_.param("button_deadman", component_config_.button_deadman, (int)11);
