@@ -185,7 +185,6 @@ class simple_script_server:
 	#
 	# \param component_name Name of the component.
 	def stop(self,component_name,mode="omni",blocking=True):
-		#return self.trigger(component_name,"stop",blocking=blocking)
 		ah = action_handle("stop", component_name, "", False, self.parse)
 		if(self.parse):
 			return ah
@@ -209,12 +208,15 @@ class simple_script_server:
 				return ah
 			client = actionlib.SimpleActionClient(action_server_name, MoveBaseAction)
 		else:
-			action_server_name = "/" + component_name + "/joint_trajectory_controller/follow_joint_trajectory"
+			parameter_name = self.ns_global_prefix + "/" + component_name + "/action_name"
+			if not rospy.has_param(parameter_name):
+					rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",parameter_name)
+					return 2
+			action_server_name = rospy.get_param(parameter_name)
 			client = actionlib.SimpleActionClient(action_server_name, FollowJointTrajectoryAction)
 
 		# call action server
 		rospy.logdebug("calling %s action server",action_server_name)
-
 		
 		if blocking:
 			# trying to connect to server
@@ -241,6 +243,14 @@ class simple_script_server:
 	def recover(self,component_name,blocking=True):
 		return self.trigger(component_name,"recover",blocking=blocking)
 
+	## Halts different components.
+	#
+	# Based on the component, the corresponding halt service will be called.
+	#
+	# \param component_name Name of the component.
+	def halt(self,component_name,blocking=True):
+		return self.trigger(component_name,"halt",blocking=blocking)
+
 	## Deals with all kind of trigger services for different components.
 	#
 	# Based on the component and service name, the corresponding trigger service will be called.
@@ -256,7 +266,12 @@ class simple_script_server:
 			ah.set_active(mode="service")
 
 		rospy.loginfo("<<%s>> <<%s>>", service_name, component_name)
-		service_full_name = "/" + component_name + "/driver/" + service_name
+		parameter_name = self.ns_global_prefix + "/" + component_name + "/service_ns"
+		if not rospy.has_param(parameter_name):
+				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",parameter_name)
+				return 2
+		service_ns_name = rospy.get_param(parameter_name)
+		service_full_name = service_ns_name + "/" + service_name
 		
 		if blocking:
 			# check if service is available
@@ -270,14 +285,12 @@ class simple_script_server:
 
 		# check if service is callable
 		try:
-			init = rospy.ServiceProxy(service_full_name,Trigger)
-			#print init()
-			#resp = init()
+			trigger = rospy.ServiceProxy(service_full_name,Trigger)
 			if blocking:
 				rospy.loginfo("Wait for <<%s>> to <<%s>>...", component_name, service_name)
-				resp = init()
+				resp = trigger()
 			else:
-				thread.start_new_thread(init,())
+				thread.start_new_thread(trigger,())
 		except rospy.ServiceException, e:
 			error_message = "%s"%e
 			rospy.logerr("...calling <<%s>> service of <<%s>> not successfull, error: %s",service_name, component_name, error_message)
@@ -531,7 +544,11 @@ class simple_script_server:
 		
 
 		# call action server
-		action_server_name = "/" + component_name + '/joint_trajectory_controller/follow_joint_trajectory'
+		parameter_name = self.ns_global_prefix + "/" + component_name + "/action_name"
+		if not rospy.has_param(parameter_name):
+				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",parameter_name)
+				return 2
+		action_server_name = rospy.get_param(parameter_name)
 		rospy.logdebug("calling %s action server",action_server_name)
 		client = actionlib.SimpleActionClient(action_server_name, FollowJointTrajectoryAction)
 		# trying to connect to server
