@@ -64,6 +64,7 @@ import types
 import thread
 import commands
 import math
+import threading
 
 # ROS imports
 import roslib
@@ -152,6 +153,30 @@ class script():
 		function_counter = 0
 		return graph.string()
 
+## joint_state_listener class
+#
+# Listens to joint states for a given component
+class joint_state_listener:
+	def __init__(self, component_name):
+		self.actual_pos = []
+		self.lock = threading.Lock()
+		rospy.Subscriber("/" + component_name + "/joint_trajectory_controller/state", JointTrajectoryControllerState, self.state_cb)
+		self.received = False
+
+	# joint states callback
+	def state_cb(self, msg):
+		self.lock.acquire()
+		self.actual_pos = list(msg.actual.positions)
+		self.received = True
+		self.lock.release()
+
+	# flag if joint states are received
+	def get_actual_pos(self):
+		self.lock.acquire()
+		actual_pos = self.actual_pos
+		self.lock.release()
+		return actual_pos
+
 ## Simple script server class.
 #
 # Implements the python interface for the script server.
@@ -170,7 +195,7 @@ class simple_script_server:
 		
 		rospy.sleep(1) # we have to wait here until publishers are ready, don't ask why
 
-    #------------------- Init section -------------------#
+	#------------------- Init section -------------------#
 	## Initializes different components.
 	#
 	# Based on the component, the corresponding init service will be called.
@@ -508,19 +533,58 @@ class simple_script_server:
 
 		rospy.logdebug("accepted trajectory for %s",component_name)
 		
+		# get current pos
+		jsl = joint_state_listener(component_name)
+		max_wait_time = 0.5
+		wait_time = 0
+		while not jsl.received:
+			rospy.logdebug("still waiting for joint states of " + component_name)
+			if wait_time > max_wait_time:
+				rospy.logwarn("no joint states received within timeout. using default point time of 8sec")
+				break
+			rospy.sleep(0.01)
+			wait_time += 0.01
+		start_pos = jsl.get_actual_pos()
+
 		# convert to ROS trajectory message
 		traj_msg = JointTrajectory()
 		traj_msg.header.stamp = rospy.Time.now()+rospy.Duration(0.5)
 		traj_msg.joint_names = joint_names
 		point_nr = 0
+		traj_time = 0
+		
+		param_string = self.ns_global_prefix + "/" + component_name + "/default_vel"
+		if not rospy.has_param(param_string):
+			rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default of 0.4 [rad/sec].",param_string)
+			default_vel = 0.4 # rad/s
+		else:
+			default_vel = rospy.get_param(param_string)
+
 		for point in traj:
 			point_nr = point_nr + 1
 			point_msg = JointTrajectoryPoint()
 			point_msg.positions = point
-			point_msg.velocities = [0]*len(joint_names)
-			point_msg.time_from_start=rospy.Duration(8*point_nr) # this value is set to 6 sec per point. \todo TODO: read from parameter
+
+			# set zero velocities for last trajectory point only
+			if point_nr == len(traj):
+				point_msg.velocities = [0]*len(joint_names)
+
+			# use hardcoded point_time if no start_pos available
+			if start_pos != []:
+				point_time = self.calculate_point_time(component_name, start_pos, point, default_vel) + traj_time
+			else:
+				point_time = 8*point_nr
+
+			traj_time += point_time
+			start_pos = point
+			point_msg.time_from_start=rospy.Duration(point_time)
 			traj_msg.points.append(point_msg)
 		return (traj_msg, 0)
+
+	def calculate_point_time(self, component_name, start_pos, end_pos, default_vel):
+		d_max = max(list(abs(numpy.array(start_pos) - numpy.array(end_pos))))
+		point_time = d_max / default_vel
+		return point_time
 
 	## Deals with all kind of trajectory movements for different components.
 	#
