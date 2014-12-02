@@ -555,8 +555,8 @@ class simple_script_server:
 		
 		param_string = self.ns_global_prefix + "/" + component_name + "/default_vel"
 		if not rospy.has_param(param_string):
-			rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default of 0.4 [rad/sec].",param_string)
-			default_vel = 0.4 # rad/s
+			rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default of 0.1 [rad/sec].",param_string)
+			default_vel = 0.1 # rad/s
 		else:
 			default_vel = rospy.get_param(param_string)
 
@@ -571,13 +571,13 @@ class simple_script_server:
 
 			# use hardcoded point_time if no start_pos available
 			if start_pos != []:
-				point_time = self.calculate_point_time(component_name, start_pos, point, default_vel) + traj_time
+				point_time = self.calculate_point_time(component_name, start_pos, point, default_vel)
 			else:
 				point_time = 8*point_nr
 
-			traj_time += point_time
 			start_pos = point
-			point_msg.time_from_start=rospy.Duration(point_time)
+			point_msg.time_from_start=rospy.Duration(point_time + traj_time)
+			traj_time += point_time
 			traj_msg.points.append(point_msg)
 		return (traj_msg, 0)
 
