@@ -88,8 +88,7 @@ def start(func, args):
   execute_command = True
   
   largs = list(args)
-  
-  if confirm_commands_enabled and (largs[1] != 'stop'):
+  if confirm_commands_enabled and ((func.__name__ != "stop") and (largs[1] != 'stop')):
     confirm_dialog = gtk.MessageDialog(None, 0, gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, "Execute Command?")
     if confirm_dialog.run() == gtk.RESPONSE_NO:
       execute_command = False
@@ -148,6 +147,10 @@ class GtkGeneralPanel(gtk.Frame):
     butrec.connect("clicked", lambda w: self.recover_all(buttons.recover_buttons))
     self.vbox.pack_start(butrec, False, False, 5)
 
+    butrec = gtk.Button("Halt all")
+    butrec.connect("clicked", lambda w: self.halt_all(buttons.halt_buttons))
+    self.vbox.pack_start(butrec, False, False, 5)
+
     plan_check = gtk.CheckButton("Planning")#
     plan_check.connect("toggled", self.planned_toggle)
     self.vbox.pack_start(plan_check, False, False, 5)
@@ -177,6 +180,11 @@ class GtkGeneralPanel(gtk.Frame):
   def recover_all(self,component_names):
     for component_name in component_names:
       self.sss.recover(component_name,False)
+
+  def halt_all(self,component_names):
+    for component_name in component_names:
+      self.sss.halt(component_name,False)
+
 
   def setEMStop(self, em):
     if(em):
@@ -273,10 +281,10 @@ class Knoeppkes():
     
     self.status_bar = gtk.Statusbar()  
     context_id = self.status_bar.get_context_id("Statusbar")
-    string = "Connected to $ROS_MASTER_URI=" + os.environ.get("ROS_MASTER_URI")    
+    string = "Connected to $ROS_MASTER_URI=" + os.environ.get("ROS_MASTER_URI")
     self.status_bar.push(context_id, string)
-    vbox.pack_start(self.status_bar, False, False, 0)     
-    self.window.add(vbox)    
+    vbox.pack_start(self.status_bar, False, False, 0)
+    self.window.add(vbox)
     self.window.show_all()
     gtk.gdk.threads_init()
     gtk.gdk.threads_enter()
