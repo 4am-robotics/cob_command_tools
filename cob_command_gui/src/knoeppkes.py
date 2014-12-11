@@ -190,7 +190,7 @@ class GtkGeneralPanel(gtk.Frame):
     if(em):
       #print "Emergency Stop Active"
       gtk.threads_enter()
-      self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/weather-storm.png")
+      self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/error.png")
       self.status_label.set_text("EM Stop !")
       gtk.threads_leave()
       if(self.em_stop == False):
@@ -200,7 +200,7 @@ class GtkGeneralPanel(gtk.Frame):
         n.show()
     else:
       #print "Status OK"
-      #self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/weather-clear.png")
+      self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/ok.png")
       gtk.threads_enter()
       self.status_label.set_text("Status OK")
       gtk.threads_leave()
