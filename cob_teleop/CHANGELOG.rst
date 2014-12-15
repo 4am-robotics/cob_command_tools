@@ -2,6 +2,29 @@
 Changelog for package cob_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.1 (2014-12-15)
+------------------
+* merge
+* adapt teleop_v2 to the new controllers structure
+* add gencpp dependency
+* rename teleop to teleop_v1
+* change maintainer
+* rename finished
+* rename files from cob4 to v2
+* Contributors: Florian Weisshardt, ipa-nhg
+
+0.6.0 (2014-09-18)
+------------------
+* fix cppcheck warnings
+* Contributors: Florian Weisshardt
+
+0.5.2 (2014-08-28)
+------------------
+* restore original cob_teleop
+* moved folder
+* base works, attemp arm
+* Contributors: ipa-fmw-ms, ipa-fxm
+
 0.5.1 (2014-03-20)
 ------------------
 * fixed cob_teleop_keyboard

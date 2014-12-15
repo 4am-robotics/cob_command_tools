@@ -2,6 +2,26 @@
 Changelog for package cob_dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.1 (2014-12-15)
+------------------
+* merge
+* fix xml syntax
+* added dependency
+* Contributors: Florian Weisshardt, ipa-fxm, ipa-nhg
+
+0.6.0 (2014-09-18)
+------------------
+
+0.5.2 (2014-08-28)
+------------------
+* fix install tags
+* move EmergencyStopState.msg to cob_msgs
+* changes related to introduction of cob_msgs
+* add dashboard_aggregator to replace pr2_dashboard_aggregator
+* Cleanup for indigo and rewrite of dashboard to run without pr2_msgs
+* Update package.xml
+* Contributors: Alexander Bubeck, Felix Messmer, Florian Weisshardt, ipa-fxm
+
 0.5.1 (2014-03-20)
 ------------------
 * add rqt_gui_cpp dependency

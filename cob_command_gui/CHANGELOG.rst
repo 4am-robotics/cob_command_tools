@@ -2,6 +2,25 @@
 Changelog for package cob_command_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.1 (2014-12-15)
+------------------
+* merge
+* add nice images to command_gui
+* add halt service support
+* adapt namespaces to new canopen version
+* merge
+* Update package.xml
+* Contributors: Florian Weisshardt, ipa-fmw
+
+0.6.0 (2014-09-18)
+------------------
+
+0.5.2 (2014-08-28)
+------------------
+* move EmergencyStopState.msg to cob_msgs
+* Cleanup for indigo and rewrite of dashboard to run without pr2_msgs
+* Contributors: Alexander Bubeck, ipa-fxm
+
 0.5.1 (2014-03-20)
 ------------------
 * merged catkin version
