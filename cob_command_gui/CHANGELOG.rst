@@ -2,6 +2,16 @@
 Changelog for package cob_command_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* merge
+* add nice images to command_gui
+* add halt service support
+* adapt namespaces to new canopen version
+* merge
+* Update package.xml
+* Contributors: Florian Weisshardt, ipa-fmw
+
 0.6.0 (2014-09-18)
 ------------------
 

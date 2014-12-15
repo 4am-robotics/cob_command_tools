@@ -2,6 +2,14 @@
 Changelog for package cob_command_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* merge
+* rename finished
+* move cob_monitoring
+* missed dependency
+* Contributors: Florian Weisshardt, ipa-nhg
+
 0.6.0 (2014-09-18)
 ------------------
 

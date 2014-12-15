@@ -2,6 +2,13 @@
 Changelog for package cob_dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* merge
+* fix xml syntax
+* added dependency
+* Contributors: Florian Weisshardt, ipa-fxm, ipa-nhg
+
 0.6.0 (2014-09-18)
 ------------------
 

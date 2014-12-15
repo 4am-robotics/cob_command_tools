@@ -2,6 +2,17 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix traj time calculation
+* use default vel instead of default point time
+* use 8 sec by default for trajectories
+* action and service namespaces are configurable now
+* add halt service support
+* Missing install tag
+* adapt namespaces to new canopen version
+* Contributors: Florian Weisshardt, ipa-cob4-2, ipa-fmw
+
 0.6.0 (2014-09-18)
 ------------------
 

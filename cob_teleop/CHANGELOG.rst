@@ -2,6 +2,17 @@
 Changelog for package cob_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* merge
+* adapt teleop_v2 to the new controllers structure
+* add gencpp dependency
+* rename teleop to teleop_v1
+* change maintainer
+* rename finished
+* rename files from cob4 to v2
+* Contributors: Florian Weisshardt, ipa-nhg
+
 0.6.0 (2014-09-18)
 ------------------
 * fix cppcheck warnings

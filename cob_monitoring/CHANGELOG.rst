@@ -5,6 +5,12 @@ Changelog for package cob_monitoring
 0.5.3 (2014-03-28)
 ------------------
 
+Forthcoming
+-----------
+* Update battery_monitor.py
+* move cob_monitoring to cob_command_tools
+* Contributors: Florian Weisshardt, ipa-nhg
+
 0.5.2 (2014-03-27)
 ------------------
 
