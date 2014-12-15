@@ -1,42 +1,40 @@
+<?xml version="1.0"?>
 <package>
   <name>cob_teleop</name>
+  <description>teleop_node_of_v2</description>
   <version>0.6.0</version>
-  <description>This Package enables remote controll of Care-O-bot via a joystick or keyboard. Currently tray, torso, arm and base are supported.</description>
-  <!-- <maintainer>Florian Weisshardt</maintainer> -->
-
+  <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt, Maximilian Sieber</maintainer>
+  <author email="fmw@ipa.fhg.de">Florian Weisshardt, Maximilian Sieber</author>
   <license>LGPL</license>
-
-  <url type="website">http://www.ros.org/wiki/cob_teleop</url>
-  <!-- <url type="bugtracker"></url> -->
-
-  <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>
-  <author email="fmw@ipa.fhg.de">Florian Weisshardt</author>
+  <url>http://www.ros.org/wiki/cob_teleop</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>cob_srvs</build_depend>
+
+  <!-- bride default dependencies -->
   <build_depend>roscpp</build_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>trajectory_msgs</build_depend>
-  <build_depend>cob_srvs</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>brics_actuator</build_depend>
+  <build_depend>dynamic_reconfigure</build_depend>
+  <build_depend>actionlib</build_depend>
   <run_depend>roscpp</run_depend>
-  <run_depend>cob_srvs</run_depend>
-  <run_depend>geometry_msgs</run_depend>
+  <run_depend>dynamic_reconfigure</run_depend>
+  <run_depend>actionlib</run_depend>
+
+  <!-- user dependencies -->
+  <build_depend>sensor_msgs</build_depend>
   <run_depend>sensor_msgs</run_depend>
-  <run_depend>trajectory_msgs</run_depend>
-  <run_depend>cob_srvs</run_depend>
-  <run_depend>std_msgs</run_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <build_depend>brics_actuator</build_depend>
   <run_depend>brics_actuator</run_depend>
-  <!-- <test_depend>roscpp</test_depend> -->
-  <!-- <test_depend>geometry_msgs</test_depend> -->
-  <!-- <test_depend>sensor_msgs</test_depend> -->
-  <!-- <test_depend>trajectory_msgs</test_depend> -->
-  <!-- <test_depend>cob_srvs</test_depend> -->
-  <!-- <test_depend>brics_actuator</test_depend> -->
+  <build_depend>std_msgs</build_depend>
+  <run_depend>std_msgs</run_depend>
+  <build_depend>trajectory_msgs</build_depend>
+  <run_depend>trajectory_msgs</run_depend>
+  <build_depend>cob_script_server</build_depend>
+  <run_depend>cob_script_server</run_depend>
+  <build_depend>cob_srvs</build_depend>
+  <run_depend>cob_srvs</run_depend>
 
-  <export>
+  <!-- protected region additional manifest statements on begin -->
+  <!-- protected region additional manifest statements end -->
 
-  </export>
 </package>

@@ -17,6 +17,7 @@
   <run_depend>cob_dashboard</run_depend>
   <run_depend>cob_interactive_teleop</run_depend>
   <run_depend>cob_command_gui</run_depend>
+  <run_depend>cob_monitoring</run_depend>
   <run_depend>cob_teleop</run_depend>
 
 
