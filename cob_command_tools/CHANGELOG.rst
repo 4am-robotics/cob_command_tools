@@ -2,8 +2,8 @@
 Changelog for package cob_command_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.1 (2014-12-15)
+------------------
 * merge
 * rename finished
 * move cob_monitoring

@@ -2,8 +2,8 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.1 (2014-12-15)
+------------------
 * fix traj time calculation
 * use default vel instead of default point time
 * use 8 sec by default for trajectories

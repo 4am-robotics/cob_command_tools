@@ -2,8 +2,8 @@
 Changelog for package cob_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.1 (2014-12-15)
+------------------
 * merge
 * adapt teleop_v2 to the new controllers structure
 * add gencpp dependency
