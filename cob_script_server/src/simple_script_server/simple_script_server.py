@@ -190,8 +190,6 @@ class simple_script_server:
 		self.wav_path = ""
 		self.parse = parse
 		
-		# init publishers
-		self.pub_light = rospy.Publisher('/light_controller/command', ColorRGBA, queue_size=1)
 		
 		rospy.sleep(1) # we have to wait here until publishers are ready, don't ask why
 
@@ -711,6 +709,13 @@ class simple_script_server:
 
 		rospy.loginfo("Set light to <<%s>>",parameter_name)
 		
+		topic_parameter_name = self.ns_global_prefix + "/light/topic_name"
+		if not rospy.has_param(topic_parameter_name):
+			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",topic_parameter_name)
+			return 2
+		self.light_topic_name = rospy.get_param(topic_parameter_name)
+		self.pub_light = rospy.Publisher(self.light_topic_name, ColorRGBA, queue_size=1)
+
 		# get joint values from parameter server
 		if type(parameter_name) is str:
 			if not rospy.has_param(self.ns_global_prefix + "/light/" + parameter_name):
