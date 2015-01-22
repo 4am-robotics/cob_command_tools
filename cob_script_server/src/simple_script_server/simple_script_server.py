@@ -702,7 +702,7 @@ class simple_script_server:
 	#
 	# \param parameter_name Name of the parameter on the parameter server which holds the rgb values.
 
-	def set_light(self,component_name,parameter_name=[0,0,0],blocking=False):
+	def set_light(self,component_name,parameter_name,blocking=False):
 		ah = action_handle("set_light", component_name, parameter_name, blocking, self.parse)
 		if(self.parse):
 			return ah
@@ -749,19 +749,26 @@ class simple_script_server:
 		color.r = param[0]
 		color.g = param[1]
 		color.b = param[2]
-		color.a = 1 # Transparency
+		color.a = param[3] # Transparency
 
 		srv_name = "/" + component_name + "/mode"
 		mode =  LightMode()
 		mode.mode = 1
 		mode.color = color
-		
-		rospy.wait_for_service(srv_name)
+
 		try:
-				light_srv = rospy.ServiceProxy(srv_name, SetLightMode)
-				light_srv(mode)
+			rospy.wait_for_service(srv_name,5)
+		except rospy.ROSException, e:
+			error_message = "%s"%e
+			rospy.logerr("...<<%s>> service of <<%s>> not available, error: %s",srv_name, component_name, error_message)
+			ah.set_failed(4)
+			return ah
+		
+		try:
+			light_srv = rospy.ServiceProxy(srv_name, SetLightMode)
+			light_srv(mode)
 		except rospy.ServiceException, e:
-				print "Service call failed: %s"%e
+			print "Service call failed: %s"%e
 		
 		ah.set_succeeded()
 		ah.error_code = 0
