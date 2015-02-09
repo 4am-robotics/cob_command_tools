@@ -544,7 +544,10 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 		cob_srvs::Trigger srv = cob_srvs::Trigger();
 		if (client_init_base.call(srv))
 		{
-			ROS_INFO("Base init successfully");
+			if (!srv.response.success.data)
+				ROS_ERROR("Base init failed");
+			else
+				ROS_INFO("Base init successfully");
 		}
 		else
 		{
@@ -556,7 +559,10 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 		ROS_INFO("Recover base");
 		if (client_recover_base.call(srv))
 		{
-			ROS_INFO("Base recovered successfully");
+			if(!srv.response.success.data)
+				ROS_ERROR("Base recover failed");
+			else
+				ROS_INFO("Base recover successfully");
 		}
 		else
 		{
