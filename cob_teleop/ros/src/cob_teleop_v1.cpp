@@ -540,33 +540,33 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 	{
 		ros::ServiceClient client_init_base = n_.serviceClient<cob_srvs::Trigger>("/base_controller/init");
 	
-		ROS_INFO("Init base");
+		ROS_DEBUG("Initializing base...");
 		cob_srvs::Trigger srv = cob_srvs::Trigger();
 		if (client_init_base.call(srv))
 		{
 			if (!srv.response.success.data)
-				ROS_ERROR("Base init failed");
+				ROS_ERROR("Failed to initialize base.");
 			else
-				ROS_INFO("Base init successfully");
+				ROS_INFO("Base successfully initialized.");
 		}
 		else
 		{
-			ROS_ERROR("Failed to call service /base_controller/init");
+			ROS_ERROR("Failed to call service /base_controller/init.");
 		}
 		
 		ros::ServiceClient client_recover_base = n_.serviceClient<cob_srvs::Trigger>("/base_controller/recover");
 	
-		ROS_INFO("Recover base");
+		ROS_DEBUG("Recovering base...");
 		if (client_recover_base.call(srv))
 		{
 			if(!srv.response.success.data)
-				ROS_ERROR("Base recover failed");
+				ROS_ERROR("Failed to recover base.");
 			else
-				ROS_INFO("Base recover successfully");
+				ROS_INFO("Base successfully recovered.");
 		}
 		else
 		{
-			ROS_ERROR("Failed to call service /base_controller/recover");
+			ROS_ERROR("Failed to call service /base_controller/recover.");
 		}
 	}
 	
