@@ -1,6 +1,6 @@
 <package>
   <name>cob_interactive_teleop</name>
-  <version>0.5.1</version>
+  <version>0.6.1</version>
   <description>COB teleop interactive marker for RViz provided by dcgm-robotics@FIT group.</description>
 
   <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>

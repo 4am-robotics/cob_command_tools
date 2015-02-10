@@ -64,6 +64,7 @@ import types
 import thread
 import commands
 import math
+import threading
 
 # ROS imports
 import roslib
@@ -78,11 +79,13 @@ from move_base_msgs.msg import *
 from tf.transformations import *
 from std_msgs.msg import String,ColorRGBA
 from control_msgs.msg import *
+from cob_light.msg import LightMode
 
 # care-o-bot includes
 from cob_sound.msg import *
 from cob_script_server.msg import *
 from cob_srvs.srv import *
+from cob_light.srv import *
 
 # graph includes
 import pygraphviz as pgv
@@ -152,6 +155,30 @@ class script():
 		function_counter = 0
 		return graph.string()
 
+## joint_state_listener class
+#
+# Listens to joint states for a given component
+class joint_state_listener:
+	def __init__(self, component_name):
+		self.actual_pos = []
+		self.lock = threading.Lock()
+		rospy.Subscriber("/" + component_name + "/joint_trajectory_controller/state", JointTrajectoryControllerState, self.state_cb)
+		self.received = False
+
+	# joint states callback
+	def state_cb(self, msg):
+		self.lock.acquire()
+		self.actual_pos = list(msg.actual.positions)
+		self.received = True
+		self.lock.release()
+
+	# flag if joint states are received
+	def get_actual_pos(self):
+		self.lock.acquire()
+		actual_pos = self.actual_pos
+		self.lock.release()
+		return actual_pos
+
 ## Simple script server class.
 #
 # Implements the python interface for the script server.
@@ -165,12 +192,9 @@ class simple_script_server:
 		self.wav_path = ""
 		self.parse = parse
 		
-		# init publishers
-		self.pub_light = rospy.Publisher('/light_controller/command', ColorRGBA, queue_size=1)
-		
 		rospy.sleep(1) # we have to wait here until publishers are ready, don't ask why
 
-    #------------------- Init section -------------------#
+	#------------------- Init section -------------------#
 	## Initializes different components.
 	#
 	# Based on the component, the corresponding init service will be called.
@@ -185,17 +209,14 @@ class simple_script_server:
 	#
 	# \param component_name Name of the component.
 	def stop(self,component_name,mode="omni",blocking=True):
-		#return self.trigger(component_name,"stop",blocking=blocking)
+		ah = action_handle("stop", component_name, "", False, self.parse)
+		if(self.parse):
+			return ah
+		else:
+			ah.set_active(mode="service")
+
+		rospy.loginfo("<<stop>> <<%s>>", component_name)
 		if component_name == "base":
-			ah = action_handle("stop", component_name, "", False, self.parse)
-			if(self.parse):
-				return ah
-			else:
-				ah.set_active(mode="service")
-	
-			rospy.loginfo("<<stop>> <<%s>>", component_name)
-	
-			# call action server
 			if(mode == None or mode == ""):
 				action_server_name = "/move_base"
 			elif(mode == "omni"):
@@ -209,28 +230,34 @@ class simple_script_server:
 				print "navigation mode is:",mode
 				ah.set_failed(33)
 				return ah
-
-			rospy.logdebug("calling %s action server",action_server_name)
 			client = actionlib.SimpleActionClient(action_server_name, MoveBaseAction)
-			
-			if blocking:
-				# trying to connect to server
-				rospy.logdebug("waiting for %s action server to start",action_server_name)
-				if not client.wait_for_server(rospy.Duration(5)):
-					# error: server did not respond
-					rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
-					ah.set_failed(4)
-					return ah
-				else:
-					rospy.logdebug("%s action server ready",action_server_name)
-
-			# cancel all goals
-			client.cancel_all_goals()
-			
-			ah.set_succeeded() # full success
-			return ah	
 		else:
-			return self.trigger(component_name,"stop",blocking=blocking)
+			parameter_name = self.ns_global_prefix + "/" + component_name + "/action_name"
+			if not rospy.has_param(parameter_name):
+					rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",parameter_name)
+					return 2
+			action_server_name = rospy.get_param(parameter_name)
+			client = actionlib.SimpleActionClient(action_server_name, FollowJointTrajectoryAction)
+
+		# call action server
+		rospy.logdebug("calling %s action server",action_server_name)
+		
+		if blocking:
+			# trying to connect to server
+			rospy.logdebug("waiting for %s action server to start",action_server_name)
+			if not client.wait_for_server(rospy.Duration(5)):
+				# error: server did not respond
+				rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
+				ah.set_failed(4)
+				return ah
+			else:
+				rospy.logdebug("%s action server ready",action_server_name)
+
+		# cancel all goals
+		client.cancel_all_goals()
+		
+		ah.set_succeeded() # full success
+		return ah	
 
 	## Recovers different components.
 	#
@@ -239,6 +266,14 @@ class simple_script_server:
 	# \param component_name Name of the component.
 	def recover(self,component_name,blocking=True):
 		return self.trigger(component_name,"recover",blocking=blocking)
+
+	## Halts different components.
+	#
+	# Based on the component, the corresponding halt service will be called.
+	#
+	# \param component_name Name of the component.
+	def halt(self,component_name,blocking=True):
+		return self.trigger(component_name,"halt",blocking=blocking)
 
 	## Deals with all kind of trigger services for different components.
 	#
@@ -255,12 +290,17 @@ class simple_script_server:
 			ah.set_active(mode="service")
 
 		rospy.loginfo("<<%s>> <<%s>>", service_name, component_name)
-		service_full_name = "/" + component_name + "_controller/" + service_name
+		parameter_name = self.ns_global_prefix + "/" + component_name + "/service_ns"
+		if not rospy.has_param(parameter_name):
+				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",parameter_name)
+				return 2
+		service_ns_name = rospy.get_param(parameter_name)
+		service_full_name = service_ns_name + "/" + service_name
 		
 		if blocking:
 			# check if service is available
 			try:
-				rospy.wait_for_service(service_full_name,rospy.get_param('server_timeout',3))
+				rospy.wait_for_service(service_full_name,5)
 			except rospy.ROSException, e:
 				error_message = "%s"%e
 				rospy.logerr("...<<%s>> service of <<%s>> not available, error: %s",service_name, component_name, error_message)
@@ -269,14 +309,12 @@ class simple_script_server:
 
 		# check if service is callable
 		try:
-			init = rospy.ServiceProxy(service_full_name,Trigger)
-			#print init()
-			#resp = init()
+			trigger = rospy.ServiceProxy(service_full_name,Trigger)
 			if blocking:
 				rospy.loginfo("Wait for <<%s>> to <<%s>>...", component_name, service_name)
-				resp = init()
+				resp = trigger()
 			else:
-				thread.start_new_thread(init,())
+				thread.start_new_thread(trigger,())
 		except rospy.ServiceException, e:
 			error_message = "%s"%e
 			rospy.logerr("...calling <<%s>> service of <<%s>> not successfull, error: %s",service_name, component_name, error_message)
@@ -494,19 +532,58 @@ class simple_script_server:
 
 		rospy.logdebug("accepted trajectory for %s",component_name)
 		
+		# get current pos
+		jsl = joint_state_listener(component_name)
+		max_wait_time = 0.5
+		wait_time = 0
+		while not jsl.received:
+			rospy.logdebug("still waiting for joint states of " + component_name)
+			if wait_time > max_wait_time:
+				rospy.logwarn("no joint states received within timeout. using default point time of 8sec")
+				break
+			rospy.sleep(0.01)
+			wait_time += 0.01
+		start_pos = jsl.get_actual_pos()
+
 		# convert to ROS trajectory message
 		traj_msg = JointTrajectory()
 		traj_msg.header.stamp = rospy.Time.now()+rospy.Duration(0.5)
 		traj_msg.joint_names = joint_names
 		point_nr = 0
+		traj_time = 0
+		
+		param_string = self.ns_global_prefix + "/" + component_name + "/default_vel"
+		if not rospy.has_param(param_string):
+			rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default of 0.1 [rad/sec].",param_string)
+			default_vel = 0.1 # rad/s
+		else:
+			default_vel = rospy.get_param(param_string)
+
 		for point in traj:
 			point_nr = point_nr + 1
 			point_msg = JointTrajectoryPoint()
 			point_msg.positions = point
-			point_msg.velocities = [0]*len(joint_names)
-			point_msg.time_from_start=rospy.Duration(3*point_nr) # this value is set to 3 sec per point. \todo TODO: read from parameter
+
+			# set zero velocities for last trajectory point only
+			if point_nr == len(traj):
+				point_msg.velocities = [0]*len(joint_names)
+
+			# use hardcoded point_time if no start_pos available
+			if start_pos != []:
+				point_time = self.calculate_point_time(component_name, start_pos, point, default_vel)
+			else:
+				point_time = 8*point_nr
+
+			start_pos = point
+			point_msg.time_from_start=rospy.Duration(point_time + traj_time)
+			traj_time += point_time
 			traj_msg.points.append(point_msg)
 		return (traj_msg, 0)
+
+	def calculate_point_time(self, component_name, start_pos, end_pos, default_vel):
+		d_max = max(list(abs(numpy.array(start_pos) - numpy.array(end_pos))))
+		point_time = d_max / default_vel
+		return point_time
 
 	## Deals with all kind of trajectory movements for different components.
 	#
@@ -530,7 +607,11 @@ class simple_script_server:
 		
 
 		# call action server
-		action_server_name = "/" + component_name + '_controller/follow_joint_trajectory'
+		parameter_name = self.ns_global_prefix + "/" + component_name + "/action_name"
+		if not rospy.has_param(parameter_name):
+				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",parameter_name)
+				return 2
+		action_server_name = rospy.get_param(parameter_name)
 		rospy.logdebug("calling %s action server",action_server_name)
 		client = actionlib.SimpleActionClient(action_server_name, FollowJointTrajectoryAction)
 		# trying to connect to server
@@ -541,12 +622,7 @@ class simple_script_server:
 			ah.set_failed(4)
 			return ah
 		else:
-			rospy.logdebug("%s action server ready",action_server_name)
-		
-		# set operation mode to position
-		#if not component_name == "arm":
-		#	self.set_operation_mode(component_name,"position")
-		#self.set_operation_mode(component_name,"position")		
+			rospy.logdebug("%s action server ready",action_server_name)		
 
 		# sending goal
 		client_goal = FollowJointTrajectoryGoal()
@@ -618,28 +694,6 @@ class simple_script_server:
 
 		ah.set_succeeded()
 		return ah
-
-	
-	## Set the operation mode for different components.
-	#
-	# Based on the component, the corresponding set_operation_mode service will be called.
-	#
-	# \param component_name Name of the component.
-	# \param mode Name of the operation mode to set.
-	# \param blocking Service calls are always blocking. The parameter is only provided for compatibility with other functions.
-	def set_operation_mode(self,component_name,mode,blocking=True, planning=False):
-		#rospy.loginfo("setting <<%s>> to operation mode <<%s>>",component_name, mode)
-		rospy.set_param("/" + component_name + "_controller/OperationMode",mode) # \todo TODO: remove and only use service call
-		#rospy.wait_for_service("/" + component_name + "_controller/set_operation_mode")
-		try:
-			set_operation_mode = rospy.ServiceProxy("/" + component_name + "_controller/set_operation_mode", SetOperationMode)
-			req = SetOperationModeRequest()
-			req.operation_mode.data = mode
-			#print req
-			resp = set_operation_mode(req)
-			#print resp
-		except rospy.ServiceException, e:
-			print "Service call failed: %s"%e
 		
 #------------------- LED section -------------------#
 	## Set the color of the cob_light component.
@@ -647,8 +701,9 @@ class simple_script_server:
 	# The color is given by a parameter on the parameter server.
 	#
 	# \param parameter_name Name of the parameter on the parameter server which holds the rgb values.
-	def set_light(self,parameter_name,blocking=False):
-		ah = action_handle("set", "light", parameter_name, blocking, self.parse)
+
+	def set_light(self,component_name,parameter_name,blocking=False):
+		ah = action_handle("set_light", component_name, parameter_name, blocking, self.parse)
 		if(self.parse):
 			return ah
 		else:
@@ -694,10 +749,26 @@ class simple_script_server:
 		color.r = param[0]
 		color.g = param[1]
 		color.b = param[2]
-		color.a = 1 # Transparency
+		color.a = param[3] # Transparency
 
-		# publish color		
-		self.pub_light.publish(color)
+		srv_name = "/" + component_name + "/mode"
+		mode =  LightMode()
+		mode.mode = 1
+		mode.color = color
+
+		try:
+			rospy.wait_for_service(srv_name,5)
+		except rospy.ROSException, e:
+			error_message = "%s"%e
+			rospy.logerr("...<<%s>> service of <<%s>> not available, error: %s",srv_name, component_name, error_message)
+			ah.set_failed(4)
+			return ah
+		
+		try:
+			light_srv = rospy.ServiceProxy(srv_name, SetLightMode)
+			light_srv(mode)
+		except rospy.ServiceException, e:
+			print "Service call failed: %s"%e
 		
 		ah.set_succeeded()
 		ah.error_code = 0
