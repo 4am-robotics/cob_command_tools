@@ -540,7 +540,7 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 	{
 		ros::ServiceClient client_init_base = n_.serviceClient<cob_srvs::Trigger>("/base_controller/init");
 	
-		ROS_DEBUG("Initializing base...");
+		ROS_INFO("Initializing base...");
 		cob_srvs::Trigger srv = cob_srvs::Trigger();
 		if (client_init_base.call(srv))
 		{
@@ -556,7 +556,7 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 		
 		ros::ServiceClient client_recover_base = n_.serviceClient<cob_srvs::Trigger>("/base_controller/recover");
 	
-		ROS_DEBUG("Recovering base...");
+		ROS_INFO("Recovering base...");
 		if (client_recover_base.call(srv))
 		{
 			if(!srv.response.success.data)
