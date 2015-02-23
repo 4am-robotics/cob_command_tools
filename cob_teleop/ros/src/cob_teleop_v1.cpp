@@ -551,7 +551,7 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 		}
 		else
 		{
-			ROS_ERROR("Failed to call service /base_controller/init.");
+			ROS_ERROR("Failed to call service init.");
 		}
 		
 		ros::ServiceClient client_recover_base = n_.serviceClient<cob_srvs::Trigger>("/base_controller/recover");
@@ -566,7 +566,7 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 		}
 		else
 		{
-			ROS_ERROR("Failed to call service /base_controller/recover.");
+			ROS_ERROR("Failed to call service recover.");
 		}
 	}
 	
