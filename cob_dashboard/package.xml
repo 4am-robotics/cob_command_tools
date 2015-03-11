@@ -17,7 +17,6 @@
   <run_depend>roslib</run_depend>
   <run_depend>cob_msgs</run_depend>
   <run_depend>rqt_gui</run_depend>
-  <run_depend>cob_msgs</run_depend>
   <run_depend>rqt_gui_cpp</run_depend>
   <run_depend>rqt_robot_dashboard</run_depend>
   
