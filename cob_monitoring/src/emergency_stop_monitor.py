@@ -102,6 +102,8 @@ class emergency_stop_monitor():
 		
 			if self.em_status.emergency_state == 0: # ready
 				self.set_light(self.color_ok)
+				if(self.sound_enabled):
+					sss.say(["emergency stop released"])
 			elif self.em_status.emergency_state == 1: # em stop
 				self.set_light(self.color_error)
 				if self.em_status.scanner_stop and not self.em_status.emergency_button_stop:
@@ -116,7 +118,7 @@ class emergency_stop_monitor():
 			elif self.em_status.emergency_state == 2: # release
 				self.set_light(self.color_warn)
 				if(self.sound_enabled):
-					sss.say(["emergency stop released"])
+					sss.say(["emergency stop acknowledged"])
 
 	## set light
 	def set_light(self,color):
