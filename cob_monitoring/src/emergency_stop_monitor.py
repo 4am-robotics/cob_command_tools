@@ -29,6 +29,10 @@ class emergency_stop_monitor():
 				rospy.logwarn("parameter led_components does not exist on ROS Parameter Server, aborting...")
 				sys.exit(1)
 			self.light_components = rospy.get_param("~led_components")
+			self.color_error = rospy.get_param("~color_error","red")
+			self.color_warn = rospy.get_param("~color_warn","yellow")
+			self.color_ok = rospy.get_param("~color_ok","green")
+			self.color_off = rospy.get_param("~color_off","black")
 
 			self.diagnotics_enabled = rospy.get_param("~diagnostics_based", False)
 			if(self.diagnotics_enabled):
@@ -58,25 +62,25 @@ class emergency_stop_monitor():
 			self.last_led = rospy.get_rostime()
 		        #Trigger LEDS
 	    		if(self.diag_err):
-				if(self.color != "red"):
-		    			self.set_light("red")	
-					self.color = "red"
+				if(self.color != self.color_error):
+		    			self.set_light(self.color_error)	
+					self.color = self.color_error
 	    		else:
         			if ((rospy.get_rostime() - self.last_vel).to_sec() > 1.0):
-					if(self.color != "green"):
-		            			self.set_light("green")
-						self.color = "green"
+					if(self.color != self.color_ok):
+		            			self.set_light(self.color_ok)
+						self.color = self.color_ok
 	    	    		else:
         		    		if(self.on):
             		    			self.on = False
-						if(self.color != "yellow"):
-	            	    				self.set_light("yellow")
-							self.color = "yellow"
+						if(self.color != self.color_warn):
+	            	    				self.set_light(self.color_warn)
+							self.color = self.color_warn
 	 		           	else:
         	        			self.on = True
-						if(self.color != "led_off"):
-				                	self.set_light("led_off")
-							self.color = "led_off"
+						if(self.color != self.color_off):
+				                	self.set_light(self.color_off)
+							self.color = self.color_off
 		
 
 	## Velocity Monitoring
@@ -97,9 +101,9 @@ class emergency_stop_monitor():
 			rospy.loginfo("Emergency change to "+ str(self.em_status.emergency_state))
 		
 			if self.em_status.emergency_state == 0: # ready
-				self.set_light("green")
+				self.set_light(self.color_ok)
 			elif self.em_status.emergency_state == 1: # em stop
-				self.set_light("red")
+				self.set_light(self.color_error)
 				if self.em_status.scanner_stop and not self.em_status.emergency_button_stop:
 					if(self.sound_enabled):
 						sss.say(["laser emergency stop issued"])
@@ -110,7 +114,7 @@ class emergency_stop_monitor():
 					if(self.sound_enabled):
 						sss.say(["emergency stop issued"])
 			elif self.em_status.emergency_state == 2: # release
-				self.set_light("yellow")
+				self.set_light(self.color_warn)
 				if(self.sound_enabled):
 					sss.say(["emergency stop released"])
 
