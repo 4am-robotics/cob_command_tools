@@ -67,7 +67,6 @@ pygtk.require('2.0')
 import gtk
 import roslib
 import os
-import pynotify
 import sys 
 import signal
 
@@ -113,8 +112,6 @@ class GtkGeneralPanel(gtk.Frame):
     global initialized
     self.sss = simple_script_server()
     gtk.Frame.__init__(self)
-    if not pynotify.init ("cob_command_gui"):
-      sys.exit (1)
     self.em_stop = False
     self.set_label("general")
     self.set_shadow_type(gtk.SHADOW_IN)
@@ -195,9 +192,6 @@ class GtkGeneralPanel(gtk.Frame):
       gtk.threads_leave()
       if(self.em_stop == False):
         self.em_stop = True
-        n = pynotify.Notification("Emergency Stop issued!", "", "dialog-warning")
-        n.set_timeout(1)
-        n.show()
     else:
       #print "Status OK"
       self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/ok.png")
@@ -206,9 +200,6 @@ class GtkGeneralPanel(gtk.Frame):
       gtk.threads_leave()
       if(self.em_stop == True):
         self.em_stop = False
-        n = pynotify.Notification("Emergency Stop released!", "", "dialog-ok")
-        n.set_timeout(1)
-        n.show()
         
   def planned_toggle(self, b):
     global planning_enabled
