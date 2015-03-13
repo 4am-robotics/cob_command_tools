@@ -727,8 +727,8 @@ class simple_script_server:
 			ah.error_code = 3
 			return ah
 		else:
-			if not len(param) == 3: # check dimension
-				rospy.logerr("no valid parameter for light: dimension should be 3 (r,g,b) and is %d, aborting...",len(param))
+			if not len(param) == 4: # check dimension
+				rospy.logerr("no valid parameter for light: dimension should be 4 (r,g,b,a) and is %d, aborting...",len(param))
 				print "parameter is:",param
 				ah.error_code = 3
 				return ah
