@@ -6,7 +6,8 @@ project(cob_teleop)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
 	roscpp
-    dynamic_reconfigure 
+	dynamic_reconfigure
+	actionlib
 	sensor_msgs
 	geometry_msgs
 	brics_actuator
@@ -31,7 +32,7 @@ generate_dynamic_reconfigure_options(cfg/cob_teleop_v2.cfg )
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS
-    common/src
+	common/include
   CATKIN_DEPENDS 
   	roscpp
     dynamic_reconfigure
@@ -52,7 +53,6 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(common/include)
-include_directories(common/src)
 include_directories(${catkin_INCLUDE_DIRS})
 
 
@@ -110,6 +110,13 @@ install(TARGETS keyboard_publisher
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+## Mark cpp header files for installation
+install(DIRECTORY common/include/${PROJECT_NAME}/
+ DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+ FILES_MATCHING PATTERN "*.h"
+ PATTERN ".svn" EXCLUDE
 )
 
 install(DIRECTORY ros/launch
