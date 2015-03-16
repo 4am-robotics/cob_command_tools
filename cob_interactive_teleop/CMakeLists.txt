@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_interactive_teleop)
 
-
-
-
 find_package(catkin REQUIRED COMPONENTS roscpp interactive_markers rviz roscpp visualization_msgs interactive_markers std_msgs tf geometry_msgs sensor_msgs message_filters)
 
 ###################################
@@ -12,9 +9,6 @@ find_package(catkin REQUIRED COMPONENTS roscpp interactive_markers rviz roscpp v
 
 catkin_package(
     CATKIN_DEPENDS roscpp interactive_markers rviz roscpp visualization_msgs interactive_markers std_msgs tf geometry_msgs sensor_msgs message_filters
-    DEPENDS # TODO
-    INCLUDE_DIRS #include
-    LIBRARIES # TODO
 )
 
 
