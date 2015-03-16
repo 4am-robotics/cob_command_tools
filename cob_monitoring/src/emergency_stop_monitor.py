@@ -23,7 +23,7 @@ class emergency_stop_monitor():
 		self.sound_enabled = rospy.get_param("~sound_enabled", True)
 		self.led_enabled = rospy.get_param("~led_enabled", True)
 		if(self.led_enabled):
-			rospy.wait_for_service("/light_controller/mode")
+			rospy.wait_for_service("/light/mode")
 			self.diagnotics_enabled = rospy.get_param("~diagnostics_based", False)
 			if(self.diagnotics_enabled):
 				rospy.Subscriber("/diagnostics", DiagnosticArray, self.new_diagnostics)
@@ -53,23 +53,23 @@ class emergency_stop_monitor():
 		        #Trigger LEDS
 	    		if(self.diag_err):
 				if(self.color != "red"):
-		    			sss.set_light("red")	
+		    			sss.set_light("light","red")	
 					self.color = "red"
 	    		else:
         			if ((rospy.get_rostime() - self.last_vel).to_sec() > 1.0):
 					if(self.color != "green"):
-		            			sss.set_light("green")
+		            			sss.set_light("light","green")
 						self.color = "green"
 	    	    		else:
         		    		if(self.on):
             		    			self.on = False
 						if(self.color != "yellow"):
-	            	    				sss.set_light("yellow")
+	            	    				sss.set_light("light","yellow")
 							self.color = "yellow"
 	 		           	else:
         	        			self.on = True
 						if(self.color != "led_off"):
-				                	sss.set_light("led_off")
+				                	sss.set_light("light","led_off")
 							self.color = "led_off"
 		
 
@@ -91,9 +91,9 @@ class emergency_stop_monitor():
 			rospy.loginfo("Emergency change to "+ str(self.em_status.emergency_state))
 		
 			if self.em_status.emergency_state == 0: # ready
-				sss.set_light("green")
+				sss.set_light("light","green")
 			elif self.em_status.emergency_state == 1: # em stop
-				sss.set_light("red")
+				sss.set_light("light","red")
 				if self.em_status.scanner_stop and not self.em_status.emergency_button_stop:
 					if(self.sound_enabled):
 						sss.say(["laser emergency stop issued"])
@@ -104,7 +104,7 @@ class emergency_stop_monitor():
 					if(self.sound_enabled):
 						sss.say(["emergency stop issued"])
 			elif self.em_status.emergency_state == 2: # release
-				sss.set_light("yellow")
+				sss.set_light("light","yellow")
 				if(self.sound_enabled):
 					sss.say(["emergency stop released"])
 
