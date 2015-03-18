@@ -767,7 +767,7 @@ class simple_script_server:
 			rospy.wait_for_service(service_full_name,5)
 		except rospy.ROSException, e:
 			error_message = "%s"%e
-			rospy.logerr("...<<%s>> service of <<%s>> not available, error: %s",srv_name, component_name, error_message)
+			rospy.logerr("...<<%s>> service of <<%s>> not available, error: %s",service_full_name, component_name, error_message)
 			ah.set_failed(4)
 			return ah
 		
