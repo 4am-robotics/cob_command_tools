@@ -79,13 +79,14 @@ from move_base_msgs.msg import *
 from tf.transformations import *
 from std_msgs.msg import String,ColorRGBA
 from control_msgs.msg import *
-from cob_light.msg import LightMode
 
 # care-o-bot includes
 from cob_sound.msg import *
 from cob_script_server.msg import *
 from cob_srvs.srv import *
+from cob_light.msg import LightMode
 from cob_light.srv import *
+from cob_mimic.srv import *
 
 # graph includes
 import pygraphviz as pgv
@@ -647,6 +648,13 @@ class simple_script_server:
 			return ah
 		else:
 			ah.set_active(mode="topic")
+			
+		parameter_topic_name = self.ns_global_prefix + "/" + component_name + "/topic_name"
+		if not rospy.has_param(parameter_topic_name):
+				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",parameter_topic_name)
+				ah.set_failed(3)
+				return ah
+		topic_name = rospy.get_param(parameter_topic_name)
 
 		rospy.loginfo("Move base relatively by <<%s>>", parameter_name)
 
@@ -681,19 +689,27 @@ class simple_script_server:
 		rot_vel = parameter_name[2] / duration_sec
 
 		# step 3: send constant velocity command to base_controller for the calculated duration of motion
-		pub = rospy.Publisher('/base_controller/command_safe', Twist, queue_size=1)  # todo: use Matthias G.'s safe_command
+		pub = rospy.Publisher(topic_name, Twist, queue_size=1)
 		twist = Twist()
 		twist.linear.x = x_vel
 		twist.linear.y = y_vel
 		twist.angular.z = rot_vel
-		r = rospy.Rate(10) # send velocity commands at 10 Hz
 		end_time = rospy.Time.now() + duration_ros
-		while not rospy.is_shutdown() and rospy.Time.now() < end_time:
-			pub.publish(twist)
-			r.sleep()
+		
+		if blocking:
+			rospy.loginfo("Wait for <<%s>> to finish move_base_rel...", component_name)
+			self.publish_twist(pub, twist, end_time)
+		else:
+			thread.start_new_thread(self.publish_twist,(pub, twist, end_time))
 
 		ah.set_succeeded()
 		return ah
+		
+	def publish_twist(self, pub, twist, end_time):
+		r = rospy.Rate(10) # send velocity commands at 10 Hz
+		while not rospy.is_shutdown() and rospy.Time.now() < end_time:
+			pub.publish(twist)
+			r.sleep()
 		
 #------------------- LED section -------------------#
 	## Set the color of the cob_light component.
@@ -774,6 +790,78 @@ class simple_script_server:
 		try:
 			light_srv = rospy.ServiceProxy(service_full_name, SetLightMode)
 			light_srv(mode)
+		except rospy.ServiceException, e:
+			print "Service call failed: %s"%e
+		
+		ah.set_succeeded()
+		ah.error_code = 0
+		return ah
+
+#------------------- Mimic section -------------------#
+	## Set the mimic of the cob_mimic component.
+	#
+	# The mode is given by a parameter on the parameter server.
+	#
+	# \param parameter_name Name of the parameter on the parameter server which holds the mimic mode (string).
+
+	def set_mimic(self,component_name,parameter_name,blocking=False):
+		ah = action_handle("set_mimic", component_name, parameter_name, blocking, self.parse)
+		if(self.parse):
+			return ah
+		else:
+			ah.set_active(mode="topic")
+
+		rospy.loginfo("Set <<%s>> to <<%s>>", component_name, parameter_name)
+
+		service_ns = self.ns_global_prefix + "/" + component_name + "/service_ns"
+		if not rospy.has_param(service_ns):
+				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",service_ns)
+				return 2
+		service_ns_name = rospy.get_param(service_ns)
+		service_full_name = service_ns_name #+ "/mode"
+			
+		# check mimic parameters
+		mimic = SetMimicRequest()
+		
+		if not (type(parameter_name) is str or type(parameter_name) is list): # check outer list
+			rospy.logerr("no valid parameter for mimic: not a string or list, aborting...")
+			print "parameter is:",parameter_name
+			ah.error_code = 3
+			return ah
+		
+		if type(parameter_name) is str:
+			mimic.mimic = parameter_name
+		elif type(parameter_name) is list:
+			if len(parameter_name) != 3:
+				rospy.logerr("no valid parameter for mimic: not a list with size 3, aborting...")
+				print "parameter is:",parameter_name
+				ah.error_code = 3
+				return ah
+			if ((type(parameter_name[0]) is str) and (type(parameter_name[1]) is float or type(parameter_name[1]) is int) and (type(parameter_name[2]) is float or type(parameter_name[2]) is int)):
+				mimic.mimic = parameter_name[0]
+				mimic.speed = parameter_name[1]
+				mimic.repeat = parameter_name[2]
+			else:
+				rospy.logerr("no valid parameter for mimic: not a list with [mode, speed, repeat], aborting...")
+				print "parameter is:",parameter_name
+				ah.error_code = 3
+				return ah
+		else:
+			rospy.logerr("you should never be here")
+				
+		rospy.logdebug("accepted parameter %s for mimic",parameter_name)
+
+		try:
+			rospy.wait_for_service(service_full_name,5)
+		except rospy.ROSException, e:
+			error_message = "%s"%e
+			rospy.logerr("...<<%s>> service of <<%s>> not available, error: %s",srv_name, component_name, error_message)
+			ah.set_failed(4)
+			return ah
+		
+		try:
+			mimic_srv = rospy.ServiceProxy(service_full_name, SetMimic)
+			mimic_srv(mimic)
 		except rospy.ServiceException, e:
 			print "Service call failed: %s"%e
 		
