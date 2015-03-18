@@ -709,14 +709,22 @@ class simple_script_server:
 		else:
 			ah.set_active(mode="topic")
 
-		rospy.loginfo("Set light to <<%s>>",parameter_name)
-		
+		rospy.loginfo("Set <<%s>> to <<%s>>", component_name, parameter_name)
+
+		service_ns = self.ns_global_prefix + "/" + component_name + "/service_ns"
+		if not rospy.has_param(service_ns):
+				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",service_ns)
+				return 2
+		service_ns_name = rospy.get_param(service_ns)
+		service_full_name = service_ns_name + "/mode"
+
 		# get joint values from parameter server
 		if type(parameter_name) is str:
-			if not rospy.has_param(self.ns_global_prefix + "/light/" + parameter_name):
-				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",self.ns_global_prefix + "/light/" + parameter_name)
+			full_parameter_name = self.ns_global_prefix + "/" + component_name + "/" + parameter_name
+			if not rospy.has_param(full_parameter_name):
+				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",full_parameter_name)
 				return 2
-			param = rospy.get_param(self.ns_global_prefix + "/light/" + parameter_name)
+			param = rospy.get_param(full_parameter_name)
 		else:
 			param = parameter_name
 			
@@ -727,8 +735,8 @@ class simple_script_server:
 			ah.error_code = 3
 			return ah
 		else:
-			if not len(param) == 3: # check dimension
-				rospy.logerr("no valid parameter for light: dimension should be 3 (r,g,b) and is %d, aborting...",len(param))
+			if not len(param) == 4: # check dimension
+				rospy.logerr("no valid parameter for light: dimension should be 4 (r,g,b,a) and is %d, aborting...",len(param))
 				print "parameter is:",param
 				ah.error_code = 3
 				return ah
@@ -751,21 +759,20 @@ class simple_script_server:
 		color.b = param[2]
 		color.a = param[3] # Transparency
 
-		srv_name = "/" + component_name + "/mode"
 		mode =  LightMode()
 		mode.mode = 1
 		mode.color = color
 
 		try:
-			rospy.wait_for_service(srv_name,5)
+			rospy.wait_for_service(service_full_name,5)
 		except rospy.ROSException, e:
 			error_message = "%s"%e
-			rospy.logerr("...<<%s>> service of <<%s>> not available, error: %s",srv_name, component_name, error_message)
+			rospy.logerr("...<<%s>> service of <<%s>> not available, error: %s",service_full_name, component_name, error_message)
 			ah.set_failed(4)
 			return ah
 		
 		try:
-			light_srv = rospy.ServiceProxy(srv_name, SetLightMode)
+			light_srv = rospy.ServiceProxy(service_full_name, SetLightMode)
 			light_srv(mode)
 		except rospy.ServiceException, e:
 			print "Service call failed: %s"%e
