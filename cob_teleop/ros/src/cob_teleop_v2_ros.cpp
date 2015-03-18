@@ -18,7 +18,7 @@
 #include <sensor_msgs/Joy.h>
 
 // other includes
-#include <cob_teleop_v2_common.cpp>
+#include <cob_teleop/cob_teleop_v2_common.h>
 
 
 class cob_teleop_v2_ros
