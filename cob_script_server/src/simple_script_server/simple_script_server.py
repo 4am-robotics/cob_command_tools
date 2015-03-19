@@ -651,9 +651,9 @@ class simple_script_server:
 			
 		parameter_topic_name = self.ns_global_prefix + "/" + component_name + "/topic_name"
 		if not rospy.has_param(parameter_topic_name):
-				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",parameter_topic_name)
-				ah.set_failed(3)
-				return ah
+			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",parameter_topic_name)
+			ah.set_failed(3)
+			return ah
 		topic_name = rospy.get_param(parameter_topic_name)
 
 		rospy.loginfo("Move base relatively by <<%s>>", parameter_name)
@@ -815,8 +815,8 @@ class simple_script_server:
 
 		service_ns = self.ns_global_prefix + "/" + component_name + "/service_ns"
 		if not rospy.has_param(service_ns):
-				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",service_ns)
-				return 2
+			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",service_ns)
+			return 2
 		service_ns_name = rospy.get_param(service_ns)
 		service_full_name = service_ns_name #+ "/mode"
 			
