@@ -1,15 +1,18 @@
 
 ###Disable interception of HID devices by bluetoothd
 Add the following line in /etc/bluetooth/main.conf
+
 DisablePlugins = input
 
 ###Pairing (only once):
 sudo bash
+
 rosrun ps3joy sixpair
 
 ###Manual Connecting (if no startup script)
 sudo bash
 rosrun ps3joy ps3joy.py #Controller only
+
 rosrun ps3joy ps3joy_node.py #Controller with Feedback
 
 ###Get input (if not in launchfile, without root)
