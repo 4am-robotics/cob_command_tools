@@ -1,5 +1,5 @@
 
-#Disable interception of HID devices by bluetoothd
+###Disable interception of HID devices by bluetoothd
 Add the following line in /etc/bluetooth/main.conf
 DisablePlugins = input
 
