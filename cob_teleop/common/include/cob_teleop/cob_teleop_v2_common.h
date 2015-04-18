@@ -18,7 +18,7 @@
 #include <cob_script_server/ScriptAction.h>
 #include <string>
 #include <vector>
-#include <cob_srvs/Trigger.h>
+#include <std_srvs/Trigger.h>
 /* protected region user include files end */
 
 class cob_teleop_v2_config
@@ -151,7 +151,7 @@ class cob_teleop_v2_impl
 
     XmlRpc::XmlRpcValue LEDS;
 
-    cob_srvs::Trigger trigger;
+    std_srvs::Trigger trigger;
     /* protected region user member variables end */
 
 public:
