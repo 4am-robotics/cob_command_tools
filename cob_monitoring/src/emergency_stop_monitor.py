@@ -36,9 +36,9 @@ class emergency_stop_monitor():
 
 			self.diagnotics_enabled = rospy.get_param("~diagnostics_based", False)
 			if(self.diagnotics_enabled):
-				rospy.Subscriber("/diagnostics", DiagnosticArray, self.new_diagnostics)
+				rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.new_diagnostics)
 				self.on = False
-        			self.diag_err = False
+				self.diag_err = False
 				self.last_led = rospy.get_rostime()
 			else:
 				rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.emergency_callback)	
@@ -52,36 +52,22 @@ class emergency_stop_monitor():
 
 	## Diagnostics monitoring
 	def new_diagnostics(self, diag):
-        	for status in diag.status:
-            		if(status.name == "//base_controller"):
-                		if(status.level != 0):## && self.last_base_diag == 0):
-                    			self.diag_err = True
-                		elif(status.level == 0):## && self.last_base_diag == 1):
-                    			self.diag_err = False
-		if((rospy.get_rostime() - self.last_led).to_sec() > 0.5):
-			self.last_led = rospy.get_rostime()
-		        #Trigger LEDS
-	    		if(self.diag_err):
-				if(self.color != self.color_error):
-		    			self.set_light(self.color_error)	
-					self.color = self.color_error
-	    		else:
-        			if ((rospy.get_rostime() - self.last_vel).to_sec() > 1.0):
-					if(self.color != self.color_ok):
-		            			self.set_light(self.color_ok)
-						self.color = self.color_ok
-	    	    		else:
-        		    		if(self.on):
-            		    			self.on = False
-						if(self.color != self.color_warn):
-	            	    				self.set_light(self.color_warn)
-							self.color = self.color_warn
-	 		           	else:
-        	        			self.on = True
-						if(self.color != self.color_off):
-				                	self.set_light(self.color_off)
-							self.color = self.color_off
-		
+		self.diag_err = False
+		for status in diag.status:
+			if(status.name == "/Actuators/Base" or status.name == "/Actuators/Arm Right" or status.name == "/Actuators/Arm Left"):
+				if(status.level != 0):
+					self.diag_err = True
+
+		#Trigger LEDS
+ 		if(self.diag_err):
+			if(self.color != self.color_error):
+	 			self.set_light(self.color_error)	
+				self.color = self.color_error
+		else:
+			if(self.color != self.color_ok):
+				self.set_light(self.color_ok)
+				self.color = self.color_ok
+
 
 	## Velocity Monitoring
 	def new_velcommand(self, twist):
