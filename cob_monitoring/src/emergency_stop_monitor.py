@@ -23,6 +23,8 @@ class emergency_stop_monitor():
 		self.color = "None"
 		self.sound_enabled = rospy.get_param("~sound_enabled", True)
 		self.led_enabled = rospy.get_param("~led_enabled", True)
+		self.diagnotics_enabled = rospy.get_param("~diagnostics_based", False)
+		self.motion_sensing = rospy.get_param("~motion_sensing", False)
 
 		if(self.led_enabled):
 			if not rospy.has_param("~led_components"):
@@ -34,21 +36,19 @@ class emergency_stop_monitor():
 			self.color_ok = rospy.get_param("~color_ok","green")
 			self.color_off = rospy.get_param("~color_off","black")
 
-			self.diagnotics_enabled = rospy.get_param("~diagnostics_based", False)
-			if(self.diagnotics_enabled):
-				rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.new_diagnostics)
-				self.on = False
-				self.diag_err = False
-				self.last_led = rospy.get_rostime()
-			else:
-				rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.emergency_callback)	
-				self.em_status = EmergencyStopState()
-				self.first_time = True
+		if(self.diagnotics_enabled):
+			rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.new_diagnostics)
+			self.on = False
+			self.diag_err = False
+			self.last_led = rospy.get_rostime()
 
-			self.motion_sensing = rospy.get_param("~motion_sensing", False)
-			if(self.motion_sensing):
-				rospy.Subscriber("/base_controller/command_direct", Twist, self.new_velcommand)
-				self.last_vel = rospy.get_rostime()
+		rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.emergency_callback)	
+		self.em_status = EmergencyStopState()
+		self.first_time = True
+
+		if(self.motion_sensing):
+			rospy.Subscriber("/base_controller/command_direct", Twist, self.new_velcommand)
+			self.last_vel = rospy.get_rostime()
 
 	## Diagnostics monitoring
 	def new_diagnostics(self, diag):
@@ -59,20 +59,22 @@ class emergency_stop_monitor():
 					self.diag_err = True
 
 		#Trigger LEDS
- 		if(self.diag_err):
-			if(self.color != self.color_error):
-	 			self.set_light(self.color_error)	
-				self.color = self.color_error
+		# em stop has higher priority
+		if self.em_status.emergency_state == 1:
+		    if(self.color != self.color_error):
+				self.set_light(self.color_error)	
+		elif(self.diag_err):
+			if(self.color != self.color_warn):
+				self.set_light(self.color_warn)	
 		else:
 			if(self.color != self.color_ok):
 				self.set_light(self.color_ok)
-				self.color = self.color_ok
 
 
 	## Velocity Monitoring
 	def new_velcommand(self, twist):
-	        if twist.linear.x != 0 or twist.linear.y != 0 or twist.angular.z != 0:
-        		self.last_vel = rospy.get_rostime()
+		if twist.linear.x != 0 or twist.linear.y != 0 or twist.angular.z != 0:
+			self.last_vel = rospy.get_rostime()
 
 	## Emergency stop monitoring
 	def emergency_callback(self,msg):
@@ -110,6 +112,7 @@ class emergency_stop_monitor():
 	def set_light(self,color):
 		for component in self.light_components:
 			sss.set_light(component,color)
+			self.color = color
 
 if __name__ == "__main__":
 	rospy.init_node("emergency_stop_monitor")
