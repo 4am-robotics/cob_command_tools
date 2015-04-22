@@ -3,43 +3,43 @@
 ##\file
 #
 # \note
-#   Copyright (c) 2010 \n
-#   Fraunhofer Institute for Manufacturing Engineering
-#   and Automation (IPA) \n\n
+#	 Copyright (c) 2010 \n
+#	 Fraunhofer Institute for Manufacturing Engineering
+#	 and Automation (IPA) \n\n
 #
 #################################################################
 #
 # \note
-#   Project name: care-o-bot
+#	 Project name: care-o-bot
 # \note
-#   ROS stack name: cob_command_tools
+#	 ROS stack name: cob_command_tools
 # \note
-#   ROS package name: cob_script_server
+#	 ROS package name: cob_script_server
 #
 # \author
-#   Author: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
+#	 Author: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
 # \author
-#   Supervised by: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
+#	 Supervised by: Florian Weisshardt, email:florian.weisshardt@ipa.fhg.de
 #
 # \date Date of creation: Aug 2010
 #
 # \brief
-#   Implements script server functionalities.
+#	 Implements script server functionalities.
 #
 #################################################################
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
-#     - Redistributions of source code must retain the above copyright
-#       notice, this list of conditions and the following disclaimer. \n
-#     - Redistributions in binary form must reproduce the above copyright
-#       notice, this list of conditions and the following disclaimer in the
-#       documentation and/or other materials provided with the distribution. \n
-#     - Neither the name of the Fraunhofer Institute for Manufacturing
-#       Engineering and Automation (IPA) nor the names of its
-#       contributors may be used to endorse or promote products derived from
-#       this software without specific prior written permission. \n
+#		 - Redistributions of source code must retain the above copyright
+#			 notice, this list of conditions and the following disclaimer. \n
+#		 - Redistributions in binary form must reproduce the above copyright
+#			 notice, this list of conditions and the following disclaimer in the
+#			 documentation and/or other materials provided with the distribution. \n
+#		 - Neither the name of the Fraunhofer Institute for Manufacturing
+#			 Engineering and Automation (IPA) nor the names of its
+#			 contributors may be used to endorse or promote products derived from
+#			 this software without specific prior written permission. \n
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License LGPL as 
@@ -155,30 +155,6 @@ class script():
 		rospy.loginfo("...parsing finished")
 		function_counter = 0
 		return graph.string()
-
-## joint_state_listener class
-#
-# Listens to joint states for a given component
-class joint_state_listener:
-	def __init__(self, component_name):
-		self.actual_pos = []
-		self.lock = threading.Lock()
-		rospy.Subscriber("/" + component_name + "/joint_trajectory_controller/state", JointTrajectoryControllerState, self.state_cb)
-		self.received = False
-
-	# joint states callback
-	def state_cb(self, msg):
-		self.lock.acquire()
-		self.actual_pos = list(msg.actual.positions)
-		self.received = True
-		self.lock.release()
-
-	# flag if joint states are received
-	def get_actual_pos(self):
-		self.lock.acquire()
-		actual_pos = self.actual_pos
-		self.lock.release()
-		return actual_pos
 
 ## Simple script server class.
 #
@@ -534,21 +510,16 @@ class simple_script_server:
 		rospy.logdebug("accepted trajectory for %s",component_name)
 		
 		# get current pos
-		jsl = joint_state_listener(component_name)
-		max_wait_time = 0.5
-		wait_time = 0
-		while not jsl.received:
-			rospy.logdebug("still waiting for joint states of " + component_name)
-			if wait_time > max_wait_time:
-				rospy.logwarn("no joint states received within timeout. using default point time of 8sec")
-				break
-			rospy.sleep(0.01)
-			wait_time += 0.01
-		start_pos = jsl.get_actual_pos()
+		timeout = 3.0
+		try:
+			start_pos = rospy.wait_for_message("/" + component_name + "/joint_trajectory_controller/state", JointTrajectoryControllerState, timeout = timeout).actual.positions
+		except rospy.ROSException as e:
+			rospy.logwarn("no joint states received from %s within timeout of %ssec. using default point time of 8sec.", component_name, str(timeout))
+			start_pos = []
 
 		# convert to ROS trajectory message
 		traj_msg = JointTrajectory()
-		traj_msg.header.stamp = rospy.Time.now()+rospy.Duration(0.5)
+		# if no timestamp is set in header, this means that the trajectory starts "now"
 		traj_msg.joint_names = joint_names
 		point_nr = 0
 		traj_time = 0
@@ -664,12 +635,12 @@ class simple_script_server:
 			print("parameter_name must be numeric list of length 3; (relative x and y transl [m], relative rotation [rad])")
 			ah.set_failed(3)
 			return ah
-		if math.sqrt(parameter_name[0]**2 + parameter_name[1]**2) >= 0.15:
+		if math.sqrt(parameter_name[0]**2 + parameter_name[1]**2) >= 1.0: # [m]
 			rospy.logerr("Maximal relative translation step exceeded, aborting move_base_rel")
 			print("Maximal relative translation step is 0.1 m")
 			ah.set_failed(3)
 			return(ah)
-		if abs(parameter_name[2]) >= math.pi/2:
+		if abs(parameter_name[2]) >= math.pi/2: # [rad]
 			rospy.logerr("Maximal relative rotation step exceeded, aborting move_base_rel")
 			print("Maximal relative rotation step is pi/2")
 			ah.set_failed(3)
@@ -775,7 +746,7 @@ class simple_script_server:
 		color.b = param[2]
 		color.a = param[3] # Transparency
 
-		mode =  LightMode()
+		mode = LightMode()
 		mode.mode = 1
 		mode.color = color
 
