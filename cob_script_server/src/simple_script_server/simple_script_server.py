@@ -84,9 +84,8 @@ from control_msgs.msg import *
 from cob_sound.msg import *
 from cob_script_server.msg import *
 from cob_srvs.srv import *
-from cob_light.msg import LightMode
-from cob_light.srv import *
-from cob_mimic.srv import *
+from cob_light.msg import LightMode, SetLightModeGoal, SetLightModeAction
+from cob_mimic.msg import SetMimicGoal, SetMimicAction
 
 # graph includes
 import pygraphviz as pgv
@@ -718,22 +717,7 @@ class simple_script_server:
 	#
 	# \param parameter_name Name of the parameter on the parameter server which holds the rgb values.
 
-	def set_light(self,component_name,parameter_name,blocking=False):
-		ah = action_handle("set_light", component_name, parameter_name, blocking, self.parse)
-		if(self.parse):
-			return ah
-		else:
-			ah.set_active(mode="topic")
-
-		rospy.loginfo("Set <<%s>> to <<%s>>", component_name, parameter_name)
-
-		service_ns = self.ns_global_prefix + "/" + component_name + "/service_ns"
-		if not rospy.has_param(service_ns):
-				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",service_ns)
-				return 2
-		service_ns_name = rospy.get_param(service_ns)
-		service_full_name = service_ns_name + "/mode"
-
+	def compose_color(self,component_name,parameter_name):
 		# get joint values from parameter server
 		if type(parameter_name) is str:
 			full_parameter_name = self.ns_global_prefix + "/" + component_name + "/" + parameter_name
@@ -774,27 +758,42 @@ class simple_script_server:
 		color.g = param[1]
 		color.b = param[2]
 		color.a = param[3] # Transparency
+		return color	
+
+	def set_light(self,component_name,parameter_name,blocking=False):
+		ah = action_handle("set_light", component_name, parameter_name, blocking, self.parse)
+		if(self.parse):
+			return ah
+		else:
+			ah.set_active()
+
+		rospy.loginfo("Set <<%s>> to <<%s>>", component_name, parameter_name)
 
 		mode =  LightMode()
 		mode.mode = 1
-		mode.color = color
+		mode.color = self.compose_color(component_name, parameter_name)
 
-		try:
-			rospy.wait_for_service(service_full_name,5)
-		except rospy.ROSException, e:
-			error_message = "%s"%e
-			rospy.logerr("...<<%s>> service of <<%s>> not available, error: %s",service_full_name, component_name, error_message)
+		# call action server
+		action_server_name = component_name + "/set_light"
+		rospy.logdebug("calling %s action server",action_server_name)
+		client = actionlib.SimpleActionClient(action_server_name, SetLightModeAction)
+		# trying to connect to server
+		rospy.logdebug("waiting for %s action server to start",action_server_name)
+		if not client.wait_for_server(rospy.Duration(5)):
+			# error: server did not respond
+			rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
 			ah.set_failed(4)
 			return ah
+		else:
+			rospy.logdebug("%s action server ready",action_server_name)
 		
-		try:
-			light_srv = rospy.ServiceProxy(service_full_name, SetLightMode)
-			light_srv(mode)
-		except rospy.ServiceException, e:
-			print "Service call failed: %s"%e
-		
-		ah.set_succeeded()
-		ah.error_code = 0
+		# sending goal
+		goal = SetLightModeGoal()
+		goal.mode = mode
+		client.send_goal(goal)
+		ah.set_client(client)
+
+		ah.wait_inside()
 		return ah
 
 #------------------- Mimic section -------------------#
@@ -809,19 +808,12 @@ class simple_script_server:
 		if(self.parse):
 			return ah
 		else:
-			ah.set_active(mode="topic")
+			ah.set_active()
 
 		rospy.loginfo("Set <<%s>> to <<%s>>", component_name, parameter_name)
-
-		service_ns = self.ns_global_prefix + "/" + component_name + "/service_ns"
-		if not rospy.has_param(service_ns):
-			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",service_ns)
-			return 2
-		service_ns_name = rospy.get_param(service_ns)
-		service_full_name = service_ns_name #+ "/mode"
 			
 		# check mimic parameters
-		mimic = SetMimicRequest()
+		mimic = SetMimicGoal()
 		
 		if not (type(parameter_name) is str or type(parameter_name) is list): # check outer list
 			rospy.logerr("no valid parameter for mimic: not a string or list, aborting...")
@@ -851,22 +843,26 @@ class simple_script_server:
 				
 		rospy.logdebug("accepted parameter %s for mimic",parameter_name)
 
-		try:
-			rospy.wait_for_service(service_full_name,5)
-		except rospy.ROSException, e:
-			error_message = "%s"%e
-			rospy.logerr("...<<%s>> service of <<%s>> not available, error: %s", service_full_name, component_name, error_message)
+		# call action server
+		action_server_name = component_name + "/set_mimic"
+		rospy.logdebug("calling %s action server",action_server_name)
+		client = actionlib.SimpleActionClient(action_server_name, SetMimicAction)
+		# trying to connect to server
+		rospy.logdebug("waiting for %s action server to start",action_server_name)
+		if not client.wait_for_server(rospy.Duration(5)):
+			# error: server did not respond
+			rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
 			ah.set_failed(4)
 			return ah
+		else:
+			rospy.logdebug("%s action server ready",action_server_name)
+
 		
-		try:
-			mimic_srv = rospy.ServiceProxy(service_full_name, SetMimic)
-			mimic_srv(mimic)
-		except rospy.ServiceException, e:
-			print "Service call failed: %s"%e
-		
-		ah.set_succeeded()
-		ah.error_code = 0
+		# sending goal
+		client.send_goal(mimic)
+		ah.set_client(client)
+
+		ah.wait_inside()
 		return ah
 
 #-------------------- Sound section --------------------#
@@ -918,7 +914,7 @@ class simple_script_server:
 		rospy.loginfo("Saying <<%s>>",text)
 		
 		# call action server
-		action_server_name = "/sound_controller/say"
+		action_server_name = component_name + "/say"
 		rospy.logdebug("calling %s action server",action_server_name)
 		client = actionlib.SimpleActionClient(action_server_name, SayAction)
 		# trying to connect to server
