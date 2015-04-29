@@ -6,7 +6,7 @@ import rospy
 import sys
 
 from sensor_msgs.msg import JointState
-from diagnostic_msgs.msg import DiagnosticArray
+from diagnostic_msgs.msg import DiagnosticStatus
 
 from cob_msgs.msg import *
 from cob_light.msg import LightMode, SetLightModeGoal, SetLightModeAction
@@ -20,8 +20,8 @@ class emergency_stop_monitor():
 		self.color = "None"
 		self.sound_enabled = rospy.get_param("~sound_enabled", True)
 		self.led_enabled = rospy.get_param("~led_enabled", True)
-		self.diagnotics_enabled = rospy.get_param("~diagnostics_based", False)
-		self.motion_sensing = rospy.get_param("~motion_sensing", False)
+		self.diagnostics_based = rospy.get_param("~diagnostics_based", False)
+		self.motion_based = rospy.get_param("~motion_based", False)
 
 		if(self.led_enabled):
 			if not rospy.has_param("~led_components"):
@@ -35,17 +35,17 @@ class emergency_stop_monitor():
 
 		#emergency_stop_monitoring always enabled
 		rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.emergency_callback)
-		self.em_status = 0
+		self.em_status = -1
 		self.first_time = True
 
-		if(self.diagnotics_based):
+		if(self.diagnostics_based):
 			rospy.Subscriber("/diagnostics_toplevel_state", DiagnosticStatus, self.diagnostics_callback)
-			self.diag_status = 0
+			self.diag_status = -1
 			self.last_diag = rospy.get_rostime()
 
 		if(self.motion_based):
 			rospy.Subscriber("/joint_states", JointState, self.jointstate_callback)
-			self.motion_status = 0
+			self.motion_status = -1
 			self.last_vel = rospy.get_rostime()
 
 
@@ -65,6 +65,8 @@ class emergency_stop_monitor():
 				self.set_light(self.color_ok)
 				if(self.sound_enabled):
 					sss.say(["emergency stop released"])
+				self.diag_status = -1
+				self.motion_status = -1
 			elif msg.emergency_state == 1: # em stop
 				self.set_light(self.color_error)
 				if msg.scanner_stop and not msg.emergency_button_stop:
@@ -99,6 +101,7 @@ class emergency_stop_monitor():
 			
 			if msg.level == 0:	# ok
 				self.set_light(self.color_ok)
+				self.motion_status = -1
 			else:								# warning or error
 				self.set_light(self.color_warn)
 
@@ -115,7 +118,7 @@ class emergency_stop_monitor():
 		threshold = 0.1
 		moving = 0
 		for v in msg.velocity:
-			if v > threshold:
+			if abs(v) > threshold:
 				moving = 1
 				break
 		
