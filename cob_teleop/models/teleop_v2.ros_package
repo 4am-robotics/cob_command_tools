@@ -13,7 +13,7 @@
     <publisher name="gripper_left" msg="std_msgs::Float64MultiArray"/>
     <publisher name="gripper_right" eventHandler="" msg="std_msgs::Float64MultiArray"/>
     <subscriber name="joy" msg="sensor_msgs::Joy"/>
-    <serviceClient name="trigger" msg="cob_srvs::Trigger"/>
+    <serviceClient name="trigger" msg="std_srvs::Trigger"/>
     <parameter name="button_deadman" value="11"/>
     <parameter name="base_max_linear" type="double" value="0.5"/>
     <parameter name="base_max_angular" type="double" value="1.5"/>
@@ -83,7 +83,7 @@
   <depend>geometry_msgs</depend>
   <depend>brics_actuator</depend>
   <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
   <depend>trajectory_msgs</depend>
   <depend>cob_script_server</depend>
-  <depend>cob_srvs</depend>
 </ros:Package>

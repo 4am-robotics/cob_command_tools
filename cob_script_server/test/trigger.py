@@ -41,7 +41,7 @@ class TestTrigger(unittest.TestCase):
 	def cb(self,req):
 		self.cb_executed = True
 		res = TriggerResponse()
-		res.success.data = True
+		res.success = True
 		return res
 
 if __name__ == '__main__':

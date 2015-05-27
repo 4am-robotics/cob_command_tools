@@ -56,7 +56,7 @@ class TestActionInterface(unittest.TestCase):
 	def cb(self,req):
 		self.cb_executed = True
 		res = TriggerResponse()
-		res.success.data = True
+		res.success = True
 		return res
 
 	# test move base commands

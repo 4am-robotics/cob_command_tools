@@ -78,12 +78,12 @@ from geometry_msgs.msg import *
 from move_base_msgs.msg import *
 from tf.transformations import *
 from std_msgs.msg import String,ColorRGBA
+from std_srvs.srv import Trigger
 from control_msgs.msg import *
 
 # care-o-bot includes
 from cob_sound.msg import *
 from cob_script_server.msg import *
-from cob_srvs.srv import *
 from cob_light.msg import LightMode, SetLightModeGoal, SetLightModeAction
 from cob_mimic.msg import SetMimicGoal, SetMimicAction
 
@@ -299,8 +299,8 @@ class simple_script_server:
 
 		if blocking:
 			# evaluate sevice response
-			if not resp.success.data:
-				rospy.logerr("...<<%s>> <<%s>> not successfull, error: %s",service_name, component_name, resp.error_message.data) 
+			if not resp.success:
+				rospy.logerr("...<<%s>> <<%s>> not successfull, error: %s",service_name, component_name, resp.message) 
 				ah.set_failed(10)
 				return ah
 		

@@ -71,7 +71,7 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <geometry_msgs/Twist.h>
 
-#include <cob_srvs/Trigger.h>
+#include <std_srvs/Trigger.h>
 #include <brics_actuator/JointPositions.h>
 #include <brics_actuator/JointVelocities.h>
 
@@ -538,13 +538,13 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 	// recover base button
 	if(recover_base_button_>=0 && recover_base_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[recover_base_button_]==1)
 	{
-		ros::ServiceClient client_init_base = n_.serviceClient<cob_srvs::Trigger>("/base_controller/init");
+		ros::ServiceClient client_init_base = n_.serviceClient<std_srvs::Trigger>("/base_controller/init");
 	
 		ROS_INFO("Initializing base...");
-		cob_srvs::Trigger srv = cob_srvs::Trigger();
+		std_srvs::Trigger srv;
 		if (client_init_base.call(srv))
 		{
-			if (!srv.response.success.data)
+			if (!srv.response.success)
 				ROS_ERROR("Failed to initialize base.");
 			else
 				ROS_INFO("Base successfully initialized.");
@@ -554,12 +554,12 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 			ROS_ERROR("Failed to call service init.");
 		}
 		
-		ros::ServiceClient client_recover_base = n_.serviceClient<cob_srvs::Trigger>("/base_controller/recover");
+		ros::ServiceClient client_recover_base = n_.serviceClient<std_srvs::Trigger>("/base_controller/recover");
 	
 		ROS_INFO("Recovering base...");
 		if (client_recover_base.call(srv))
 		{
-			if(!srv.response.success.data)
+			if(!srv.response.success)
 				ROS_ERROR("Failed to recover base.");
 			else
 				ROS_INFO("Base successfully recovered.");
@@ -573,10 +573,10 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 	// stop base button
 	if(stop_base_button_>=0 && stop_base_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[stop_base_button_]==1)
 	{
-		ros::ServiceClient client_stop_base = n_.serviceClient<cob_srvs::Trigger>("/base_controller/stop");
+		ros::ServiceClient client_stop_base = n_.serviceClient<std_srvs::Trigger>("/base_controller/stop");
 	
 		ROS_INFO("Stop base");
-		cob_srvs::Trigger srv = cob_srvs::Trigger();
+		std_srvs::Trigger srv;
 		if (client_stop_base.call(srv))
 		{
 			ROS_INFO("Base stop successfully");

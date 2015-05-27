@@ -7,10 +7,11 @@ import unittest
 
 import rospy
 import rostest
+from std_srvs.srv import Trigger
 from trajectory_msgs.msg import *
 from simple_script_server import *
 from control_msgs.msg import *
-from cob_srvs.srv import *
+
 
 class PythonAPITest(unittest.TestCase):
 	def __init__(self, *args):
@@ -183,7 +184,7 @@ class PythonAPITest(unittest.TestCase):
 	def ss_cb(self,req):
 		self.ss_cb_executed = True
 		res = TriggerResponse()
-		res.success.data = True
+		res.success = True
 		return res
 
 if __name__ == '__main__':
