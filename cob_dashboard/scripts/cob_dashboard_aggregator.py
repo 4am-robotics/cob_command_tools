@@ -37,7 +37,6 @@
 
 import time
 import rospy
-from std_msgs.msg import Bool
 from cob_msgs.msg import PowerBoardState, PowerState, DashboardState, AccessPoint
 
 class DashboardAggregator:
@@ -57,13 +56,6 @@ class DashboardAggregator:
     # Wireless
     rospy.Subscriber("ddwrt/accesspoint", AccessPoint, self.accessPointCB)
     self.last_access_point = 0
-    # Motor State
-    rospy.Subscriber("pr2_etherCAT/motors_halted", Bool, self.motorsHaltedCB)
-    self.last_motors_halted = 0
-
-  def motorsHaltedCB(self, msg):
-    self.last_motors_halted = time.time()
-    self.msg.motors_halted = msg
 
   def powerBoardCB(self, msg):
     self.last_power_board_state = time.time()
