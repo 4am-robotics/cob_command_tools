@@ -280,11 +280,11 @@ Node: cob_teleop_v2
 <!--- protected region arm_cart_right on begin -->
 <!--- protected region arm_cart_right end -->
 
-**arm_joint_right** *(brics_actuator::JointVelocities)*   
+**arm_joint_right** *(std_msgs/Float64MultiArray)*   
 <!--- protected region arm_joint_right on begin -->
 <!--- protected region arm_joint_right end -->
 
-**arm_joint_left** *(brics_actuator::JointVelocities)*   
+**arm_joint_left** *(std_msgs/Float64MultiArray)*   
 <!--- protected region arm_joint_left on begin -->
 <!--- protected region arm_joint_left end -->
 

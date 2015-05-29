@@ -23,8 +23,6 @@
   <run_depend>sensor_msgs</run_depend>
   <build_depend>geometry_msgs</build_depend>
   <run_depend>geometry_msgs</run_depend>
-  <build_depend>brics_actuator</build_depend>
-  <run_depend>brics_actuator</run_depend>
   <build_depend>std_msgs</build_depend>
   <run_depend>std_msgs</run_depend>
   <build_depend>std_srvs</build_depend>
