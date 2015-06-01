@@ -10,7 +10,6 @@ find_package(catkin REQUIRED COMPONENTS
 	actionlib
 	sensor_msgs
 	geometry_msgs
-	brics_actuator
 	std_msgs
 	std_srvs
 	trajectory_msgs
@@ -38,7 +37,6 @@ catkin_package(
     dynamic_reconfigure
 	sensor_msgs
 	geometry_msgs
-	brics_actuator
 	std_msgs
 	std_srvs
 	trajectory_msgs
@@ -71,7 +69,6 @@ target_link_libraries(cob_teleop_v2
 # protected region additional user defined BUILD STATEMENTS on begin #
 add_executable(cob_teleop_v1 ros/src/cob_teleop_v1.cpp)
 add_dependencies(cob_teleop_v1 std_srvs_gencpp)
-add_dependencies(cob_teleop_v1 brics_actuator_gencpp)
 add_executable(cob_teleop_keyboard ros/src/cob_teleop_keyboard.cpp)
 add_executable(keyboard_publisher ros/src/keyboard_publisher.cpp)
 

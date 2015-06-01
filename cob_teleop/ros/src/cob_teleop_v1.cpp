@@ -66,14 +66,13 @@
 #include <unistd.h>
 #include <XmlRpcValue.h>
 #include <ros/ros.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <sensor_msgs/Joy.h>
 #include <sensor_msgs/JointState.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <geometry_msgs/Twist.h>
 
 #include <std_srvs/Trigger.h>
-#include <brics_actuator/JointPositions.h>
-#include <brics_actuator/JointVelocities.h>
 
 const int PUBLISH_FREQ = 100.0;
 
@@ -92,7 +91,7 @@ public:
 		std::vector<double> req_joint_vel_;
 		std::vector<double> steps;
 		ros::Publisher module_publisher_;
-		ros::Publisher module_publisher_brics_;
+		ros::Publisher module_publisher_vel_;
 	};
 
 	std::map<std::string,joint_module> joint_modules_; //std::vector<std::string> module_names;
@@ -255,8 +254,8 @@ bool TeleopCOB::assign_joint_module(std::string mod_name, XmlRpc::XmlRpcValue mo
 	if(is_joint_module)
 	{
 		// assign publisher
-		tempModule.module_publisher_ = n_.advertise<trajectory_msgs::JointTrajectory>(("/"+mod_name+"_controller/command"),1);
-		tempModule.module_publisher_brics_ = n_.advertise<brics_actuator::JointVelocities>(("/"+mod_name+"_controller/command_vel"),1);
+		tempModule.module_publisher_ = n_.advertise<trajectory_msgs::JointTrajectory>(("joint_trajectory_controller/command"),1);
+		tempModule.module_publisher_vel_ = n_.advertise<std_msgs::Float64MultiArray>(("joint_group_velocity_controller/command"),1);
 		// store joint module in collection
 		ROS_DEBUG("%s module stored",mod_name.c_str());
 		joint_modules_.insert(std::pair<std::string,joint_module>(mod_name,tempModule));
@@ -924,20 +923,15 @@ void TeleopCOB::update_joint_modules()
 		trajectory_msgs::JointTrajectory traj;
 		traj.header.stamp = ros::Time::now()+ros::Duration(0.01);
 		traj.points.resize(1);
-		brics_actuator::JointVelocities cmd_vel;
-		brics_actuator::JointValue joint_vel;
-		joint_vel.timeStamp = traj.header.stamp;
-		joint_vel.unit = "rad";
+		std_msgs::Float64MultiArray cmd_vel;
 		for(unsigned int i = 0; i<jointModule->joint_names.size();i++)
 		{
 			// as trajectory message
 			traj.joint_names.push_back(jointModule->joint_names[i]);
 			traj.points[0].positions.push_back(jointModule->req_joint_pos_[i] + jointModule->req_joint_vel_[i]*horizon);
 			traj.points[0].velocities.push_back(jointModule->req_joint_vel_[i]);  //lower_neck_pan
-			// as brics message
-			joint_vel.value = jointModule->req_joint_vel_[i];
-			joint_vel.joint_uri = jointModule->joint_names[i];
-			cmd_vel.velocities.push_back(joint_vel);
+			// as std_msgs/Float64MultiArray
+			cmd_vel.data.push_back(jointModule->req_joint_vel_[i]);
 			// update current positions
 			jointModule->req_joint_pos_[i] += jointModule->req_joint_vel_[i]*horizon;
 		}
@@ -945,7 +939,7 @@ void TeleopCOB::update_joint_modules()
 		traj.points[0].time_from_start = ros::Duration(horizon);
 
 		jointModule->module_publisher_.publish(traj); // TODO, change
-		jointModule->module_publisher_brics_.publish(cmd_vel);
+		jointModule->module_publisher_vel_.publish(cmd_vel);
 	}
 }
 
