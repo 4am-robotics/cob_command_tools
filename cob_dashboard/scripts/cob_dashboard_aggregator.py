@@ -71,7 +71,7 @@ class DashboardAggregator:
 
   def publish(self):
     now = time.time()
-    self.msg.motors_halted_valid = (now - self.last_motors_halted) < 3
+    self.msg.motors_halted_valid = (now - 0) < 3
     self.msg.power_board_state_valid = (now - self.last_power_board_state) < 3
     self.msg.power_state_valid = (now - self.last_power_state) < 25
     self.msg.access_point_valid = (now - self.last_access_point) < 5
