@@ -2,6 +2,12 @@
 Changelog for package cob_command_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* cleanup CMakeLists
+* remove anoying command_gui notification popups
+* Contributors: ipa-fmw, ipa-fxm
+
 0.6.1 (2014-12-15)
 ------------------
 * merge

@@ -2,6 +2,27 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* merge with ipa320
+* Merge pull request `#18 <https://github.com/ipa320/cob_command_tools/issues/18>`_ from ipa-cob4-2/indigo_dev
+  updates from cob4-2
+* use actions for light, sound and mimic. Using new namespaces with component_name
+* use wait_for_message instead of joint_state_listener
+* use new Trigger from std_srvs
+* fix indention
+* fix wrong service handle
+* Merge branch 'indigo_dev' of https://github.com/ipa-fmw/cob_command_tools into indigo_dev
+* fix blocking of move_base_rel and add mimic support
+* fix wrong variable name
+* fixed bug: light service is expecting 4 instead of 3 parameters [r,g,b,a]
+* cleanup CMakeLists
+* fix light for simple_script_server, adapt emergency_stop_monitor for cob4 by supporting mulitple light components
+* use transparency parameter, tiomeout for service and tabs vs spaces
+* using light service instead of topic and adapted for multiple components
+* added topic_name parameter set_light
+* Contributors: Benjamin Maidel, Florian Weisshardt, ipa-cob3-9, ipa-cob4-2, ipa-fmw, ipa-fxm, ipa-nhg
+
 0.6.1 (2014-12-15)
 ------------------
 * fix traj time calculation

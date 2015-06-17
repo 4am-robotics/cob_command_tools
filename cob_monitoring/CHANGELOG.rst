@@ -5,6 +5,19 @@ Changelog for package cob_monitoring
 0.5.3 (2014-03-28)
 ------------------
 
+Forthcoming
+-----------
+* fix emergency_stop_monitor (tested on cob4-2: OK)
+* enhance emergency_stop_monitor with diagnostics_based and motion_based
+* emergency stop monitor includes diagnostics and em stop
+* reworked emergency_stop_monitor (sets leds based on diagnostics), still needs to be updated to be robot independent (hardcoded components)
+* cleanup CMakeLists
+* have speach output for emergency switch to OK
+* make colors for error, warning and ok configurable
+* fix light for simple_script_server, adapt emergency_stop_monitor for cob4 by supporting mulitple light components
+* added install tags
+* Contributors: Florian Weisshardt, ipa-cob4-2, ipa-fmw, ipa-fxm, ipa-nhg
+
 0.6.1 (2014-12-15)
 ------------------
 * Update battery_monitor.py
