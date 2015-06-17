@@ -5,8 +5,8 @@ Changelog for package cob_monitoring
 0.5.3 (2014-03-28)
 ------------------
 
-Forthcoming
------------
+0.6.2 (2015-06-17)
+------------------
 * fix emergency_stop_monitor (tested on cob4-2: OK)
 * enhance emergency_stop_monitor with diagnostics_based and motion_based
 * emergency stop monitor includes diagnostics and em stop

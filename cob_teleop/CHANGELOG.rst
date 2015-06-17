@@ -2,8 +2,8 @@
 Changelog for package cob_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.2 (2015-06-17)
+------------------
 * replace brics_actuator
 * use new Trigger from std_srvs
 * Update README-PS3.md

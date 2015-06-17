@@ -2,8 +2,8 @@
 Changelog for package cob_interactive_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.2 (2015-06-17)
+------------------
 * cleanup CMakeLists
 * Contributors: ipa-fxm
 

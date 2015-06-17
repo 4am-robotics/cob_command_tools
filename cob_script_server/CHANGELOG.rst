@@ -2,8 +2,8 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.2 (2015-06-17)
+------------------
 * merge with ipa320
 * Merge pull request `#18 <https://github.com/ipa320/cob_command_tools/issues/18>`_ from ipa-cob4-2/indigo_dev
   updates from cob4-2
