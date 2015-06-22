@@ -2,6 +2,16 @@
 Changelog for package cob_dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.2 (2015-06-17)
+------------------
+* minor fix
+* remove obsolete pr2_etherCAT subscriber
+* cleanup CMakeLists
+* remove duplicate dependency cob_msgs
+* Revert "add missing dependency"
+* add missing dependency
+* Contributors: Florian Weisshardt, ipa-cob3-2, ipa-fxm, ipa-nhg
+
 0.6.1 (2014-12-15)
 ------------------
 * merge

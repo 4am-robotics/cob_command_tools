@@ -2,7 +2,7 @@
 <package>
   <name>cob_teleop</name>
   <description>teleop_node_of_v2</description>
-  <version>0.6.1</version>
+  <version>0.6.2</version>
   <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt, Maximilian Sieber</maintainer>
   <author email="fmw@ipa.fhg.de">Florian Weisshardt, Maximilian Sieber</author>
   <license>LGPL</license>
