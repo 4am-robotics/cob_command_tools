@@ -900,7 +900,7 @@ class simple_script_server:
 
 		# sending goal
 		client_goal = SayGoal()
-		client_goal.text.data = text
+		client_goal.text = text
 		#print client_goal
 		client.send_goal(client_goal)
 		ah.set_client(client)
@@ -918,15 +918,9 @@ class simple_script_server:
 		if(self.parse):
 			return ah
 		else:
-			ah.set_active(mode="system")
+			ah.set_active()
 		
-		language = rospy.get_param(self.ns_global_prefix + "/" + component_name + "/language","en")
-		if self.wav_path == "":
-			wav_path = commands.getoutput("rospack find cob_script_server")
-		else:
-			wav_path = self.wav_path
-		filename = wav_path + "/common/files/" + language + "/" + parameter_name + ".wav"
-		
+		filename = parameter_name
 		rospy.loginfo("Playing <<%s>>",filename)
 		#self.soundhandle.playWave(filename)
 		
@@ -936,14 +930,29 @@ class simple_script_server:
 		# else 
 		#	ah.set_fail(3)
 		#	return ah
-		
-		if blocking:
-			ret = os.system("aplay -q " + filename)
-			if ret != 0:
-				ah.set_failed(99)
-				return ah
+		# call action server
+
+		action_server_name = component_name + "/play"
+		rospy.logdebug("calling %s action server",action_server_name)
+		client = actionlib.SimpleActionClient(action_server_name, PlayAction)
+		# trying to connect to server
+		rospy.logdebug("waiting for %s action server to start",action_server_name)
+		if not client.wait_for_server(rospy.Duration(5)):
+			# error: server did not respond
+			rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
+			ah.set_failed(4)
+			return ah
 		else:
-			os.system("aplay -q " + filename + "&") # TODO how to check if execution failed (e.g. file could be found)?
+			rospy.logdebug("%s action server ready",action_server_name)
+
+		# sending goal
+		client_goal = PlayGoal()
+		client_goal.filename = filename
+		#print client_goal
+		client.send_goal(client_goal)
+		ah.set_client(client)
+
+		ah.wait_inside()
 		ah.set_succeeded()
 		return ah
 		
