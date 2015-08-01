@@ -2,7 +2,6 @@
   <name>cob_command_gui</name>
   <version>0.6.2</version>
   <description>This package provides a simple GUI for operating Care-O-bot.</description>
-  <!-- <maintainer>Florian Weisshardt</maintainer> -->
 
   <license>LGPL</license>
 
@@ -14,11 +13,9 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <run_depend>rospy</run_depend>
+  <run_depend>roslib</run_depend>
+  <run_depend>cob_msgs</run_depend>
   <run_depend>cob_script_server</run_depend>
-  <run_depend>cob_relayboard</run_depend>
   <run_depend>python-pygraphviz</run_depend>
 
-  <export>
-
-  </export>
 </package>

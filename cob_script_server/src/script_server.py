@@ -60,8 +60,6 @@
 import time
 import inspect
 
-import roslib
-roslib.load_manifest('cob_script_server')
 import rospy
 import actionlib
 

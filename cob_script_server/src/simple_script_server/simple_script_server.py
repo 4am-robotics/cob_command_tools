@@ -66,29 +66,27 @@ import commands
 import math
 import threading
 
+# graph includes
+import pygraphviz as pgv
+
 # ROS imports
-import roslib
-roslib.load_manifest('cob_script_server')
 import rospy
 import actionlib
 
 # msg imports
-from trajectory_msgs.msg import *
-from geometry_msgs.msg import *
-from move_base_msgs.msg import *
-from tf.transformations import *
 from std_msgs.msg import String,ColorRGBA
 from std_srvs.srv import Trigger
+from geometry_msgs.msg import *
+from trajectory_msgs.msg import *
+from move_base_msgs.msg import *
 from control_msgs.msg import *
+from tf.transformations import *
 
 # care-o-bot includes
 from cob_sound.msg import *
 from cob_script_server.msg import *
 from cob_light.msg import LightMode, SetLightModeGoal, SetLightModeAction
 from cob_mimic.msg import SetMimicGoal, SetMimicAction
-
-# graph includes
-import pygraphviz as pgv
 
 graph=""
 graph_wait_list=[]

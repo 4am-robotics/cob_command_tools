@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import roslib
-roslib.load_manifest('cob_script_server')
 
 import sys
 import unittest
@@ -9,8 +7,8 @@ import rospy
 import rostest
 from std_srvs.srv import Trigger
 from trajectory_msgs.msg import *
-from simple_script_server import *
 from control_msgs.msg import *
+from simple_script_server import *
 
 
 class PythonAPITest(unittest.TestCase):

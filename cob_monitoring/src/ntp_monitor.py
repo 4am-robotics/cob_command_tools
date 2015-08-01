@@ -32,19 +32,15 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 # This file has been copied from https://github.com/PR2/pr2_computer_monitor in order to support this feature for indigo indepenendly from PR2 dependencies
-import roslib
-roslib.load_manifest('cob_monitoring')
-
-from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 import sys
-import rospy
 import socket
 from subprocess import Popen, PIPE
-
 import time
-
 import re
+
+import rospy
+from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 ##### monkey-patch to suppress threading error message in python 2.7.3
 ##### See http://stackoverflow.com/questions/13193278/understand-python-threading-bug

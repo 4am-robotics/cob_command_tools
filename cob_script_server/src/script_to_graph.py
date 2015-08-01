@@ -57,17 +57,16 @@
 #
 #################################################################
 
-import roslib
-roslib.load_manifest('cob_script_server')
-import rospy
 import sys
 import types
 import string
 import os
-from simple_script_server import script
 
 # graph includes
 import pygraphviz as pgv
+
+import rospy
+from simple_script_server import script
 
 
 if __name__ == "__main__":

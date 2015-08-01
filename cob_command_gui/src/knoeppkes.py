@@ -57,10 +57,6 @@
 #
 #################################################################
 
-import roslib
-roslib.load_manifest('cob_command_gui')
-from cob_msgs.msg import EmergencyStopState
-from command_gui_buttons import *
 import thread
 import pygtk
 pygtk.require('2.0')
@@ -69,6 +65,12 @@ import roslib
 import os
 import sys 
 import signal
+
+import rospy
+import roslib
+from cob_msgs.msg import EmergencyStopState
+from simple_script_server import *
+from command_gui_buttons import *
 
 planning_enabled = False
 base_diff_enabled = False

@@ -59,13 +59,13 @@
 
 import gtk
 import gtk.gdk
-import roslib; roslib.load_manifest('cob_script_server')
-import rospy
 import xdot
-from std_msgs.msg import String
-from cob_script_server.msg import *
 
 import pygraphviz as pgv
+
+import rospy
+from std_msgs.msg import String
+from cob_script_server.msg import *
 
 gtk.gdk.threads_init()
 

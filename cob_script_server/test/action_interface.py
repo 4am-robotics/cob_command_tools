@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 
-PKG="cob_script_server"
-import roslib; roslib.load_manifest(PKG)
-
 import sys
 import unittest
 
+import rospy
 import actionlib
-
 from simple_script_server import *
 
 ## This test checks the correct call to commands from the cob_script_server. This does not cover the execution of the commands (this shoud be checked in the package where the calls refer to).
@@ -122,4 +119,4 @@ class TestActionInterface(unittest.TestCase):
 
 if __name__ == '__main__':
 	import rostest
-	rostest.rosrun(PKG, 'action_interface', TestActionInterface)
+	rostest.rosrun('cob_script_server', 'action_interface', TestActionInterface)

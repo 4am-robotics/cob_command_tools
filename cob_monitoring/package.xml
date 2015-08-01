@@ -14,6 +14,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <run_depend>rospy</run_depend>
+  <run_depend>std_msgs</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>diagnostic_msgs</run_depend>
   <run_depend>cob_msgs</run_depend>
@@ -23,7 +25,4 @@
   <run_depend>sysstat</run_depend>
   <run_depend>ipmitool</run_depend>
 
-  <export>
-
-  </export>
 </package>
