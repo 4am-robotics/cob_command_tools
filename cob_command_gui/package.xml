@@ -12,10 +12,11 @@
   <author email="fmw@ipa.fhg.de">Florian Weisshardt</author>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>roslib</run_depend>
+
   <run_depend>cob_msgs</run_depend>
   <run_depend>cob_script_server</run_depend>
   <run_depend>python-pygraphviz</run_depend>
+  <run_depend>roslib</run_depend>
+  <run_depend>rospy</run_depend>
 
 </package>

@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS)
 catkin_python_setup()
 
 catkin_package(
-    CATKIN_DEPENDS rospy roslib cob_msgs rqt_robot_dashboard
+    CATKIN_DEPENDS cob_msgs roslib rospy rqt_gui rqt_robot_dashboard
 )
 
 ### Install ###

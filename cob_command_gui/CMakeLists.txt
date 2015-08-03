@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS)
 catkin_python_setup()
 
 catkin_package(
-  CATKIN_DEPENDS rospy roslib cob_msgs cob_script_server
+  CATKIN_DEPENDS cob_msgs cob_script_server roslib rospy
 )
 
 ### Install ###

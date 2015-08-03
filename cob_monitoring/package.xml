@@ -14,15 +14,15 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <run_depend>rospy</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>diagnostic_msgs</run_depend>
-  <run_depend>cob_msgs</run_depend>
   <run_depend>cob_light</run_depend>
+  <run_depend>cob_msgs</run_depend>
   <run_depend>cob_script_server</run_depend>
-  <run_depend>python-mechanize</run_depend>
-  <run_depend>sysstat</run_depend>
+  <run_depend>diagnostic_msgs</run_depend>
   <run_depend>ipmitool</run_depend>
+  <run_depend>python-mechanize</run_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>sysstat</run_depend>
 
 </package>

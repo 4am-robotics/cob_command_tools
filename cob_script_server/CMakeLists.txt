@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_script_server)
 
-find_package(catkin REQUIRED COMPONENTS message_generation trajectory_msgs actionlib_msgs actionlib rostest)
+find_package(catkin REQUIRED COMPONENTS actionlib_msgs actionlib message_generation rostest trajectory_msgs)
 
 catkin_python_setup()
 
@@ -28,9 +28,8 @@ generate_messages(
 
 
 catkin_package(
-    CATKIN_DEPENDS rospy message_runtime std_msgs std_srvs geometry_msgs trajectory_msgs control_msgs move_base_msgs actionlib_msgs actionlib tf cob_sound cob_light cob_mimic rostest
+    CATKIN_DEPENDS actionlib_msgs actionlib cob_light cob_mimic cob_sound control_msgs geometry_msgs message_runtime move_base_msgs rospy rostest std_msgs std_srvs tf trajectory_msgs
 )
-
 
 ### Install ###
 install(DIRECTORY common launch

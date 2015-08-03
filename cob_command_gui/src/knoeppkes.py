@@ -61,7 +61,6 @@ import thread
 import pygtk
 pygtk.require('2.0')
 import gtk
-import roslib
 import os
 import sys 
 import signal
