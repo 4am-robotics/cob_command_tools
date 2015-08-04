@@ -952,7 +952,7 @@ class simple_script_server:
 		else:
 			rospy.logerr("you should never be here")
 				
-		rospy.logdebug("accepted parameter %s for mimic",parameter_name)
+		rospy.logdebug("accepted parameter %s for play",parameter_name)
 		#\todo TODO: check if file exists
 		# if filename exists:
 		#	do ...
