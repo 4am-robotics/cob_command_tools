@@ -1,10 +1,7 @@
 #!/usr/bin/python
-
-import roslib
-roslib.load_manifest('cob_monitoring')
-import rospy
 import sys
 
+import rospy
 from sensor_msgs.msg import JointState
 from diagnostic_msgs.msg import DiagnosticStatus
 

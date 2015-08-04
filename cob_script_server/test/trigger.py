@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
-PKG="cob_script_server"
-import roslib; roslib.load_manifest(PKG)
-
 import sys
 import unittest
 
+import rospy
 from simple_script_server import *
 sss = simple_script_server()
 
@@ -46,4 +44,4 @@ class TestTrigger(unittest.TestCase):
 
 if __name__ == '__main__':
 	import rostest
-	rostest.rosrun(PKG, 'trigger', TestTrigger)
+	rostest.rosrun('cob_script_server', 'trigger', TestTrigger)

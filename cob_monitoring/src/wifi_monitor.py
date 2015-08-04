@@ -38,15 +38,10 @@
 
 from __future__ import with_statement
 
-PKG = 'cob_monitoring'
-import roslib
-roslib.load_manifest(PKG)
-
-import rospy
-
 import threading
 import sys
 
+import rospy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 from cob_msgs.msg import AccessPoint
 

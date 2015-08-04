@@ -57,12 +57,8 @@
 #
 #################################################################
 
-import roslib
-roslib.load_manifest('cob_monitoring')
 import rospy
-
 from cob_msgs.msg import *
-
 from simple_script_server import *
 sss = simple_script_server()
 

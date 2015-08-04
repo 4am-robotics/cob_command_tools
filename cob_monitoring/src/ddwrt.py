@@ -37,14 +37,13 @@
 import os, sys, string, time, getopt, re
 import StringIO
 
-import rospy
-from cob_msgs.msg import *
-
 import mechanize
-from std_msgs.msg import Header
 import csv
-
 import gc
+
+import rospy
+from std_msgs.msg import Header
+from cob_msgs.msg import *
 
 def breakUpTrash():
     for item in gc.garbage:

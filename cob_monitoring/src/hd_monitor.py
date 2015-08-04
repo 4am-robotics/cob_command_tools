@@ -36,10 +36,6 @@
 # This file has been copied from https://github.com/PR2/pr2_computer_monitor in order to support this feature for indigo indepenendly from PR2 dependencies
 
 from __future__ import with_statement
-import roslib
-roslib.load_manifest('cob_monitoring')
-
-import rospy
 
 import traceback
 import threading
@@ -47,9 +43,9 @@ from threading import Timer
 import sys, os, time
 from time import sleep
 import subprocess
-
 import socket
 
+import rospy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 ##### monkey-patch to suppress threading error message in python 2.7.3

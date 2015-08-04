@@ -2,7 +2,6 @@
   <name>cob_dashboard</name>
   <version>0.6.2</version>
   <description>cob_dashboard is a modified version of [[pr2_dashboard]].</description>
-  <!-- <maintainer>Alexander Bubeck</maintainer> -->
 
   <license>LGPL</license>
 
@@ -13,11 +12,11 @@
   <author email="aub@ipa.fhg.de">Alexander Bubeck</author>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>roslib</run_depend>
+
   <run_depend>cob_msgs</run_depend>
+  <run_depend>roslib</run_depend>
+  <run_depend>rospy</run_depend>
   <run_depend>rqt_gui</run_depend>
-  <run_depend>rqt_gui_cpp</run_depend>
   <run_depend>rqt_robot_dashboard</run_depend>
   
   <export>

@@ -31,7 +31,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import roslib
-roslib.load_manifest('cob_dashboard')
 import rospy
 
 from cob_msgs.msg import EmergencyStopState
