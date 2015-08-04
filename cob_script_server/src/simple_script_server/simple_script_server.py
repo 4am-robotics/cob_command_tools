@@ -918,21 +918,18 @@ class simple_script_server:
 		else:
 			ah.set_active()
 		
-		#self.soundhandle.playWave(filename)
-		
 		if not (type(parameter_name) is str or type(parameter_name) is list): # check outer list
 			rospy.logerr("no valid parameter for play: not a string or list, aborting...")
 			print "parameter is:",parameter_name
 			ah.error_code = 3
 			return ah
-		
-		#audio_path = rospy.get_param("audio_path_file")
+
 		if type(parameter_name) is str:
-			if not rospy.has_param(self.ns_global_prefix + "/" + component_name + "/" + "audio_path_file"):
-				rospy.logerr("parameter audio_path_file does not exist on ROS Parameter Server, aborting...")
+			if not rospy.has_param(self.ns_global_prefix + "/" + component_name + "/" + "audio_file_path"):
+				rospy.logerr("parameter audio_file_path does not exist on ROS Parameter Server, aborting...")
 				ah.set_failed(2)
 				return ah
-			filename = rospy.get_param(self.ns_global_prefix + "/" + component_name + "/" + "audio_path_file") + "/" + parameter_name + ".wav"
+			filename = rospy.get_param(self.ns_global_prefix + "/" + component_name + "/" + "audio_file_path") + "/" + parameter_name + ".wav"
 
 		elif type(parameter_name) is list:
 			if len(parameter_name) != 3:
@@ -951,13 +948,6 @@ class simple_script_server:
 			rospy.logerr("you should never be here")
 				
 		rospy.logdebug("accepted parameter %s for play",parameter_name)
-		#\todo TODO: check if file exists
-		# if filename exists:
-		#	do ...
-		# else 
-		#	ah.set_fail(3)
-		#	return ah
-		# call action server
 
 		action_server_name = component_name + "/play"
 		rospy.logdebug("calling %s action server",action_server_name)
