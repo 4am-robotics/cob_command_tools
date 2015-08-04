@@ -920,10 +920,39 @@ class simple_script_server:
 		else:
 			ah.set_active()
 		
-		filename = parameter_name
-		rospy.loginfo("Playing <<%s>>",filename)
 		#self.soundhandle.playWave(filename)
 		
+		if not (type(parameter_name) is str or type(parameter_name) is list): # check outer list
+			rospy.logerr("no valid parameter for play: not a string or list, aborting...")
+			print "parameter is:",parameter_name
+			ah.error_code = 3
+			return ah
+		
+		#audio_path = rospy.get_param("audio_path_file")
+		if type(parameter_name) is str:
+			if not rospy.has_param(self.ns_global_prefix + "/" + component_name + "/" + "audio_path_file"):
+				rospy.logerr("parameter audio_path_file does not exist on ROS Parameter Server, aborting...")
+				ah.set_failed(2)
+				return ah
+			filename = rospy.get_param(self.ns_global_prefix + "/" + component_name + "/" + "audio_path_file") + "/" + parameter_name + ".wav"
+
+		elif type(parameter_name) is list:
+			if len(parameter_name) != 3:
+				rospy.logerr("no valid parameter for play: not a list with size 3, aborting...")
+				print "parameter is:",parameter_name
+				ah.error_code = 3
+				return ah
+			if ((type(parameter_name[0]) is str) and (type(parameter_name[1]) is str) and (type(parameter_name[2]) is str)):
+				filename = parameter_name[1] + "/" + parameter_name[0] + "." + parameter_name[2]
+			else:
+				rospy.logerr("no valid parameter for play: not a list with [filename, file_path, file_suffix], aborting...")
+				print "parameter is:",parameter_name
+				ah.error_code = 3
+				return ah
+		else:
+			rospy.logerr("you should never be here")
+				
+		rospy.logdebug("accepted parameter %s for mimic",parameter_name)
 		#\todo TODO: check if file exists
 		# if filename exists:
 		#	do ...
@@ -946,6 +975,7 @@ class simple_script_server:
 			rospy.logdebug("%s action server ready",action_server_name)
 
 		# sending goal
+		rospy.loginfo("Playing <<%s>>",filename)
 		client_goal = PlayGoal()
 		client_goal.filename = filename
 		#print client_goal
