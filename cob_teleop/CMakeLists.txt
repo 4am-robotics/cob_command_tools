@@ -38,8 +38,6 @@ install(TARGETS cob_teleop_v1 cob_teleop_v2 cob_teleop_keyboard keyboard_publish
 
 install(DIRECTORY common/include/${PROJECT_NAME}/
  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
- FILES_MATCHING PATTERN "*.h"
- PATTERN ".svn" EXCLUDE
 )
 
 install(DIRECTORY ros/launch
