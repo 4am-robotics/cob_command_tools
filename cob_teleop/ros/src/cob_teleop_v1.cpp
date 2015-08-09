@@ -523,7 +523,7 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 	{
 		run_factor_ = 1.0;
 	}
-	
+
 	// base safety button
 	if(base_safety_button_>=0 && base_safety_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[base_safety_button_]==1)
 	{
@@ -533,12 +533,12 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 	{
 		base_safety_ = true;
 	}
-	
+
 	// recover base button
 	if(recover_base_button_>=0 && recover_base_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[recover_base_button_]==1)
 	{
 		ros::ServiceClient client_init_base = n_.serviceClient<std_srvs::Trigger>("/base_controller/init");
-	
+
 		ROS_INFO("Initializing base...");
 		std_srvs::Trigger srv;
 		if (client_init_base.call(srv))
@@ -552,9 +552,9 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 		{
 			ROS_ERROR("Failed to call service init.");
 		}
-		
+
 		ros::ServiceClient client_recover_base = n_.serviceClient<std_srvs::Trigger>("/base_controller/recover");
-	
+
 		ROS_INFO("Recovering base...");
 		if (client_recover_base.call(srv))
 		{
@@ -568,12 +568,12 @@ void TeleopCOB::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 			ROS_ERROR("Failed to call service recover.");
 		}
 	}
-	
+
 	// stop base button
 	if(stop_base_button_>=0 && stop_base_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[stop_base_button_]==1)
 	{
 		ros::ServiceClient client_stop_base = n_.serviceClient<std_srvs::Trigger>("/base_controller/stop");
-	
+
 		ROS_INFO("Stop base");
 		std_srvs::Trigger srv;
 		if (client_stop_base.call(srv))
