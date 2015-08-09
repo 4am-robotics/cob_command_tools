@@ -7,26 +7,26 @@ generate_dynamic_reconfigure_options(cfg/cob_teleop_v2.cfg )
 
 catkin_package(
   INCLUDE_DIRS common/include
-  CATKIN_DEPENDS actionlib cob_script_server dynamic_reconfigure geometry_msgs roscpp sensor_msgs std_msgs std_srvs trajectory_msgs
+  CATKIN_DEPENDS actionlib dynamic_reconfigure geometry_msgs roscpp sensor_msgs std_msgs std_srvs trajectory_msgs
 )
 
 ### Build ###
-include_directories(common/include)
-include_directories(${catkin_INCLUDE_DIRS})
+include_directories(common/include ${catkin_INCLUDE_DIRS})
 
 add_executable(cob_teleop_v2 ros/src/cob_teleop_v2_ros.cpp)
-add_dependencies(cob_teleop_v2 cob_teleop_v2_gencfg)
-add_dependencies(cob_teleop_v2 ${cob_teleop_EXPORTED_TARGETS})
+add_dependencies(cob_teleop_v2 ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(cob_teleop_v2 ${catkin_LIBRARIES})
 
 add_executable(cob_teleop_v1 ros/src/cob_teleop_v1.cpp)
-add_dependencies(cob_teleop_v1 std_srvs_gencpp)
+add_dependencies(cob_teleop_v1 ${catkin_EXPORTED_TARGETS})
 target_link_libraries(cob_teleop_v1 ${catkin_LIBRARIES})
 
 add_executable(cob_teleop_keyboard ros/src/cob_teleop_keyboard.cpp)
+add_dependencies(cob_teleop_keyboard ${catkin_EXPORTED_TARGETS})
 target_link_libraries(cob_teleop_keyboard ${catkin_LIBRARIES})
 
 add_executable(keyboard_publisher ros/src/keyboard_publisher.cpp)
+add_dependencies(keyboard_publisher ${catkin_EXPORTED_TARGETS})
 target_link_libraries(keyboard_publisher ${catkin_LIBRARIES})
 
 ### Install ###

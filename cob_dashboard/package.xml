@@ -1,4 +1,4 @@
-<package>
+<package format="2">
   <name>cob_dashboard</name>
   <version>0.6.2</version>
   <description>cob_dashboard is a modified version of [[pr2_dashboard]].</description>
@@ -13,11 +13,11 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <run_depend>cob_msgs</run_depend>
-  <run_depend>roslib</run_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>rqt_gui</run_depend>
-  <run_depend>rqt_robot_dashboard</run_depend>
+  <exec_depend>cob_msgs</exec_depend>
+  <exec_depend>roslib</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>rqt_gui</exec_depend>
+  <exec_depend>rqt_robot_dashboard</exec_depend>
   
   <export>
     <rqt_gui plugin="${prefix}/plugin.xml"/>
