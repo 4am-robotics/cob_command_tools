@@ -4,18 +4,10 @@
 #include <cob_teleop/cob_teleop_v2Config.h>
 
 // ROS message includes
-#include <sensor_msgs/JoyFeedbackArray.h>
 #include <geometry_msgs/Twist.h>
-#include <geometry_msgs/Twist.h>
-#include <geometry_msgs/Twist.h>
-#include <std_msgs/Float64MultiArray.h>
-#include <std_msgs/Float64MultiArray.h>
-#include <geometry_msgs/Twist.h>
-#include <std_msgs/Float64MultiArray.h>
-#include <geometry_msgs/Twist.h>
-#include <std_msgs/Float64MultiArray.h>
-#include <std_msgs/Float64MultiArray.h>
 #include <sensor_msgs/Joy.h>
+#include <sensor_msgs/JoyFeedbackArray.h>
+#include <std_msgs/Float64MultiArray.h>
 
 // other includes
 #include <cob_teleop/cob_teleop_v2_common.h>

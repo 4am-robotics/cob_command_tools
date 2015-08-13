@@ -17,10 +17,10 @@
   <exec_depend>message_runtime</exec_depend>
 
   <depend>actionlib_msgs</depend>
-  <depend>actionlib</depend>
   <depend>rostest</depend>
   <depend>trajectory_msgs</depend>
 
+  <exec_depend>actionlib</exec_depend>
   <exec_depend>cob_light</exec_depend>
   <exec_depend>cob_mimic</exec_depend>
   <exec_depend>cob_sound</exec_depend>
