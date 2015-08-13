@@ -7,11 +7,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 
 generate_dynamic_reconfigure_options(cfg/cob_teleop_v2.cfg )
 
-catkin_package(
-  CATKIN_DEPENDS actionlib dynamic_reconfigure geometry_msgs roscpp sensor_msgs std_msgs std_srvs trajectory_msgs
-  DEPENDS Boost
-  INCLUDE_DIRS common/include
-)
+catkin_package()
 
 ### Build ###
 include_directories(common/include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
@@ -37,10 +33,6 @@ install(TARGETS cob_teleop_v1 cob_teleop_v2 cob_teleop_keyboard keyboard_publish
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(DIRECTORY common/include/${PROJECT_NAME}/
- DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
 install(DIRECTORY ros/launch

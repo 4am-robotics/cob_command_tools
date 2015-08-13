@@ -5,10 +5,7 @@ find_package(catkin REQUIRED COMPONENTS geometry_msgs interactive_markers roscpp
 
 find_package(Boost REQUIRED COMPONENTS system)
 
-catkin_package(
-  CATKIN_DEPENDS geometry_msgs interactive_markers roscpp std_msgs tf visualization_msgs
-  DEPENDS Boost
-)
+catkin_package()
 
 ### Build ###
 include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
@@ -22,10 +19,6 @@ install(TARGETS interactive_teleop
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
 install(DIRECTORY config launch
