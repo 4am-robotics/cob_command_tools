@@ -2,14 +2,6 @@
 #include "ros/ros.h"
 #include <sensor_msgs/JoyFeedbackArray.h>
 #include <geometry_msgs/Twist.h>
-#include <geometry_msgs/Twist.h>
-#include <geometry_msgs/Twist.h>
-#include <std_msgs/Float64MultiArray.h>
-#include <std_msgs/Float64MultiArray.h>
-#include <geometry_msgs/Twist.h>
-#include <std_msgs/Float64MultiArray.h>
-#include <geometry_msgs/Twist.h>
-#include <std_msgs/Float64MultiArray.h>
 #include <std_msgs/Float64MultiArray.h>
 #include <sensor_msgs/Joy.h>
 
@@ -125,7 +117,7 @@ class cob_teleop_v2_impl
     /* protected region user member variables on begin */
     typedef actionlib::SimpleActionClient<cob_script_server::ScriptAction> Client;
     Client * client;
-    
+
     bool once;
     bool once_stop;
     bool once_mode;
@@ -145,7 +137,7 @@ class cob_teleop_v2_impl
     std_msgs::Float64MultiArray gleft;
     std_msgs::Float64MultiArray gright;
     cob_script_server::ScriptGoal sss;
-    
+
     sensor_msgs::JoyFeedbackArray joyfb;
 
 
@@ -155,7 +147,7 @@ class cob_teleop_v2_impl
     /* protected region user member variables end */
 
 public:
-    cob_teleop_v2_impl() 
+    cob_teleop_v2_impl()
     {
         /* protected region user constructor on begin */
       client = new Client("script_server", true);
@@ -165,7 +157,7 @@ public:
         /* protected region user constructor end */
     }
 
-    void configure(cob_teleop_v2_config config) 
+    void configure(cob_teleop_v2_config config)
     {
         /* protected region user configure on begin */
       //asign arm joints
@@ -195,12 +187,12 @@ public:
     data.out_joy_feedback=ledsOn(LEDS);//Set Leds immediate after startup
 
     if (data.in_joy.buttons.size()<=5)//wait for joypad!
-    {  
+    {
       ROS_WARN("joypad inactive! waiting for array of buttons. Move the Controller");
       ros::Duration(0.5).sleep();
       return;
     }
-    
+
     joy=data.in_joy;
     run=1-joy.axes[config.axis_runfactor];
     updown=(joy.buttons[config.arm_joint_up]-joy.buttons[config.arm_joint_down]);
@@ -227,7 +219,7 @@ public:
       switch (mode)
       {
       case 0: //Base
-      
+
       base.linear.x=joy.axes[config.base_x]*config.base_max_linear*run;
       base.linear.y=joy.axes[config.base_y]*config.base_max_linear*run;
       base.angular.z=joy.axes[config.base_yaw]*config.base_max_angular*run;
@@ -241,7 +233,7 @@ public:
         once=true;
       }
       break;
-      
+
       case 1: //arm cartesian left
       arm_cart.linear.x=(joy.axes[config.arm_x])*config.arm_cartesian_max_linear*run;
       arm_cart.linear.y=(joy.axes[config.arm_y])*config.arm_cartesian_max_linear*run;
@@ -258,7 +250,7 @@ public:
         once=true;
       }
       break;
-      
+
       case 2: //arm_cartesian right
       arm_cart.linear.x=(joy.axes[config.arm_x])*config.arm_cartesian_max_linear*run;
       arm_cart.linear.y=(joy.axes[config.arm_y])*config.arm_cartesian_max_linear*run;
@@ -275,7 +267,7 @@ public:
            once=true;
       }
       break;
-      
+
       case 3: //arm_joints_left
       left.data[0]=updown*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
       left.data[1]=leftright*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
@@ -297,7 +289,7 @@ public:
            once=true;
       }
       break;
-      
+
       case 4: //arm_joints_right
       right.data[0]=updown*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
       right.data[1]=leftright*joy.buttons[config.arm_joint_12]*run*config.arm_joint_velocity_max;
@@ -319,7 +311,7 @@ public:
            once=true;
       }
       break;
-      
+
       case 5 : //automoves
       once_stop=false;
       bool recover;
@@ -351,9 +343,9 @@ public:
         }
       }
       break;
-     
-     
-      case 6: //case 6: sensorring head torso 
+
+
+      case 6: //case 6: sensorring head torso
       //sensorring (Joints)
       sring.data[0]=(joy.buttons[config.sensorring_yaw_left]-joy.buttons[config.sensorring_yaw_right])*config.sensor_ring_max_angular*run;
       data.out_sensorring_controller_command=sring;
@@ -370,7 +362,7 @@ public:
       torso.angular.z=(joy.buttons[config.torso_yaw_left]-joy.buttons[config.torso_yaw_right])*config.torso_max_angular*run;
       data.out_torso_controller_command=torso;
       data.out_torso_controller_command_active=1;
-      
+
       if (!joy.buttons[config.button_init_recover]){once=false;}
       if (joy.buttons[config.button_init_recover] && !once)
       {
@@ -393,7 +385,7 @@ public:
       serviceCall(static_cast<std::string>(config.components[j]).c_str(),"stop");
     }
   }
- 
+
         /* protected region user update end */
     }
 

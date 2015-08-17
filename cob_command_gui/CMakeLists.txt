@@ -5,12 +5,10 @@ find_package(catkin REQUIRED COMPONENTS)
 
 catkin_python_setup()
 
-catkin_package(
-  CATKIN_DEPENDS cob_msgs cob_script_server roslib rospy
-)
+catkin_package()
 
 ### Install ###
-install(PROGRAMS src/knoeppkes.py 
+install(PROGRAMS src/knoeppkes.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/src
 )
 

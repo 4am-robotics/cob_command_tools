@@ -10,6 +10,6 @@
     <rosparam file="$(arg param_file)" command="load" />
     <remap from="/base_controller/command" to="$(arg base_topic)" />
   </node>
-  
+
 </launch>
 

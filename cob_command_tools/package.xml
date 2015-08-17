@@ -1,8 +1,8 @@
-<package>
+<package format="2">
   <name>cob_command_tools</name>
   <version>0.6.2</version>
   <description>The cob_command_tools stack provides tools, for operating Care-O-bot.</description>
- 
+
   <license>LGPL</license>
 
   <url type="website">http://ros.org/wiki/cob_command_tools</url>
@@ -14,12 +14,12 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <run_depend>cob_command_gui</run_depend>
-  <run_depend>cob_dashboard</run_depend>
-  <run_depend>cob_interactive_teleop</run_depend>
-  <run_depend>cob_monitoring</run_depend>
-  <run_depend>cob_script_server</run_depend>
-  <run_depend>cob_teleop</run_depend>
+  <exec_depend>cob_command_gui</exec_depend>
+  <exec_depend>cob_dashboard</exec_depend>
+  <exec_depend>cob_interactive_teleop</exec_depend>
+  <exec_depend>cob_monitoring</exec_depend>
+  <exec_depend>cob_script_server</exec_depend>
+  <exec_depend>cob_teleop</exec_depend>
 
   <export>
     <metapackage/>

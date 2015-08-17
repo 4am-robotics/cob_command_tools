@@ -12,7 +12,7 @@ class COBRunstops(IconToolButton):
         :param context: the plugin context
         :type context: qt_gui.plugin.Plugin
         """
-        
+
         ok_icon = ['bg-green.svg', 'ic-runstop-off.svg']
         button_engaged_icon = ['bg-red.svg', 'ic-runstop-on.svg']
         scanner_engaged_icon = ['bg-red.svg', 'ic-wireless-runstop-on.svg']

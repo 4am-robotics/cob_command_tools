@@ -78,10 +78,10 @@ class CobDashboard(Dashboard):
     def get_widgets(self):
         return [[self._monitor, self._console], [self._runstop], self._batteries]
 
-    
+
     def db_agg_cb(self, msg):
         pass
-    
+
     def emcb(self, msg):
         self._last_dashboard_message_time = rospy.get_time()
         if(not msg.emergency_button_stop):

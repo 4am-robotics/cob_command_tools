@@ -264,53 +264,53 @@ Node: cob_teleop_v2
 
 
 #### Published Topics
-**joy_feedback** *(sensor_msgs::JoyFeedbackArray)*   
+**joy_feedback** *(sensor_msgs::JoyFeedbackArray)*
 <!--- protected region joy_feedback on begin -->
 <!--- protected region joy_feedback end -->
 
-**base_controller command** *(geometry_msgs::Twist)*   
+**base_controller command** *(geometry_msgs::Twist)*
 <!--- protected region base_controller command on begin -->
 <!--- protected region base_controller command end -->
 
-**arm_cart_left** *(geometry_msgs::Twist)*   
+**arm_cart_left** *(geometry_msgs::Twist)*
 <!--- protected region arm_cart_left on begin -->
 <!--- protected region arm_cart_left end -->
 
-**arm_cart_right** *(geometry_msgs::Twist)*   
+**arm_cart_right** *(geometry_msgs::Twist)*
 <!--- protected region arm_cart_right on begin -->
 <!--- protected region arm_cart_right end -->
 
-**arm_joint_right** *(std_msgs/Float64MultiArray)*   
+**arm_joint_right** *(std_msgs/Float64MultiArray)*
 <!--- protected region arm_joint_right on begin -->
 <!--- protected region arm_joint_right end -->
 
-**arm_joint_left** *(std_msgs/Float64MultiArray)*   
+**arm_joint_left** *(std_msgs/Float64MultiArray)*
 <!--- protected region arm_joint_left on begin -->
 <!--- protected region arm_joint_left end -->
 
-**head_controller command** *(geometry_msgs::Twist)*   
+**head_controller command** *(geometry_msgs::Twist)*
 <!--- protected region head_controller command on begin -->
 <!--- protected region head_controller command end -->
 
-**sensorring_controller command** *(std_msgs::Float64MultiArray)*   
+**sensorring_controller command** *(std_msgs::Float64MultiArray)*
 <!--- protected region sensorring_controller command on begin -->
 <!--- protected region sensorring_controller command end -->
 
-**torso_controller command** *(geometry_msgs::Twist)*   
+**torso_controller command** *(geometry_msgs::Twist)*
 <!--- protected region torso_controller command on begin -->
 <!--- protected region torso_controller command end -->
 
-**gripper_left** *(std_msgs::Float64MultiArray)*   
+**gripper_left** *(std_msgs::Float64MultiArray)*
 <!--- protected region gripper_left on begin -->
 <!--- protected region gripper_left end -->
 
-**gripper_right** *(std_msgs::Float64MultiArray)*   
+**gripper_right** *(std_msgs::Float64MultiArray)*
 <!--- protected region gripper_right on begin -->
 <!--- protected region gripper_right end -->
 
 
 #### Subscribed Topics
-**joy** *(sensor_msgs::Joy)*   
+**joy** *(sensor_msgs::Joy)*
 <!--- protected region joy on begin -->
 <!--- protected region joy end -->
 

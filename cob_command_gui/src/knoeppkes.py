@@ -42,17 +42,17 @@
 #       this software without specific prior written permission. \n
 #
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License LGPL as 
-# published by the Free Software Foundation, either version 3 of the 
+# it under the terms of the GNU Lesser General Public License LGPL as
+# published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License LGPL for more details.
-# 
-# You should have received a copy of the GNU Lesser General Public 
-# License LGPL along with this program. 
+#
+# You should have received a copy of the GNU Lesser General Public
+# License LGPL along with this program.
 # If not, see <http://www.gnu.org/licenses/>.
 #
 #################################################################
@@ -62,7 +62,7 @@ import pygtk
 pygtk.require('2.0')
 import gtk
 import os
-import sys 
+import sys
 import signal
 
 import rospy
@@ -86,7 +86,7 @@ def start(func, args):
   global base_diff_enabled
   global confirm_commands_enabled
   execute_command = True
-  
+
   largs = list(args)
   if confirm_commands_enabled and ((func.__name__ != "stop") and (largs[1] != 'stop')):
     confirm_dialog = gtk.MessageDialog(None, 0, gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, "Execute Command?")
@@ -99,7 +99,7 @@ def start(func, args):
         largs.append("planned")
     if(largs[0] == "base"):
       if(base_diff_enabled):
-        largs.append("diff") 
+        largs.append("diff")
     #print "Args", tuple(largs)
     #print "func ", func
     thread.start_new_thread(func,tuple(largs))
@@ -124,7 +124,7 @@ class GtkGeneralPanel(gtk.Frame):
     #hbox.pack_start(image, False, False, 0)
     #label = gtk.Label("40 %")
     #hbox.pack_start(label, False, False, 0)
-    #self.vbox.pack_start(hbox, False, False, 5)    
+    #self.vbox.pack_start(hbox, False, False, 5)
     hbox=gtk.HBox(True, 0)
     self.status_image = gtk.Image()
     #self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/weather-clear.png")
@@ -161,7 +161,7 @@ class GtkGeneralPanel(gtk.Frame):
     confirm_com_check.set_active(confirm_commands_enabled)
     confirm_com_check.connect("toggled", self.confirm_com_toggle)
     self.vbox.pack_start(confirm_com_check, False, False, 5)
-    
+
     but = gtk.Button(stock=gtk.STOCK_QUIT )
     but.connect("clicked", lambda w: gtk.main_quit())
     self.vbox.pack_start(but, False, False, 5)
@@ -170,7 +170,7 @@ class GtkGeneralPanel(gtk.Frame):
   def stop_all(self,component_names):
     for component_name in component_names:
       self.sss.stop(component_name,blocking=False)
-    
+
   def init_all(self,component_names):
     for component_name in component_names:
       self.sss.init(component_name,False)
@@ -201,13 +201,13 @@ class GtkGeneralPanel(gtk.Frame):
       gtk.threads_leave()
       if(self.em_stop == True):
         self.em_stop = False
-        
+
   def planned_toggle(self, b):
     global planning_enabled
     if(planning_enabled):
       planning_enabled = False
     else:
-      planning_enabled = True  
+      planning_enabled = True
 
   def base_mode_toggle(self, b):
     global base_diff_enabled
@@ -233,11 +233,11 @@ class GtkPanel(gtk.Frame):
     self.add(self.vbox)
 
   def addButton(self, text, command):
-    but = gtk.Button(text)  
+    but = gtk.Button(text)
     but.connect("clicked", startGTK, command)
     #but.set_size_request(120,-1)
     self.vbox.pack_start(but, False, False, 5)
-        
+
 ## Implementation of knoeppkes command gui
 class Knoeppkes():
   def delete_event(self, widget, event, data=None):
@@ -248,15 +248,15 @@ class Knoeppkes():
     global initialized
     if(initialized):
         self.gpanel.setEMStop(msg.emergency_state)
-    
+
   def __init__(self):
     # init ros node
     rospy.init_node('cob_knoeppkes')
     rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.emcb)
-  
+
     self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
     self.window.connect("delete_event", self.delete_event)
-    self.window.set_title("cob command gui")  
+    self.window.set_title("cob command gui")
     self.window.set_size_request(1000, 500)
     vbox = gtk.VBox(False, 1)
     self.hbox = gtk.HBox(True, 10)
@@ -270,8 +270,8 @@ class Knoeppkes():
       for aname, func, args in actions:
         panel.addButton(text=aname, command=lambda f=func, a=args: start(f, a))
       self.hbox.pack_start(panel,True, True, 3)
-    
-    self.status_bar = gtk.Statusbar()  
+
+    self.status_bar = gtk.Statusbar()
     context_id = self.status_bar.get_context_id("Statusbar")
     string = "Connected to $ROS_MASTER_URI=" + os.environ.get("ROS_MASTER_URI")
     self.status_bar.push(context_id, string)
@@ -282,7 +282,7 @@ class Knoeppkes():
     gtk.gdk.threads_enter()
     gtk.main()
     gtk.gdk.threads_leave()
-    
+
 def signal_handler(signal, frame):
 #  print 'You pressed Ctrl+C!'
   gtk.main_quit()
