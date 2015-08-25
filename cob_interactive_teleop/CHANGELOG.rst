@@ -2,8 +2,8 @@
 Changelog for package cob_interactive_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.3 (2015-08-25)
+------------------
 * boost revision
 * do not install headers in executable-only packages
 * explicit dependency for boost

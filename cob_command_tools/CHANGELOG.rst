@@ -2,8 +2,8 @@
 Changelog for package cob_command_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.3 (2015-08-25)
+------------------
 * remove trailing whitespaces
 * migrate to package format 2
 * sort dependencies
