@@ -79,7 +79,7 @@
 #define KEYCODE_A 0x61
 #define KEYCODE_D 0x64
 #define KEYCODE_S 0x73
-#define KEYCODE_W 0x77 
+#define KEYCODE_W 0x77
 #define KEYCODE_Q 0x71
 #define KEYCODE_E 0x65
 
@@ -135,8 +135,8 @@ void quit(int sig)
 
 void composeJoyMessage(sensor_msgs::Joy &msg, char c)
 {
-	msg.buttons[5]=0;	
-	
+	msg.buttons[5]=0;
+
 	if(fast_toggle)
 		msg.buttons[7]=1;
 
@@ -209,9 +209,9 @@ void composeJoyMessage(sensor_msgs::Joy &msg, char c)
 		//  msg.buttons[2]=1;
 		//  msg.axes[4]=1.0;
 		//  msg.buttons[5]=1;
-		//  break;		  
-		
-		//negative  
+		//  break;
+
+		//negative
 		case KEYCODE_Q:	//arm
 		  msg.buttons[0]=1;
 		  msg.axes[4]=-1.0;
@@ -276,7 +276,7 @@ void composeJoyMessage(sensor_msgs::Joy &msg, char c)
 		//  msg.buttons[2]=1;
 		//  msg.axes[4]=-1.0;
 		//  msg.buttons[5]=1;
-		//  break;			  		  		  
+		//  break;
 		}
 	}
 	else		//platform_mode
@@ -289,7 +289,7 @@ void composeJoyMessage(sensor_msgs::Joy &msg, char c)
 		  break;
 		case KEYCODE_S:
 		  msg.axes[1]=-1.0;
-		  msg.buttons[5]=1;    
+		  msg.buttons[5]=1;
 		  break;
 		case KEYCODE_A:
 		  msg.axes[0]=1.0;
@@ -314,7 +314,7 @@ void composeJoyMessage(sensor_msgs::Joy &msg, char c)
 
 void showHelp()
 {
-    puts(""); 
+    puts("");
     puts("Reading from keyboard");
   	puts("---------------------------");
   	puts("Use 'm' to toggle modes (joint/platform)");
@@ -331,7 +331,7 @@ void showHelp()
   	puts("---------------------------");
   	puts("Use 'h' to show this help");
   	puts("Hit 'SPACE' to stop movement");
-    puts("");   	
+    puts("");
 }
 
 
@@ -339,8 +339,8 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "keyboard_publisher");
   ros::NodeHandle n;
-  
-    puts(""); 
+
+    puts("");
     puts("Reading from keyboard");
   	puts("---------------------------");
   	puts("Use 'm' to toggle modes (joint/platform)");
@@ -356,8 +356,8 @@ int main(int argc, char **argv)
   	puts("Use 'a'-'f' and 'y'-'v' for torso");
   	puts("---------------------------");
   	puts("Use 'h' to show this help");
-  	puts("Hit 'SPACE' to stop movement");  	
-    puts("");   	
+  	puts("Hit 'SPACE' to stop movement");
+    puts("");
 
   signal(SIGINT,quit);
 
@@ -372,7 +372,7 @@ int main(int argc, char **argv)
   //raw.c_cc[VTIME] = 0;
   tcsetattr(kfd, TCSANOW, &raw);
 
-  
+
   fast_toggle=false;
   mode=false;
 
@@ -381,12 +381,12 @@ int main(int argc, char **argv)
 
   while (ros::ok())
   {
-    ros::spinOnce();  
-  
+    ros::spinOnce();
+
   	sensor_msgs::Joy msg;
 	msg.axes.resize(6);
 	msg.buttons.resize(12);
-  
+
   	// get the next event from the keyboard
     if(read(kfd, &c, 1) < 0)
     {
@@ -395,7 +395,7 @@ int main(int argc, char **argv)
     }
 
 	//ROS_INFO("I got key %d",c);
-	
+
 	switch(c)
     {
       // Fast_Toggle
@@ -422,14 +422,14 @@ int main(int argc, char **argv)
       {
         mode=true;
         ROS_INFO("Mode: Joint_Mode");
-      } 
+      }
 	  break;
 	case KEYCODE_H:
 	  showHelp();
 	  break;
-	}            
-      
-	
+	}
+
+
 	composeJoyMessage(msg, c);
 
     keyboard_pub.publish(msg);

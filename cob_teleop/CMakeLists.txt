@@ -29,8 +29,11 @@ target_link_libraries(cob_teleop_keyboard ${catkin_LIBRARIES})
 add_executable(keyboard_publisher ros/src/keyboard_publisher.cpp)
 target_link_libraries(keyboard_publisher ${catkin_LIBRARIES})
 
+add_executable(cob_teleop ros/src/cob_teleop.cpp)
+target_link_libraries(cob_teleop ${catkin_LIBRARIES})
+
 ### Install ###
-install(TARGETS cob_teleop_v1 cob_teleop_v2 cob_teleop_keyboard keyboard_publisher
+install(TARGETS cob_teleop_v1 cob_teleop_v2 cob_teleop_keyboard keyboard_publisher cob_teleop
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
