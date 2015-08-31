@@ -1,0 +1,81 @@
+#cob4-2
+##########
+# common params
+run_factor: 2.0
+joy_num_buttons: 12
+joy_num_axes: 6
+joy_num_modes: 7
+mode_switch_button: 8 
+
+# axes
+axis_vx: 1 
+axis_vy: 0 
+axis_vth: 2 
+
+# buttons
+deadman_button: 5 
+safety_button: 4 
+init_button: 9 
+
+#mode1: Base
+run_button: 7 #is it a common parameter? should we use this button also for other twist controllers or velocity controllers?
+
+#mode2: Trajectory controller
+torso_default_target_button: 1
+head_default_target_button: 3
+arm_right_default_target_button: 2
+arm_left_default_target_button: 0
+
+#mode3: Velocity group controller
+torso_joint23_button: 0 
+ssring_joint1_button: 1
+head_joint23_button: 2
+arm_right_joint12_button: 0
+arm_right_joint34_button: 1
+arm_right_joint56_button: 2
+arm_right_joint7_button: 3
+arm_left_joint12_button: 0
+arm_left_joint34_button: 1
+arm_left_joint56_button: 2
+arm_left_joint7_button: 3
+
+right_indicator_button: 7
+left_indicator_button: 6
+up_down_button: 5
+right_left_button: 4
+
+#mode4: Twist controller
+
+
+components: {
+  base: {
+    twist_topic_name: '/base/twist_controller/command',
+    max_velocity: [0.3, 0.2, 0.3],
+    max_acceleration: [0.5, 0.5, 0.7]
+  },
+  torso: {
+    twist_topic_name: '/torso/twist_controller/command',
+    topic_name: "/torso/joint_group_velocity_controller/command",
+    default_target: "home"
+  },
+  head: {
+    twist_topic_name: '/head/twist_controller/command',
+    topic_name: "/head/joint_group_velocity_controller/command",
+    default_target: "front"
+  },
+  sensorring: {
+    twist_topic_name: '/sensorring/twist_controller/command',
+    topic_name: "/sensorring/joint_group_velocity_controller/command",
+    default_target: "front"
+  },
+  arm_left: {
+    twist_topic_name: '/arm_left/twist_controller/command',
+    topic_name: "/arm_left/joint_group_velocity_controller/command",
+    default_target: "home"
+  },
+  arm_right: {
+    twist_topic_name: '/arm_right/twist_controller/command',
+    topic_name: "/arm_right/joint_group_velocity_controller/command",
+    default_target: "home"
+  }
+}

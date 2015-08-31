@@ -370,7 +370,6 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
     geometry_msgs::Twist base_cmd;
 		if(axis_vx_>=0 && axis_vx_<(int)joy_msg->axes.size()){
       base_cmd.linear.x = joy_msg->axes[axis_vx_]*component_config_["base"].max_vel[0]; //*run_factor_;
-	    ROS_INFO("base_cmd.linear.x %f",base_cmd.linear.x);
     }else
       base_cmd.linear.x =0.0;
 		if(axis_vy_>=0 && axis_vy_<(int)joy_msg->axes.size())
@@ -434,14 +433,170 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
     for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components.begin();p!=components.end();++p)
     {
       std::string comp_name = p->first;
-    if(torso_joint23_button_>=0 && torso_joint23_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[torso_joint23_button_]==1){
-				if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){//positive}
-				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){//negative}
-				else{//0}
+      std_msgs::Float64MultiArray vel_cmd;
 
+
+    if(torso_joint23_button_>=0 && torso_joint23_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[torso_joint23_button_]==1 && joy_msg->buttons[right_indicator_button_]==0 && joy_msg->buttons[left_indicator_button_]==0){
+	      ROS_INFO("torso");
+	      vel_cmd.data.resize(2);
+				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
+				  vel_cmd.data[0]=0.1;
+				 }
+      	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
+				  vel_cmd.data[0]=-0.1;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
+				  vel_cmd.data[1]=0.1;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){
+				  vel_cmd.data[1]=-0.1;
+				 }
+	      component_config_["torso"].vel_group_controller_publisher_.publish(vel_cmd);
     }
+    
+
+    if(head_joint23_button_>=0 && head_joint23_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[head_joint23_button_]==1 && joy_msg->buttons[right_indicator_button_]==0 && joy_msg->buttons[left_indicator_button_]==0){
+	      ROS_INFO("head");
+	      vel_cmd.data.resize(2);
+				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
+				  vel_cmd.data[0]=0.1;
+				 }
+      	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
+				  vel_cmd.data[0]=-0.1;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
+				  vel_cmd.data[1]=0.1;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){
+				  vel_cmd.data[1]=-0.1;
+				 }
+	      component_config_["head"].vel_group_controller_publisher_.publish(vel_cmd);
     }
+    
+
+    if(arm_right_joint12_button_>=0 && arm_right_joint12_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_right_joint12_button_]==1 && joy_msg->buttons[right_indicator_button_]==1 && joy_msg->buttons[left_indicator_button_]==0){
+	      ROS_INFO("arm_right");
+	      vel_cmd.data.resize(7);
+				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
+				  vel_cmd.data[0]=0.1;
+				 }
+      	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
+				  vel_cmd.data[0]=-0.1;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
+				  vel_cmd.data[1]=0.1;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){
+				  vel_cmd.data[1]=-0.1;
+				 }
+      component_config_["arm_right"].vel_group_controller_publisher_.publish(vel_cmd);
+    }else if (arm_right_joint34_button_>=0 && arm_right_joint34_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_right_joint34_button_]==1 && joy_msg->buttons[right_indicator_button_]==1 && joy_msg->buttons[left_indicator_button_]==0){
+	      ROS_INFO("arm_right");
+	      vel_cmd.data.resize(7);
+				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
+				  vel_cmd.data[2]=0.1;
+				 }
+      	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
+				  vel_cmd.data[2]=-0.1;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
+				  vel_cmd.data[3]=0.1;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){
+				  vel_cmd.data[3]=-0.1;
+				 }
+      component_config_["arm_right"].vel_group_controller_publisher_.publish(vel_cmd);
+    }else if (arm_right_joint56_button_>=0 && arm_right_joint56_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_right_joint56_button_]==1 && joy_msg->buttons[right_indicator_button_]==1 && joy_msg->buttons[left_indicator_button_]==0){
+	      ROS_INFO("arm_right");
+	      vel_cmd.data.resize(7);
+				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
+				  vel_cmd.data[4]=0.1;
+				 }
+      	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
+				  vel_cmd.data[4]=-0.1;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
+				  vel_cmd.data[5]=0.1;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){
+				  vel_cmd.data[5]=-0.1;
+        }
+      component_config_["arm_right"].vel_group_controller_publisher_.publish(vel_cmd);
+    }else if (arm_right_joint7_button_>=0 && arm_right_joint7_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_right_joint7_button_]==1 && joy_msg->buttons[right_indicator_button_]==1 && joy_msg->buttons[left_indicator_button_]==0){
+	      ROS_INFO("arm_right");
+	      vel_cmd.data.resize(7);
+				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
+				  vel_cmd.data[6]=0.1;
+				 }
+      	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
+				  vel_cmd.data[6]=-0.1;
+				 }
+      component_config_["arm_right"].vel_group_controller_publisher_.publish(vel_cmd);
     }
+
+
+
+    if(arm_left_joint12_button_>=0 && arm_left_joint12_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_left_joint12_button_]==1 && joy_msg->buttons[right_indicator_button_]==0 && joy_msg->buttons[left_indicator_button_]==1){
+	      ROS_INFO("arm_left");
+	      vel_cmd.data.resize(7);
+				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
+				  vel_cmd.data[0]=0.1;
+				 }
+      	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
+				  vel_cmd.data[0]=-0.1;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
+				  vel_cmd.data[1]=0.1;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){
+				  vel_cmd.data[1]=-0.1;
+				 }
+      component_config_["arm_left"].vel_group_controller_publisher_.publish(vel_cmd);
+    }else if (arm_left_joint34_button_>=0 && arm_left_joint34_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_left_joint34_button_]==1 && joy_msg->buttons[right_indicator_button_]==0 && joy_msg->buttons[left_indicator_button_]==1){
+	      ROS_INFO("arm_left");
+	      vel_cmd.data.resize(7);
+				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
+				  vel_cmd.data[2]=0.1;
+				 }
+      	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
+				  vel_cmd.data[2]=-0.1;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
+				  vel_cmd.data[3]=0.1;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){
+				  vel_cmd.data[3]=-0.1;
+				 }
+      component_config_["arm_left"].vel_group_controller_publisher_.publish(vel_cmd);
+    }else if (arm_left_joint56_button_>=0 && arm_left_joint56_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_left_joint56_button_]==1 && joy_msg->buttons[right_indicator_button_]==0 && joy_msg->buttons[left_indicator_button_]==1){
+	      ROS_INFO("arm_left");
+	      vel_cmd.data.resize(7);
+				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
+				  vel_cmd.data[4]=0.1;
+				 }
+      	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
+				  vel_cmd.data[4]=-0.1;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
+				  vel_cmd.data[5]=0.1;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){
+				  vel_cmd.data[5]=-0.1;
+        }
+      component_config_["arm_left"].vel_group_controller_publisher_.publish(vel_cmd);
+    }else if (arm_left_joint7_button_>=0 && arm_left_joint7_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_left_joint7_button_]==1 && joy_msg->buttons[right_indicator_button_]==0 && joy_msg->buttons[left_indicator_button_]==1){
+	      ROS_INFO("arm_left");
+	      vel_cmd.data.resize(7);
+				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
+				  vel_cmd.data[6]=0.1;
+				 }
+      	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
+				  vel_cmd.data[6]=-0.1;
+				 }
+      component_config_["arm_left"].vel_group_controller_publisher_.publish(vel_cmd);
+    }
+   }
+   }
 }
 
 

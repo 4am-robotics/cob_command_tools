@@ -5,29 +5,29 @@ run_factor: 2.0
 joy_num_buttons: 12
 joy_num_axes: 6
 joy_num_modes: 7
-mode_switch_button: 8 #0
+mode_switch_button: 0
 
 # axes
-axis_vx: 1 #17
-axis_vy: 0 #16
-axis_vth: 2 #19
+axis_vx: 17
+axis_vy: 16
+axis_vth: 19
 
 # buttons
-deadman_button: 5 #11
-safety_button: 4 #10
-init_button: 9 #3
+deadman_button: 11
+safety_button: 10
+init_button: 3
 
 #mode1: Base
-run_button: 7 #is it a common parameter? should we use this button also for other twist controllers?
+run_button: 7 #is it a common parameter? should we use this button also for other twist controllers or velocity controllers?
 
 #mode2: Trajectory controller
-torso_defaultt_target_button: 6
-sring_defaultt_target_button: 12
-head_defaultt_target_button: 4
-arm_right_defaultt_target_button: 5
-arm_left_defaultt_target_button: 7
-gripper_right_defaultt_target_button: 13
-gripper_left_defaultt_target_button: 15
+torso_default_target_button: 6
+sring_default_target_button: 12
+head_default_target_button: 4
+arm_right_default_target_button: 5
+arm_left_default_target_button: 7
+gripper_right_default_target_button: 13
+gripper_left_default_target_button: 15
 
 #mode3: Velocity group controller
 torso_joint23_button: 15
@@ -44,10 +44,8 @@ arm_left_joint7_button: 12
 
 right_indicator_button: 9
 left_indicator_button: 8
-up_button: 4
-down_button: 6
-right_button: 5
-left_button: 7
+up_down_button: 5
+right_left_button: 4
 
 #mode4: Twist controller
 
@@ -61,9 +59,7 @@ components: {
   torso: {
     twist_topic_name: '/torso/twist_controller/command',
     topic_name: "/torso/joint_group_velocity_controller/command",
-    joint_names: ['torso_1_joint','torso_2_joint','torso_3_joint'],
-    joint_step: [0.05,0.05,0.05],
-    default_target: "front"
+    default_target: "home"
   },
   head: {
     twist_topic_name: '/head/twist_controller/command',
