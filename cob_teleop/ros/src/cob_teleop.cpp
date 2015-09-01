@@ -81,10 +81,7 @@ public:
     std::string twist_topic_name;
     std::string vel_group_topic_name;
     std::string default_target;
-    std::vector<std::string> joint_names;
-    std::vector<double> steps;
-    std::vector<double> req_joint_vel_;
-    std::vector<double> req_joint_pos_;
+    std::vector<double> joint_vel;
     ros::Publisher vel_group_controller_publisher_;
     ros::Publisher twist_controller_publisher_;
     std::vector<double> max_vel; //max_vx_,max_vy_,max_vth_;
@@ -102,7 +99,7 @@ public:
   int run_button_;
 	//mode 2: Trajectory controller (to default target position using sss.move)
   int torso_default_target_button_;
-  int sring_default_target_button_;
+  int sensorring_default_target_button_;
   int head_default_target_button_;
   int arm_left_default_target_button_;
   int arm_right_default_target_button_;
@@ -110,7 +107,7 @@ public:
   int gripper_right_default_target_button_;
 	//mode 3: Velocity group controller
   int torso_joint23_button_;
-  int ssring_joint1_button_;
+  int sensorring_joint1_button_;
   int head_joint23_button_;
   int arm_right_joint12_button_;
   int arm_right_joint34_button_;
@@ -120,13 +117,16 @@ public:
   int arm_left_joint34_button_;
   int arm_left_joint56_button_;
   int arm_left_joint7_button_;
-
   int right_indicator_button_;
   int left_indicator_button_;
   int up_down_button_;
   int right_left_button_;
 	//mode 4: Twist controller
-
+  int torso_twist_button_;
+  int head_twist_button_;
+  int arm_left_twist_button_;
+  int arm_right_twist_button_;
+  
 	//common
   int deadman_button_;
   int safety_button_;
@@ -151,11 +151,9 @@ public:
   typedef actionlib::SimpleActionClient<cob_script_server::ScriptAction> Client_;
   cob_script_server::ScriptGoal sss_;
 
-
   void getConfigurationFromParameters();
   void init();
   void joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg);
-  void joint_states_cb(const sensor_msgs::JointState::ConstPtr &joint_states_msg);
   sensor_msgs::JoyFeedbackArray switch_mode();
 
 };
@@ -212,35 +210,17 @@ void CobTeleop::getConfigurationFromParameters()
             ROS_DEBUG("default_target found = %s",s.c_str());
             tempComponent.default_target = s;
           }
-          else if(par_name.compare("joint_names")==0)
-          {
-            ROS_DEBUG("joint names found");
-            XmlRpc::XmlRpcValue joint_names = ps->second;
-            ROS_ASSERT(joint_names.getType() == XmlRpc::XmlRpcValue::TypeArray);
-            ROS_DEBUG("joint_names.size: %d \n", joint_names.size());
-            for(int i=0;i<joint_names.size();i++)
+          else if(par_name.compare("joint_vel")==0){
+            ROS_DEBUG("joint vels found");
+            XmlRpc::XmlRpcValue joint_vel = ps->second;
+            ROS_ASSERT(joint_vel.getType() == XmlRpc::XmlRpcValue::TypeArray);
+            ROS_DEBUG("joint_vel.size: %d \n", joint_vel.size());
+            for(int i=0;i<joint_vel.size();i++)
             {
-              ROS_ASSERT(joint_names[i].getType() == XmlRpc::XmlRpcValue::TypeString);
-              std::string s((std::string)joint_names[i]);
-              ROS_DEBUG("joint_name found = %s",s.c_str());
-              tempComponent.joint_names.push_back(s);
-            }
-            // set size of other vectors according to the joint name vector
-            tempComponent.req_joint_pos_.resize(joint_names.size());
-            tempComponent.req_joint_vel_.resize(joint_names.size());
-            //break; // no need to continue searching if joint names are found
-          }
-          else if(par_name.compare("joint_step")==0){
-            ROS_DEBUG("joint steps found");
-            XmlRpc::XmlRpcValue joint_step = ps->second;
-            ROS_ASSERT(joint_step.getType() == XmlRpc::XmlRpcValue::TypeArray);
-            ROS_DEBUG("joint_step.size: %d \n", joint_step.size());
-            for(int i=0;i<joint_step.size();i++)
-            {
-              ROS_ASSERT(joint_step[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
-              double step((double)joint_step[i]);
-              ROS_DEBUG("joint_step found = %f",step);
-              tempComponent.steps.push_back(step);
+              ROS_ASSERT(joint_vel[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+              double vel((double)joint_vel[i]);
+              ROS_DEBUG("joint_vel found = %f",vel);
+              tempComponent.joint_vel.push_back(vel);
             }
           }else if(par_name.compare("max_velocity")==0){
             ROS_DEBUG("max Velocity found");
@@ -262,40 +242,6 @@ void CobTeleop::getConfigurationFromParameters()
     }
   }
 }
-
-
-/*!
- * \brief Executes the callback from the joint_states topic. (published by joint state driver)
- *
- * Only used to get the initaial joint positions.
- *
- * \param msg JointState
- */
-void CobTeleop::joint_states_cb(const sensor_msgs::JointState::ConstPtr &joint_states_msg)
-{
-	// if (!got_init_values_ && stopped_ && joy_active_)
-	// {
-	// 	ROS_DEBUG("joint_states_cb: getting init values");
-	// 	for (unsigned int j = 0; j<joint_names_.size(); j++ )
-	// 	{
-	// 		for (unsigned int i = 0; i<joint_states_msg->name.size(); i++ )
-	// 		{
-	// 			ROS_DEBUG("joint names in init: %s should match %s",joint_names_[j].c_str(),joint_states_msg->name[i].c_str());
-	// 			if (joint_states_msg->name[i] == joint_names_[j])
-	// 			{
-	// 				joint_init_values_[j] = joint_states_msg->position[i];
-	// 				if(joint_names_[j]!=combined_joints_.joint_names_[j])
-	// 					ROS_ERROR("error in new joint name collection, name miss match.");
-	// 				combined_joints_.joint_init_values_[j] = joint_states_msg->position[i]; //new
-	// 				ROS_DEBUG("joint %s found. init value = %f",joint_names_[j].c_str(),joint_init_values_[j]);
-	// 				break;
-	// 			}
-	// 		}
-	// 	}
-	// 	setInitValues();
-	// }
-}
-
 sensor_msgs::JoyFeedbackArray CobTeleop::switch_mode(){
 
       ++mode_;
@@ -317,7 +263,7 @@ sensor_msgs::JoyFeedbackArray CobTeleop::switch_mode(){
 }
 
 void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
-	getConfigurationFromParameters(); // assign configuration and subscribe to topics
+	getConfigurationFromParameters();
 
   if(mode_switch_button_>=0 && mode_switch_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[mode_switch_button_]==1)
   {
@@ -384,14 +330,14 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
 	}
 
 	if (mode_==2){
-	  ROS_INFO("Mode 2: Move the actuators to a default position (Trajectory controlller)");
-    XmlRpc::XmlRpcValue components;
-		n_.getParam("components", components);
-    for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components.begin();p!=components.end();++p)
-    {
-      std::string comp_name = p->first;
-      //ToDo:
-      //std::string component_default_target_button = comp_name + "_default_target_button_";
+	  ROS_INFO("Mode 2: Move the actuators to a default position (Trajectory controller)");
+    //ToDo:
+    //XmlRpc::XmlRpcValue components;
+		//n_.getParam("components", components);
+    //for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components.begin();p!=components.end();++p)
+    //{
+      //std::string comp_name = p->first;
+      //std::string component_default_target_button = comp_name + "_default_target_button_"; 
 
       if(torso_default_target_button_>=0 && torso_default_target_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[torso_default_target_button_]==1){
         sss_.component_name = "torso";
@@ -399,6 +345,15 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
         sss_.parameter_name = component_config_["torso"].default_target.c_str();
         client->sendGoal(sss_);
         ROS_INFO("Move torso to %s",component_config_["torso"].default_target.c_str()); 
+      }
+
+
+      if(sensorring_default_target_button_>=0 && sensorring_default_target_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[sensorring_default_target_button_]==1){
+        sss_.component_name = "sensorring";
+        sss_.function_name = "move";
+        sss_.parameter_name = component_config_["sensorring"].default_target.c_str();
+        client->sendGoal(sss_);
+        ROS_INFO("Move sensorring to %s",component_config_["sensorring"].default_target.c_str()); 
       }
       
       if(head_default_target_button_>=0 && head_default_target_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[head_default_target_button_]==1){
@@ -424,179 +379,252 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
         client->sendGoal(sss_);
         ROS_INFO("Move arm_right to %s",component_config_["arm_right"].default_target.c_str()); 
       }
-	  }
+	  
 }
 	if (mode_==3){
 	  ROS_INFO("Mode 3: Move the actuators using the group velocity controller");
-    XmlRpc::XmlRpcValue components;
-		n_.getParam("components", components);
-    for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components.begin();p!=components.end();++p)
-    {
-      std::string comp_name = p->first;
-      std_msgs::Float64MultiArray vel_cmd;
-
+    std_msgs::Float64MultiArray vel_cmd;
 
     if(torso_joint23_button_>=0 && torso_joint23_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[torso_joint23_button_]==1 && joy_msg->buttons[right_indicator_button_]==0 && joy_msg->buttons[left_indicator_button_]==0){
-	      ROS_INFO("torso");
-	      vel_cmd.data.resize(2);
+	      ROS_INFO("torso velocity mode");
+	      vel_cmd.data.resize(component_config_["torso"].joint_vel.size()); 
 				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
-				  vel_cmd.data[0]=0.1;
+				  vel_cmd.data[0]=component_config_["torso"].joint_vel[0];
 				 }
       	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
-				  vel_cmd.data[0]=-0.1;
+				  vel_cmd.data[0]=-component_config_["torso"].joint_vel[0];
 				 }
 				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
-				  vel_cmd.data[1]=0.1;
+				  vel_cmd.data[1]=component_config_["torso"].joint_vel[1];
 				 }
 				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){
-				  vel_cmd.data[1]=-0.1;
+				  vel_cmd.data[1]=-component_config_["torso"].joint_vel[1];
 				 }
 	      component_config_["torso"].vel_group_controller_publisher_.publish(vel_cmd);
     }
     
 
-    if(head_joint23_button_>=0 && head_joint23_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[head_joint23_button_]==1 && joy_msg->buttons[right_indicator_button_]==0 && joy_msg->buttons[left_indicator_button_]==0){
-	      ROS_INFO("head");
-	      vel_cmd.data.resize(2);
-				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
-				  vel_cmd.data[0]=0.1;
-				 }
-      	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
-				  vel_cmd.data[0]=-0.1;
-				 }
-				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
-				  vel_cmd.data[1]=0.1;
+    if(sensorring_joint1_button_>=0 && sensorring_joint1_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[sensorring_joint1_button_]==1 && joy_msg->buttons[right_indicator_button_]==0 && joy_msg->buttons[left_indicator_button_]==0){
+	      ROS_INFO("sensorring velocity mode");
+	      vel_cmd.data.resize(component_config_["sensorring"].joint_vel.size()); 
+				if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
+				  vel_cmd.data[0]=component_config_["sensorring"].joint_vel[1];
 				 }
 				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){
-				  vel_cmd.data[1]=-0.1;
+				  vel_cmd.data[0]=-component_config_["sensorring"].joint_vel[1];
+				 }
+	      component_config_["sensorring"].vel_group_controller_publisher_.publish(vel_cmd);
+    }
+
+    if(head_joint23_button_>=0 && head_joint23_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[head_joint23_button_]==1 && joy_msg->buttons[right_indicator_button_]==0 && joy_msg->buttons[left_indicator_button_]==0){
+	      ROS_INFO("head velocity mode");
+	      vel_cmd.data.resize(component_config_["head"].joint_vel.size());
+				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
+				  vel_cmd.data[0]=component_config_["head"].joint_vel[0];;
+				 }
+      	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
+				  vel_cmd.data[0]=-component_config_["head"].joint_vel[0];;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
+				  vel_cmd.data[1]=component_config_["head"].joint_vel[1];;
+				 }
+				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){
+				  vel_cmd.data[1]=-component_config_["torso"].joint_vel[1];;
 				 }
 	      component_config_["head"].vel_group_controller_publisher_.publish(vel_cmd);
     }
     
 
     if(arm_right_joint12_button_>=0 && arm_right_joint12_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_right_joint12_button_]==1 && joy_msg->buttons[right_indicator_button_]==1 && joy_msg->buttons[left_indicator_button_]==0){
-	      ROS_INFO("arm_right");
-	      vel_cmd.data.resize(7);
+	      ROS_INFO("arm_right velocity mode");
+	      vel_cmd.data.resize(component_config_["arm_right"].joint_vel.size());
 				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
-				  vel_cmd.data[0]=0.1;
+				  vel_cmd.data[0]=component_config_["arm_right"].joint_vel[0];
 				 }
       	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
-				  vel_cmd.data[0]=-0.1;
+				  vel_cmd.data[0]=-component_config_["arm_right"].joint_vel[0];
 				 }
 				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
-				  vel_cmd.data[1]=0.1;
+				  vel_cmd.data[1]=component_config_["arm_right"].joint_vel[1];
 				 }
 				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){
-				  vel_cmd.data[1]=-0.1;
+				  vel_cmd.data[1]=-component_config_["arm_right"].joint_vel[1];
 				 }
       component_config_["arm_right"].vel_group_controller_publisher_.publish(vel_cmd);
     }else if (arm_right_joint34_button_>=0 && arm_right_joint34_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_right_joint34_button_]==1 && joy_msg->buttons[right_indicator_button_]==1 && joy_msg->buttons[left_indicator_button_]==0){
-	      ROS_INFO("arm_right");
-	      vel_cmd.data.resize(7);
+	      ROS_INFO("arm_right velocity mode");
+	      vel_cmd.data.resize(component_config_["arm_right"].joint_vel.size());
 				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
-				  vel_cmd.data[2]=0.1;
+				  vel_cmd.data[2]=component_config_["arm_right"].joint_vel[2];
 				 }
       	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
-				  vel_cmd.data[2]=-0.1;
+				  vel_cmd.data[2]=-component_config_["arm_right"].joint_vel[2];
 				 }
 				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
-				  vel_cmd.data[3]=0.1;
+				  vel_cmd.data[3]=component_config_["arm_right"].joint_vel[3];
 				 }
 				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){
-				  vel_cmd.data[3]=-0.1;
+				  vel_cmd.data[3]=-component_config_["arm_right"].joint_vel[3];
 				 }
       component_config_["arm_right"].vel_group_controller_publisher_.publish(vel_cmd);
     }else if (arm_right_joint56_button_>=0 && arm_right_joint56_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_right_joint56_button_]==1 && joy_msg->buttons[right_indicator_button_]==1 && joy_msg->buttons[left_indicator_button_]==0){
-	      ROS_INFO("arm_right");
-	      vel_cmd.data.resize(7);
+	      ROS_INFO("arm_right velocity mode");
+	      vel_cmd.data.resize(component_config_["arm_right"].joint_vel.size());
 				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
-				  vel_cmd.data[4]=0.1;
+				  vel_cmd.data[4]=component_config_["arm_right"].joint_vel[4];
 				 }
       	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
-				  vel_cmd.data[4]=-0.1;
+				  vel_cmd.data[4]=-component_config_["arm_right"].joint_vel[4];
 				 }
 				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
-				  vel_cmd.data[5]=0.1;
+				  vel_cmd.data[5]=component_config_["arm_right"].joint_vel[5];
 				 }
 				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){
-				  vel_cmd.data[5]=-0.1;
+				  vel_cmd.data[5]=-component_config_["arm_right"].joint_vel[5];
         }
       component_config_["arm_right"].vel_group_controller_publisher_.publish(vel_cmd);
     }else if (arm_right_joint7_button_>=0 && arm_right_joint7_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_right_joint7_button_]==1 && joy_msg->buttons[right_indicator_button_]==1 && joy_msg->buttons[left_indicator_button_]==0){
-	      ROS_INFO("arm_right");
-	      vel_cmd.data.resize(7);
+	      ROS_INFO("arm_right velocity mode");
+	      vel_cmd.data.resize(component_config_["arm_right"].joint_vel.size());
 				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
-				  vel_cmd.data[6]=0.1;
+				  vel_cmd.data[6]=component_config_["arm_right"].joint_vel[6];
 				 }
       	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
-				  vel_cmd.data[6]=-0.1;
+				  vel_cmd.data[6]=-component_config_["arm_right"].joint_vel[6];
 				 }
       component_config_["arm_right"].vel_group_controller_publisher_.publish(vel_cmd);
     }
 
-
-
     if(arm_left_joint12_button_>=0 && arm_left_joint12_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_left_joint12_button_]==1 && joy_msg->buttons[right_indicator_button_]==0 && joy_msg->buttons[left_indicator_button_]==1){
-	      ROS_INFO("arm_left");
-	      vel_cmd.data.resize(7);
+	      ROS_INFO("arm_left velocity mode");
+	      vel_cmd.data.resize(component_config_["arm_left"].joint_vel.size());
 				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
-				  vel_cmd.data[0]=0.1;
+				  vel_cmd.data[0]=component_config_["arm_left"].joint_vel[0];
 				 }
       	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
-				  vel_cmd.data[0]=-0.1;
+				  vel_cmd.data[0]=-component_config_["arm_left"].joint_vel[0];
 				 }
 				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
-				  vel_cmd.data[1]=0.1;
+				  vel_cmd.data[1]=component_config_["arm_left"].joint_vel[1];
 				 }
 				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){
-				  vel_cmd.data[1]=-0.1;
+				  vel_cmd.data[1]=-component_config_["arm_left"].joint_vel[1];
 				 }
       component_config_["arm_left"].vel_group_controller_publisher_.publish(vel_cmd);
     }else if (arm_left_joint34_button_>=0 && arm_left_joint34_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_left_joint34_button_]==1 && joy_msg->buttons[right_indicator_button_]==0 && joy_msg->buttons[left_indicator_button_]==1){
-	      ROS_INFO("arm_left");
-	      vel_cmd.data.resize(7);
+	      ROS_INFO("arm_left velocity mode");
+	      vel_cmd.data.resize(component_config_["arm_left"].joint_vel.size());
 				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
-				  vel_cmd.data[2]=0.1;
+				  vel_cmd.data[2]=component_config_["arm_left"].joint_vel[2];
 				 }
       	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
-				  vel_cmd.data[2]=-0.1;
+				  vel_cmd.data[2]=-component_config_["arm_left"].joint_vel[2];
 				 }
 				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
-				  vel_cmd.data[3]=0.1;
+				  vel_cmd.data[3]=component_config_["arm_left"].joint_vel[3];
 				 }
 				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){
-				  vel_cmd.data[3]=-0.1;
+				  vel_cmd.data[3]=-component_config_["arm_left"].joint_vel[3];
 				 }
       component_config_["arm_left"].vel_group_controller_publisher_.publish(vel_cmd);
     }else if (arm_left_joint56_button_>=0 && arm_left_joint56_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_left_joint56_button_]==1 && joy_msg->buttons[right_indicator_button_]==0 && joy_msg->buttons[left_indicator_button_]==1){
-	      ROS_INFO("arm_left");
-	      vel_cmd.data.resize(7);
+	      ROS_INFO("arm_left velocity mode");
+	      vel_cmd.data.resize(component_config_["arm_left"].joint_vel.size());
 				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
-				  vel_cmd.data[4]=0.1;
+				  vel_cmd.data[4]=component_config_["arm_left"].joint_vel[4];
 				 }
       	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
-				  vel_cmd.data[4]=-0.1;
+				  vel_cmd.data[4]=-component_config_["arm_left"].joint_vel[4];
 				 }
 				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]<0.0){
-				  vel_cmd.data[5]=0.1;
+				  vel_cmd.data[5]=component_config_["arm_left"].joint_vel[5];
 				 }
 				else if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size() && joy_msg->axes[right_left_button_]>0.0){
-				  vel_cmd.data[5]=-0.1;
+				  vel_cmd.data[5]=-component_config_["arm_left"].joint_vel[5];
         }
       component_config_["arm_left"].vel_group_controller_publisher_.publish(vel_cmd);
     }else if (arm_left_joint7_button_>=0 && arm_left_joint7_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_left_joint7_button_]==1 && joy_msg->buttons[right_indicator_button_]==0 && joy_msg->buttons[left_indicator_button_]==1){
-	      ROS_INFO("arm_left");
-	      vel_cmd.data.resize(7);
+	      ROS_INFO("arm_left velocity mode");
+	      vel_cmd.data.resize(component_config_["arm_left"].joint_vel.size());
 				if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]<0.0){
-				  vel_cmd.data[6]=0.1;
+				  vel_cmd.data[6]=component_config_["arm_left"].joint_vel[6];
 				 }
       	else if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size() && joy_msg->axes[up_down_button_]>0.0){
-				  vel_cmd.data[6]=-0.1;
+				  vel_cmd.data[6]=-component_config_["arm_left"].joint_vel[6];
 				 }
       component_config_["arm_left"].vel_group_controller_publisher_.publish(vel_cmd);
     }
+   
    }
-   }
+	if (mode_==4){
+	  ROS_INFO("Mode 4: Move the actuators using the twist controller");
+	  //ToDo: we can command 6 axis linear.x linear.y linear.z angular.x angular.y angular.z
+    geometry_msgs::Twist twist_cmd;
+      if (torso_twist_button_>=0 && torso_twist_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[torso_twist_button_]==1){
+	      ROS_INFO("torso twist mode");
+		    if(axis_vx_>=0 && axis_vx_<(int)joy_msg->axes.size()){
+          twist_cmd.linear.x = joy_msg->axes[axis_vx_]*component_config_["torso"].max_vel[0]; //*run_factor_;
+        }else
+          twist_cmd.linear.x =0.0;
+		    if(axis_vy_>=0 && axis_vy_<(int)joy_msg->axes.size())
+          twist_cmd.linear.y = joy_msg->axes[axis_vy_]*component_config_["torso"].max_vel[1]; //*run_factor_;
+        else
+          twist_cmd.linear.y =0.0;
+		    if(axis_vth_>=0 && axis_vth_<(int)joy_msg->axes.size())
+          twist_cmd.angular.z = joy_msg->axes[axis_vth_]*component_config_["torso"].max_vel[2]; //*run_factor_;
+        else
+          twist_cmd.angular.z =0.0;
+        component_config_["torso"].twist_controller_publisher_.publish(twist_cmd);
+	    }
+      if (head_twist_button_>=0 && head_twist_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[head_twist_button_]==1){
+	      ROS_INFO("head twist mode");
+		    if(axis_vx_>=0 && axis_vx_<(int)joy_msg->axes.size()){
+          twist_cmd.linear.x = joy_msg->axes[axis_vx_]*component_config_["head"].max_vel[0]; //*run_factor_;
+        }else
+          twist_cmd.linear.x =0.0;
+		    if(axis_vy_>=0 && axis_vy_<(int)joy_msg->axes.size())
+          twist_cmd.linear.y = joy_msg->axes[axis_vy_]*component_config_["head"].max_vel[1]; //*run_factor_;
+        else
+          twist_cmd.linear.y =0.0;
+		    if(axis_vth_>=0 && axis_vth_<(int)joy_msg->axes.size())
+          twist_cmd.angular.z = joy_msg->axes[axis_vth_]*component_config_["head"].max_vel[2]; //*run_factor_;
+        else
+          twist_cmd.angular.z =0.0;
+        component_config_["head"].twist_controller_publisher_.publish(twist_cmd);
+	    }
+      if (arm_right_twist_button_>=0 && arm_right_twist_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_right_twist_button_]==1){
+	      ROS_INFO("arm_right twist mode");
+		    if(axis_vx_>=0 && axis_vx_<(int)joy_msg->axes.size()){
+          twist_cmd.linear.x = joy_msg->axes[axis_vx_]*component_config_["arm_right"].max_vel[0]; //*run_factor_;
+        }else
+          twist_cmd.linear.x =0.0;
+		    if(axis_vy_>=0 && axis_vy_<(int)joy_msg->axes.size())
+          twist_cmd.linear.y = joy_msg->axes[axis_vy_]*component_config_["arm_right"].max_vel[1]; //*run_factor_;
+        else
+          twist_cmd.linear.y =0.0;
+		    if(axis_vth_>=0 && axis_vth_<(int)joy_msg->axes.size())
+          twist_cmd.angular.z = joy_msg->axes[axis_vth_]*component_config_["arm_right"].max_vel[2]; //*run_factor_;
+        else
+          twist_cmd.angular.z =0.0;
+        component_config_["arm_right"].twist_controller_publisher_.publish(twist_cmd);
+	    }
+      if (arm_left_twist_button_>=0 && arm_left_twist_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[arm_left_twist_button_]==1){
+	      ROS_INFO("arm_left twist mode");
+		    if(axis_vx_>=0 && axis_vx_<(int)joy_msg->axes.size()){
+          twist_cmd.linear.x = joy_msg->axes[axis_vx_]*component_config_["arm_left"].max_vel[0]; //*run_factor_;
+        }else
+          twist_cmd.linear.x =0.0;
+		    if(axis_vy_>=0 && axis_vy_<(int)joy_msg->axes.size())
+          twist_cmd.linear.y = joy_msg->axes[axis_vy_]*component_config_["arm_left"].max_vel[1]; //*run_factor_;
+        else
+          twist_cmd.linear.y =0.0;
+		    if(axis_vth_>=0 && axis_vth_<(int)joy_msg->axes.size())
+          twist_cmd.angular.z = joy_msg->axes[axis_vth_]*component_config_["arm_left"].max_vel[2]; //*run_factor_;
+        else
+          twist_cmd.angular.z =0.0;
+        component_config_["arm_left"].twist_controller_publisher_.publish(twist_cmd);
+	    }
+}
 }
 
 
@@ -627,7 +655,7 @@ void CobTeleop::init()
 	n_.param("run_button",run_button_,9);
 
 	n_.param("torso_default_target_button",torso_default_target_button_,6);
-	n_.param("sring_default_target_button",sring_default_target_button_,12);
+	n_.param("sensorring_default_target_button",sensorring_default_target_button_,12);
 	n_.param("head_default_target_button",head_default_target_button_,4);
 	n_.param("arm_left_default_target_button",arm_left_default_target_button_,7);
 	n_.param("arm_right_default_target_button",arm_right_default_target_button_,5);
@@ -635,7 +663,7 @@ void CobTeleop::init()
 	n_.param("gripper_right_default_target_button",gripper_right_default_target_button_,13);
 
 	n_.param("torso_joint23_button",torso_joint23_button_,15);
-	n_.param("ssring_joint1_button",ssring_joint1_button_,14);
+	n_.param("sensorring_joint1_button",sensorring_joint1_button_,14);
 	n_.param("head_joint23_button",head_joint23_button_,13);
 	n_.param("arm_right_joint12_button",arm_right_joint12_button_,15);
 	n_.param("arm_right_joint34_button",arm_right_joint34_button_,14);
@@ -651,6 +679,10 @@ void CobTeleop::init()
 	n_.param("up_down_button",up_down_button_,4);
 	n_.param("right_left_button",right_left_button_,5);
 
+	n_.param("torso_twist_button",torso_twist_button_,6);
+	n_.param("head_twist_button",head_twist_button_,4);
+	n_.param("arm_left_twist_button",arm_left_twist_button_,7);
+	n_.param("arm_right_twist_button",arm_right_twist_button_,5);
 
 	// output for debugging
 	ROS_DEBUG("init::axis_vx: %d",axis_vx_);
@@ -663,7 +695,7 @@ void CobTeleop::init()
 	ROS_DEBUG("init::run_button: %d",run_button_);
 
 	ROS_DEBUG("init::torso_default_target_button: %d",torso_default_target_button_);
-	ROS_DEBUG("init::sring_default_target_button: %d",sring_default_target_button_);
+	ROS_DEBUG("init::sensorring_default_target_button: %d",sensorring_default_target_button_);
 	ROS_DEBUG("init::head_default_target_button: %d",head_default_target_button_);
 	ROS_DEBUG("init::arm_left_default_target_button: %d",arm_left_default_target_button_);
 	ROS_DEBUG("init::arm_right_default_target_button: %d",arm_right_default_target_button_);
@@ -671,7 +703,7 @@ void CobTeleop::init()
 	ROS_DEBUG("init::gripper_right_default_target_button: %d",gripper_right_default_target_button_);
 
 	ROS_DEBUG("init::torso_joint23_button: %d",torso_joint23_button_);
-	ROS_DEBUG("init::ssring_joint1_button: %d",ssring_joint1_button_);
+	ROS_DEBUG("init::sensorring_joint1_button: %d",sensorring_joint1_button_);
 	ROS_DEBUG("init::head_joint23_button: %d",head_joint23_button_);
 	ROS_DEBUG("init::arm_right_joint12_button: %d",arm_right_joint12_button_);
 	ROS_DEBUG("init::arm_right_joint34_button: %d",arm_right_joint34_button_);
@@ -688,7 +720,6 @@ void CobTeleop::init()
 	ROS_DEBUG("init::right_left_button: %d",right_left_button_);
 
 	joy_sub_ = n_.subscribe("/joy",1,&CobTeleop::joy_cb,this);
-	joint_states_sub_ = n_.subscribe("/joint_states",1,&CobTeleop::joint_states_cb,this);
 	mode_ = 1;
 	LEDS_=led_mode_[mode_];
 }
