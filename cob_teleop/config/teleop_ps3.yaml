@@ -10,7 +10,10 @@ mode_switch_button: 0
 # axes
 axis_vx: 17
 axis_vy: 16
-axis_vth: 19
+axis_vz: 5 #buttons are not axis 4-6
+axis_roll: 4 #buttons are not axis 7-5
+axis_pitch: 3
+axis_yaw: 19
 
 # buttons
 deadman_button: 11
@@ -26,21 +29,19 @@ sring_default_target_button: 12
 head_default_target_button: 4
 arm_right_default_target_button: 5
 arm_left_default_target_button: 7
-gripper_right_default_target_button: 13
-gripper_left_default_target_button: 15
 
 #mode3: Velocity group controller
-torso_joint23_button: 15
-ssring_joint1_button: 14
-head_joint23_button: 13
-arm_right_joint12_button: 15
-arm_right_joint34_button: 14
-arm_right_joint56_button: 13
-arm_right_joint7_button: 12
-arm_left_joint12_button: 15
-arm_left_joint34_button: 14
-arm_left_joint56_button: 13
-arm_left_joint7_button: 12
+torso_joint1_button: 15
+sensorring_joint1_button: 14
+head_joint1_button: 13
+arm_right_joint1_button: 15
+arm_right_joint2_button: 14
+arm_right_joint3_button: 13
+arm_right_joint4_button: 12
+arm_left_joint1_button: 15
+arm_left_joint2_button: 14
+arm_left_joint3_button: 13
+arm_left_joint4_button: 12
 
 right_indicator_button: 9
 left_indicator_button: 8
@@ -48,7 +49,10 @@ up_down_button: 5
 right_left_button: 4
 
 #mode4: Twist controller
-
+torso_twist_button: 14
+head_twist_button: 12
+arm_right_twist_button: 13
+arm_left_twist_button: 15
 
 components: {
   base: {
@@ -59,34 +63,35 @@ components: {
   torso: {
     twist_topic_name: '/torso/twist_controller/command',
     topic_name: "/torso/joint_group_velocity_controller/command",
-    default_target: "home"
+    default_target: "home",
+    max_velocity: [0.3, 0.2, 0.3, 0.3, 0.2, 0.3],
+    joint_vel: [0.05,0.05]
   },
   head: {
     twist_topic_name: '/head/twist_controller/command',
     topic_name: "/head/joint_group_velocity_controller/command",
-    joint_names: ['head_1_joint','head_2_joint','head_3_joint'],
-    joint_step: [0.05,0.05,0.05],
-    default_target: "front"
+    default_target: "front",
+    max_velocity: [0.3, 0.2, 0.3, 0.3, 0.2, 0.3],
+    joint_vel: [0.05,0.05]
   },
   sensorring: {
     twist_topic_name: '/sensorring/twist_controller/command',
     topic_name: "/sensorring/joint_group_velocity_controller/command",
-    joint_names: ['sensorring_joint'],
-    joint_step: [0.05],
-    default_target: "front"
+    default_target: "front",
+    joint_vel: [0.05]
   },
   arm_left: {
     twist_topic_name: '/arm_left/twist_controller/command',
     topic_name: "/arm_left/joint_group_velocity_controller/command",
-    joint_names: ['arm_left_1_joint','arm_left_2_joint','arm_left_3_joint','arm_left_4_joint','arm_left_5_joint','arm_left_6_joint','arm_left_7_joint'],
-    joint_step: [0.05,0.05,0.05,0.05,0.05,0.05,0.05],
-    default_target: "home"
+    default_target: "home",
+    max_velocity: [0.3, 0.2, 0.3, 0.3, 0.2, 0.3],
+    joint_vel: [0.05,0.05,0.05,0.05,0.05,0.05,0.05]
   },
   arm_right: {
     twist_topic_name: '/arm_right/twist_controller/command',
     topic_name: "/arm_right/joint_group_velocity_controller/command",
-    joint_names: ['arm_right_1_joint','arm_right_2_joint','arm_right_3_joint','arm_right_4_joint','arm_right_5_joint','arm_right_6_joint','arm_right_7_joint'],
-    joint_step: [0.05,0.05,0.05,0.05,0.05,0.05,0.05],
-    default_target: "home"
+    default_target: "home",
+    max_velocity: [0.3, 0.2, 0.3, 0.3, 0.2, 0.3],
+    joint_vel: [0.05,0.05,0.05,0.05,0.05,0.05,0.05]
   }
 }

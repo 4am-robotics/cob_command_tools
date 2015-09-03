@@ -10,7 +10,10 @@ mode_switch_button: 8
 # axes
 axis_vx: 1 
 axis_vy: 0 
-axis_vth: 2 
+axis_vz: 5
+axis_roll: 4
+axis_pitch: 3
+axis_yaw: 2 
 
 # buttons
 deadman_button: 5 
@@ -61,14 +64,14 @@ components: {
     twist_topic_name: '/torso/twist_controller/command',
     topic_name: "/torso/joint_group_velocity_controller/command",
     default_target: "home",
-    max_velocity: [0.3, 0.2, 0.3],
+    max_velocity: [0.3, 0.2, 0.3, 0.3, 0.2, 0.3],
     joint_vel: [0.05,0.05]
   },
   head: {
     twist_topic_name: '/head/twist_controller/command',
     topic_name: "/head/joint_group_velocity_controller/command",
     default_target: "front",
-    max_velocity: [0.3, 0.2, 0.3],
+    max_velocity: [0.3, 0.2, 0.3, 0.3, 0.2, 0.3],
     joint_vel: [0.05,0.05]
   },
   sensorring: {
@@ -81,14 +84,14 @@ components: {
     twist_topic_name: '/arm_left/twist_controller/command',
     topic_name: "/arm_left/joint_group_velocity_controller/command",
     default_target: "home",
-    max_velocity: [0.3, 0.2, 0.3],
+    max_velocity: [0.3, 0.2, 0.3, 0.3, 0.2, 0.3],
     joint_vel: [0.05,0.05,0.05,0.05,0.05,0.05,0.05]
   },
   arm_right: {
     twist_topic_name: '/arm_right/twist_controller/command',
     topic_name: "/arm_right/joint_group_velocity_controller/command",
     default_target: "home",
-    max_velocity: [0.3, 0.2, 0.3],
+    max_velocity: [0.3, 0.2, 0.3, 0.3, 0.2, 0.3],
     joint_vel: [0.05,0.05,0.05,0.05,0.05,0.05,0.05]
   }
 }
