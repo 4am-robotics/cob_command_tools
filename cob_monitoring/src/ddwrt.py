@@ -98,10 +98,10 @@ class WifiAP:
     for row in reader:
       essid = row[0]
       macattr = row[2]
-      channel = int(row[3])
-      rssi = int(row[4])
-      noise = int(row[5])
-      beacon = int(row[6])
+      channel = row[3]
+      rssi = row[4]
+      noise = row[5]
+      beacon = row[6]
 
       network = Network(macattr, essid, channel, rssi, noise, beacon)
       survey.networks.append(network)
