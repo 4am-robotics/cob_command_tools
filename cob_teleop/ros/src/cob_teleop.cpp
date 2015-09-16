@@ -57,18 +57,19 @@
  *
  ****************************************************************/
 #include <ros/ros.h>
-#include <XmlRpcValue.h>
-#include <geometry_msgs/Twist.h>
-#include <sensor_msgs/Joy.h>
-#include <sensor_msgs/JointState.h>
-#include <std_msgs/Float64MultiArray.h>
-#include <sensor_msgs/JoyFeedbackArray.h>
 
 #include <actionlib/client/simple_action_client.h>
+#include <cob_light/LightMode.h>
 #include <cob_script_server/ScriptAction.h>
-#include <string>
-#include <vector>
+#include <cob_sound/SayAction.h>
+#include <geometry_msgs/Twist.h>
+#include <sensor_msgs/JointState.h>
+#include <sensor_msgs/Joy.h>
+#include <sensor_msgs/JoyFeedbackArray.h>
+#include <std_msgs/Float64MultiArray.h>
+#include <std_msgs/ColorRGBA.h>
 #include <std_srvs/Trigger.h>
+#include <XmlRpcValue.h>
 
 const int PUBLISH_FREQ = 100.0;
 
@@ -80,61 +81,36 @@ public:
     std::string key;
     std::string twist_topic_name;
     std::string vel_group_topic_name;
-    std::string default_target;
-    std::vector<double> joint_vel;
+    std::string sss_default_target;
+    std::vector<double> joint_velocity;
     ros::Publisher vel_group_controller_publisher_;
     ros::Publisher twist_controller_publisher_;
-    std::vector<double> max_vel; //max_vx_,max_vy_,max_vth_;
-    //std::vector<double> max_acc; //max_ax_,max_ay_,max_ath_???????;
+    std::vector<double> twist_max_vel; //max_vx_,max_vy_,max_vth_;
+    std::vector<double> twist_max_acc; //max_ax_,max_ay_,max_ath_;
   };
 
-  std::map<std::string,component_config> component_config_; //std::vector<std::string> components_names;
+  std::map<std::string,component_config> component_config_;
 
 	//axis
   int axis_vx_,axis_vy_,axis_vz_,axis_roll_,axis_pitch_,axis_yaw_;
 
-  //Sensorring not implemented
 	//buttons
 	//mode 1: Base
   int run_button_;
 	//mode 2: Trajectory controller (to default target position using sss.move)
-  int torso_default_target_button_;
-  int sensorring_default_target_button_;
-  int head_default_target_button_;
-  int arm_left_default_target_button_;
-  int arm_right_default_target_button_;
-  int gripper_left_default_target_button_;
-  int gripper_right_default_target_button_;
 	//mode 3: Velocity group controller
-  int torso_joint23_button_;
-  int sensorring_joint1_button_;
-  int head_joint23_button_;
-  int arm_right_joint12_button_;
-  int arm_right_joint34_button_;
-  int arm_right_joint56_button_;
-  int arm_right_joint7_button_;
-  int arm_left_joint12_button_;
-  int arm_left_joint34_button_;
-  int arm_left_joint56_button_;
-  int arm_left_joint7_button_;
   int right_indicator_button_;
   int left_indicator_button_;
   int up_down_button_;
   int right_left_button_;
 	//mode 4: Twist controller
-  int torso_twist_button_;
-  int head_twist_button_;
-  int arm_left_twist_button_;
-  int arm_right_twist_button_;
-  
+
 	//common
   int deadman_button_;
   int safety_button_;
   int init_button_;
-  bool joy_active_, stopped_, base_safety_;
+  bool joy_active_;
   double run_factor_, run_factor_param_;
-  int joy_num_buttons_;
-  int joy_num_axes_;
   int joy_num_modes_;
   int mode_switch_button_;
   int mode_;
@@ -142,32 +118,39 @@ public:
   XmlRpc::XmlRpcValue led_mode_;
   sensor_msgs::JoyFeedbackArray joyfb;
 
+  XmlRpc::XmlRpcValue components_;
   ros::NodeHandle n_;
   ros::Subscriber joy_sub_;  //subscribe topic joy
   ros::Subscriber joint_states_sub_;  //subscribe topic joint_states
 
-  double time_for_init_;
+  ros::Publisher light_publisher_;
   typedef actionlib::SimpleActionClient<cob_script_server::ScriptAction> Client_;
   cob_script_server::ScriptGoal sss_;
+  Client_ * sss_client_;
+  typedef actionlib::SimpleActionClient<cob_sound::SayAction> SayClient_;
+  SayClient_ * sayclient_;
+  cob_sound::SayGoal saygoal;
 
   void getConfigurationFromParameters();
   void init();
+  void updateBase();
   void joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg);
   sensor_msgs::JoyFeedbackArray switch_mode();
-
+  std::vector<double> vel_old_;
+  std::vector<double> vel_req_;
+  std::vector<double> vel_base_;
 };
 
 void CobTeleop::getConfigurationFromParameters()
 {
   if(n_.hasParam("components"))
   {
-    XmlRpc::XmlRpcValue components;
     ROS_DEBUG("components found ");
-    n_.getParam("components", components);
-    if(components.getType() == XmlRpc::XmlRpcValue::TypeStruct)
+    n_.getParam("components", components_);
+    if(components_.getType() == XmlRpc::XmlRpcValue::TypeStruct)
     {
-      ROS_DEBUG("components are of type struct with size %d",(int)components.size());
-      for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components.begin();p!=components.end();++p)
+      ROS_DEBUG("components are of type struct with size %d",(int)components_.size());
+      for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components_.begin();p!=components_.end();++p)
       {
         std::string comp_name = p->first;
         ROS_DEBUG("component name: %s",comp_name.c_str());
@@ -189,7 +172,7 @@ void CobTeleop::getConfigurationFromParameters()
             tempComponent.twist_topic_name = s;
             tempComponent.twist_controller_publisher_ = n_.advertise<geometry_msgs::Twist>((s),1);
           }
-          else if(par_name.compare("topic_name")==0)
+          else if(par_name.compare("velocity_topic_name")==0)
           {
             ROS_DEBUG("topic name found");
             XmlRpc::XmlRpcValue vel_group_topic_name = ps->second;
@@ -199,57 +182,112 @@ void CobTeleop::getConfigurationFromParameters()
             tempComponent.vel_group_topic_name = s;
             tempComponent.vel_group_controller_publisher_ = n_.advertise<std_msgs::Float64MultiArray>((s),1);
           }
-          else if(par_name.compare("default_target")==0)
+          else if(par_name.compare("sss_default_target")==0)
           {
             ROS_DEBUG("default target position found");
-            XmlRpc::XmlRpcValue default_target = ps->second;
-            ROS_ASSERT(default_target.getType() == XmlRpc::XmlRpcValue::TypeString);
-            std::string s((std::string)default_target);
-            ROS_DEBUG("default_target found = %s",s.c_str());
-            tempComponent.default_target = s;
+            XmlRpc::XmlRpcValue sss_default_target = ps->second;
+            ROS_ASSERT(sss_default_target.getType() == XmlRpc::XmlRpcValue::TypeString);
+            std::string s((std::string)sss_default_target);
+            ROS_DEBUG("sss_default_target found = %s",s.c_str());
+            tempComponent.sss_default_target = s;
           }
-          else if(par_name.compare("joint_vel")==0){
+          else if(par_name.compare("joint_velocity")==0){
             ROS_DEBUG("joint vels found");
-            XmlRpc::XmlRpcValue joint_vel = ps->second;
-            ROS_ASSERT(joint_vel.getType() == XmlRpc::XmlRpcValue::TypeArray);
-            ROS_DEBUG("joint_vel.size: %d \n", joint_vel.size());
-            for(int i=0;i<joint_vel.size();i++)
+            XmlRpc::XmlRpcValue joint_velocity = ps->second;
+            ROS_ASSERT(joint_velocity.getType() == XmlRpc::XmlRpcValue::TypeArray);
+            ROS_DEBUG("joint_velocity.size: %d \n", joint_velocity.size());
+            for(int i=0;i<joint_velocity.size();i++)
             {
-              ROS_ASSERT(joint_vel[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
-              double vel((double)joint_vel[i]);
-              ROS_DEBUG("joint_vel found = %f",vel);
-              tempComponent.joint_vel.push_back(vel);
+              ROS_ASSERT(joint_velocity[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+              double vel((double)joint_velocity[i]);
+              ROS_DEBUG("joint_velocity found = %f",vel);
+              tempComponent.joint_velocity.push_back(vel);
             }
-          }else if(par_name.compare("max_velocity")==0){
+          }else if(par_name.compare("twist_max_velocity")==0){
             ROS_DEBUG("max Velocity found");
-            XmlRpc::XmlRpcValue max_velocity = ps->second;
-            ROS_ASSERT(max_velocity.getType() == XmlRpc::XmlRpcValue::TypeArray);
-            ROS_DEBUG("max_velocity.size: %d \n", max_velocity.size());
-            for(int i=0;i<max_velocity.size();i++)
+            XmlRpc::XmlRpcValue twist_max_velocity = ps->second;
+            ROS_ASSERT(twist_max_velocity.getType() == XmlRpc::XmlRpcValue::TypeArray);
+            ROS_DEBUG("twist_max_velocity.size: %d \n", twist_max_velocity.size());
+            for(int i=0;i<twist_max_velocity.size();i++)
             {
-              ROS_ASSERT(max_velocity[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
-              double vel((double)max_velocity[i]);
-              ROS_DEBUG("max_velocity found = %f",vel);
-              tempComponent.max_vel.push_back(vel);
+              ROS_ASSERT(twist_max_velocity[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+              double vel((double)twist_max_velocity[i]);
+              ROS_DEBUG("twist_max_velocity found = %f",vel);
+              tempComponent.twist_max_vel.push_back(vel);
+              }
+            }else if(par_name.compare("twist_max_acc")==0){
+            ROS_DEBUG("max Velocity found");
+            XmlRpc::XmlRpcValue twist_max_acc = ps->second;
+            ROS_ASSERT(twist_max_acc.getType() == XmlRpc::XmlRpcValue::TypeArray);
+            ROS_DEBUG("twist_max_acc.size: %d \n", twist_max_acc.size());
+            for(int i=0;i<twist_max_acc.size();i++)
+            {
+              ROS_ASSERT(twist_max_acc[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+              double vel((double)twist_max_acc[i]);
+              ROS_DEBUG("twist_max_acc found = %f",vel);
+              tempComponent.twist_max_acc.push_back(vel);
             }
           }
-      }
+        }
         ROS_DEBUG("%s module stored",comp_name.c_str());
         component_config_.insert(std::pair<std::string,component_config>(comp_name,tempComponent));
       }
     }
   }
+  std::string light_topic;
+  n_.getParam( "light_topic_name", light_topic);
+  light_publisher_ = n_.advertise<cob_light::LightMode>(light_topic,1);
+  sayclient_ = new SayClient_("sound/say", true);
+  sss_client_ = new Client_("script_server", true);
+
+  vel_req_.resize(component_config_["base"].twist_max_acc.size());
+  vel_old_.resize(component_config_["base"].twist_max_acc.size());
+  vel_base_.resize(component_config_["base"].twist_max_acc.size());
+  for(unsigned int i=0; i<component_config_["base"].twist_max_acc.size(); i++){
+    vel_old_[i]=0;
+    vel_req_[i]=0;
+  }
 }
 sensor_msgs::JoyFeedbackArray CobTeleop::switch_mode(){
-
   ++mode_;
+
   if (mode_ > joy_num_modes_)
   {
     mode_ = 1;
   }
 
-  ROS_INFO("Mode switched to: %d",mode_);
+  cob_light::LightMode light;
+  std_msgs::ColorRGBA color;
+
+  if (mode_ == 1){
+    ROS_INFO("Switched to mode 1: move the base using twist controller");
+     saygoal.text = "Teleop mode one : base twist controller";
+     light.pulses = 1;
+  }if (mode_ == 2){
+    ROS_INFO("Switched to mode 2: move the actuators to a default position (Trajectory controller)");
+     saygoal.text = "Teleop mode two : actuators trajectory controller";
+     light.pulses = 2;
+  }if(mode_ == 3){
+    ROS_INFO("Switched to mode 3: move the actuators using the group velocity controller");
+     saygoal.text = "Teleop mode three : actuators velocity controller";
+     light.pulses = 3;
+  }if(mode_ == 4){
+    ROS_INFO("Switched to mode 4: move the actuators using the twist controller");
+     saygoal.text = "Teleop mode four : actuators twist controller";
+     light.pulses = 4;
+  }
+
+  light.mode = 2;
+  color.r = 0;
+  color.g = 1;
+  color.b = 0.1;
+  color.a = 1;
+  light.color = color;
+  light_publisher_.publish(light);
+  sayclient_->sendGoal(saygoal);
+
   LEDS_=led_mode_[mode_];
+
   for (int i=0; i<4; i++)
   {
       joyfb.array.resize(4);
@@ -260,8 +298,42 @@ sensor_msgs::JoyFeedbackArray CobTeleop::switch_mode(){
   return joyfb;
 }
 
+void CobTeleop::updateBase(){
+    double dt = 1.0/double(PUBLISH_FREQ);
+    geometry_msgs::Twist base_cmd;
+    if(!joy_active_){
+      for(unsigned int i=0; i<component_config_["base"].twist_max_acc.size(); i++){
+        vel_old_[i]=0;
+        vel_req_[i]=0;
+      }
+    }
+
+    for( int i =0; i<3; i++)
+    {
+      // filter v with ramp
+      if ((vel_req_[i]-vel_old_[i])/dt > component_config_["base"].twist_max_acc[i])
+      {
+        vel_base_[i] = vel_old_[i] + component_config_["base"].twist_max_acc[i]*dt;
+      }
+      else if((vel_req_[i]-vel_old_[i])/dt < -component_config_["base"].twist_max_acc[i])
+      {
+        vel_base_[i] = vel_old_[i] - component_config_["base"].twist_max_acc[i]*dt;
+      }
+      else
+      {
+        vel_base_[i] = vel_req_[i];
+      }
+      vel_old_[i] = vel_base_[i];
+
+    base_cmd.linear.x = vel_base_[0];
+    base_cmd.linear.y = vel_base_[1];
+    base_cmd.angular.z = vel_base_[2];
+    component_config_["base"].twist_controller_publisher_.publish(base_cmd);
+    }
+}
+
+
 void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
-  getConfigurationFromParameters();
 
   if(mode_switch_button_>=0 && mode_switch_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[mode_switch_button_]==1)
   {
@@ -278,6 +350,10 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
     }
   }else
   {
+    for(unsigned int i=0; i<component_config_["base"].twist_max_acc.size(); i++){
+		    vel_req_[i]=0;
+		    vel_old_[i]=0;
+	    }
     ROS_DEBUG("joystick is not active");
     joy_active_ = false;
     return;
@@ -291,81 +367,74 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
   {
     run_factor_ = 1.0;
   }
-	
-  Client_ * client;
-  client = new Client_("script_server", true);
-  //ROS_INFO("Connecting to script_server");
-  client->waitForServer();
+
+  if(!sss_client_ -> waitForServer(ros::Duration(3.0))){
+    ROS_INFO("Waiting for script server");
+    return;
+  }
 
   if(init_button_>=0 && init_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[init_button_]==1)
   {
     ROS_INFO("Init button pressed");
-    XmlRpc::XmlRpcValue components;
-    n_.getParam("components", components);
 
-    for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components.begin();p!=components.end();++p)
+    for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components_.begin();p!=components_.end();++p)
     {
       std::string comp_name = p->first;
       sss_.component_name = comp_name.c_str();
       sss_.function_name="init";
-      client->sendGoal(sss_);
+      sss_client_->sendGoal(sss_);
       ROS_INFO("Init %s",comp_name.c_str());
     }
   }
 
 //-------MODE 1
   if (mode_==1){
-    ROS_INFO("Mode 1: Move the base using twist controller");
-    geometry_msgs::Twist base_cmd;
+    ROS_DEBUG("Mode 1: Move the base using twist controller");
     if(axis_vx_>=0 && axis_vx_<(int)joy_msg->axes.size()){
-      base_cmd.linear.x = joy_msg->axes[axis_vx_]*component_config_["base"].max_vel[0]*run_factor_;
-    }else
-      base_cmd.linear.x =0.0;
-    if(axis_vy_>=0 && axis_vy_<(int)joy_msg->axes.size())
-      base_cmd.linear.y = joy_msg->axes[axis_vy_]*component_config_["base"].max_vel[1]*run_factor_;
-    else
-      base_cmd.linear.y =0.0;
-    if(axis_yaw_>=0 && axis_yaw_<(int)joy_msg->axes.size())
-      base_cmd.angular.z = joy_msg->axes[axis_yaw_]*component_config_["base"].max_vel[2]*run_factor_;
-    else
-      base_cmd.angular.z =0.0;
-    component_config_["base"].twist_controller_publisher_.publish(base_cmd);
+      vel_req_[0] = joy_msg->axes[axis_vx_]*component_config_["base"].twist_max_vel[0]*run_factor_;
+    }else{
+      vel_req_[0] =0.0;
+    }if(axis_vy_>=0 && axis_vy_<(int)joy_msg->axes.size()){
+      vel_req_[1] = joy_msg->axes[axis_vy_]*component_config_["base"].twist_max_vel[1]*run_factor_;
+    }else{
+      vel_req_[1] = 0.0;
+    }if(axis_yaw_>=0 && axis_yaw_<(int)joy_msg->axes.size()){
+      vel_req_[2] = joy_msg->axes[axis_yaw_]*component_config_["base"].twist_max_vel[2]*run_factor_;
+    }else{
+      vel_req_[2] = 0.0;
+    }
   }
-
 //-------MODE 2
   if (mode_==2){
-    ROS_INFO("Mode 2: Move the actuators to a default position (Trajectory controller)");
-    XmlRpc::XmlRpcValue components;
-    n_.getParam("components", components);
-    for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components.begin();p!=components.end();++p)
-    {
-      int component_default_target_button_temp;
-      std::string comp_name = p->first;
-      std::string component_default_target_button = comp_name + "_default_target_button";
-      n_.getParam(component_default_target_button,component_default_target_button_temp);
+    ROS_DEBUG("Mode 2: Move the actuators to a default position (Trajectory controller)");
 
-      if(component_default_target_button_temp>=0 && component_default_target_button_temp<(int)joy_msg->buttons.size() && joy_msg->buttons[component_default_target_button_temp]==1){
+    for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components_.begin();p!=components_.end();++p)
+    {
+      int component_sss_default_target_button_temp = -1;
+      std::string comp_name = p->first;
+      std::string component_sss_default_target_button = comp_name + "_sss_default_target_button";
+      n_.getParam(component_sss_default_target_button,component_sss_default_target_button_temp);
+      if (component_sss_default_target_button_temp == -1){
+        ROS_DEBUG("%s_sss_default_target_button parameter not defined",comp_name.c_str());
+      }
+      if(component_sss_default_target_button_temp>=0 && component_sss_default_target_button_temp<(int)joy_msg->buttons.size() && joy_msg->buttons[component_sss_default_target_button_temp]==1){
         sss_.component_name = comp_name;
         sss_.function_name = "move";
-        sss_.parameter_name = component_config_[comp_name].default_target.c_str();
-        client->sendGoal(sss_);
-        ROS_INFO("Move %s to %s",comp_name.c_str(), component_config_[comp_name].default_target.c_str()); 
+        sss_.parameter_name = component_config_[comp_name].sss_default_target.c_str();
+        sss_client_->sendGoal(sss_);
+        ROS_INFO("Move %s to %s",comp_name.c_str(), component_config_[comp_name].sss_default_target.c_str());
       }
     }
   }
 
-
    if (mode_==3){
-     ROS_INFO("Mode 3: Move the actuators using the group velocity controller");
-    XmlRpc::XmlRpcValue components;
-    n_.getParam("components", components);
-
-      for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components.begin();p!=components.end();++p)
+     ROS_DEBUG("Mode 3: Move the actuators using the group velocity controller");
+      for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components_.begin();p!=components_.end();++p)
       {
         int count = 0;
-        int component_joint_button_temp;
+        int component_joint_button_temp = -1;
         std::string comp_name = p->first;
-        int size = ceil((component_config_[comp_name].joint_vel.size()+1)/2);
+        int size = ceil((component_config_[comp_name].joint_velocity.size()+1)/2);
         for(int i=0; i < size; ++i){
           std::ostringstream component_joint_button_stream;
           component_joint_button_stream << comp_name << "_joint" << i+1 << "_button";
@@ -376,43 +445,43 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
           if(!(comp_name.find("left") != std::string::npos) && !(comp_name.find("right") != std::string::npos)){
             if(component_joint_button_temp>=0 && component_joint_button_temp<(int)joy_msg->buttons.size() && joy_msg->buttons[component_joint_button_temp]==1 && joy_msg->buttons[right_indicator_button_]==0 && joy_msg->buttons[left_indicator_button_]==0){
               ROS_INFO("%s velocity mode",comp_name.c_str());
-              vel_cmd.data.resize(component_config_[comp_name].joint_vel.size());
+              vel_cmd.data.resize(component_config_[comp_name].joint_velocity.size());
               if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size()){
-                vel_cmd.data[count+i-1]=joy_msg->axes[up_down_button_]*component_config_[comp_name].joint_vel[count+i-1];
+                vel_cmd.data[count+i-1]=joy_msg->axes[up_down_button_]*component_config_[comp_name].joint_velocity[count+i-1];
               }
-              if((i+1)*2 <= component_config_[comp_name].joint_vel.size()){
+              if((i+1)*2 <= component_config_[comp_name].joint_velocity.size()){
                 if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size()){
-                  vel_cmd.data[count+i]=joy_msg->axes[right_left_button_]*component_config_[comp_name].joint_vel[count+i];
+                  vel_cmd.data[count+i]=joy_msg->axes[right_left_button_]*component_config_[comp_name].joint_velocity[count+i];
                 }
               }
             component_config_[comp_name].vel_group_controller_publisher_.publish(vel_cmd);
           }
         }
         else if(!(comp_name.find("left") != std::string::npos) && (comp_name.find("right") != std::string::npos)){
-          if(component_joint_button_temp>=0 && component_joint_button_temp<(int)joy_msg->buttons.size() && joy_msg->buttons[component_joint_button_temp]==1 && joy_msg->buttons[right_indicator_button_]==1 && joy_msg->buttons[left_indicator_button_]==0){
+          if(component_joint_button_temp>=0 && component_joint_button_temp<(int)joy_msg->buttons.size() && joy_msg->buttons[component_joint_button_temp]==1 && joy_msg->buttons[right_indicator_button_]==1){
             ROS_INFO("%s velocity mode",comp_name.c_str());
-            vel_cmd.data.resize(component_config_[comp_name].joint_vel.size());
+            vel_cmd.data.resize(component_config_[comp_name].joint_velocity.size());
             if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size()){
-              vel_cmd.data[count+i-1]=joy_msg->axes[up_down_button_]*component_config_[comp_name].joint_vel[count+i-1];
+              vel_cmd.data[count+i-1]=joy_msg->axes[up_down_button_]*component_config_[comp_name].joint_velocity[count+i-1];
             }
-            if((i+1)*2 <= component_config_[comp_name].joint_vel.size()){
+            if((i+1)*2 <= component_config_[comp_name].joint_velocity.size()){
               if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size()){
-                vel_cmd.data[count+i]=joy_msg->axes[right_left_button_]*component_config_[comp_name].joint_vel[count+i];
+                vel_cmd.data[count+i]=joy_msg->axes[right_left_button_]*component_config_[comp_name].joint_velocity[count+i];
               }
             }
             component_config_[comp_name].vel_group_controller_publisher_.publish(vel_cmd);
           }
         }
         else if((comp_name.find("left") != std::string::npos) && !(comp_name.find("right") != std::string::npos)){
-          if(component_joint_button_temp>=0 && component_joint_button_temp<(int)joy_msg->buttons.size() && joy_msg->buttons[component_joint_button_temp]==1 && joy_msg->buttons[right_indicator_button_]==0 && joy_msg->buttons[left_indicator_button_]==1){
+          if(component_joint_button_temp>=0 && component_joint_button_temp<(int)joy_msg->buttons.size() && joy_msg->buttons[component_joint_button_temp]==1 && joy_msg->buttons[left_indicator_button_]==1){
             ROS_INFO("%s velocity mode",comp_name.c_str());
-            vel_cmd.data.resize(component_config_[comp_name].joint_vel.size()); 
+            vel_cmd.data.resize(component_config_[comp_name].joint_velocity.size());
             if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size()){
-              vel_cmd.data[count+i-1]=joy_msg->axes[up_down_button_]*component_config_[comp_name].joint_vel[count+i-1];
+              vel_cmd.data[count+i-1]=joy_msg->axes[up_down_button_]*component_config_[comp_name].joint_velocity[count+i-1];
             }
-            if((i+1)*2 <= component_config_[comp_name].joint_vel.size()){
+            if((i+1)*2 <= component_config_[comp_name].joint_velocity.size()){
               if(right_left_button_>=0 && right_left_button_<(int)joy_msg->axes.size()){
-                vel_cmd.data[count+i]=joy_msg->axes[right_left_button_]*component_config_[comp_name].joint_vel[count+i];
+                vel_cmd.data[count+i]=joy_msg->axes[right_left_button_]*component_config_[comp_name].joint_velocity[count+i];
               }
             }
             component_config_[comp_name].vel_group_controller_publisher_.publish(vel_cmd);
@@ -424,12 +493,10 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
 
 //-------MODE 4
   if (mode_==4){
-    ROS_INFO("Mode 4: Move the actuators using the twist controller");
-    XmlRpc::XmlRpcValue components;
-    n_.getParam("components", components);
-    for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components.begin();p!=components.end();++p)
+    ROS_DEBUG("Mode 4: Move the actuators using the twist controller");
+    for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components_.begin();p!=components_.end();++p)
     {
-      int component_twist_button_temp;
+      int component_twist_button_temp = -1;
       std::string comp_name = p->first;
       std::string component_twist_button = comp_name + "_twist_button";
       n_.getParam(component_twist_button,component_twist_button_temp);
@@ -437,27 +504,27 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
       if (component_twist_button_temp>=0 && component_twist_button_temp<(int)joy_msg->buttons.size() && joy_msg->buttons[component_twist_button_temp]==1){
         ROS_INFO("%s twist mode",comp_name.c_str());
         if(axis_vx_>=0 && axis_vx_<(int)joy_msg->axes.size())
-          twist_cmd.linear.x = joy_msg->axes[axis_vx_]*component_config_[comp_name].max_vel[0]; //*run_factor_;
+          twist_cmd.linear.x = joy_msg->axes[axis_vx_]*component_config_[comp_name].twist_max_vel[0]; //*run_factor_;
         else
           twist_cmd.linear.x =0.0;
         if(axis_vy_>=0 && axis_vy_<(int)joy_msg->axes.size())
-          twist_cmd.linear.y = joy_msg->axes[axis_vy_]*component_config_[comp_name].max_vel[1]; //*run_factor_;
+          twist_cmd.linear.y = joy_msg->axes[axis_vy_]*component_config_[comp_name].twist_max_vel[1]; //*run_factor_;
         else
           twist_cmd.linear.y =0.0;
         if(axis_vz_>=0 && axis_vz_<(int)joy_msg->axes.size())
-          twist_cmd.linear.z = joy_msg->axes[axis_vz_]*component_config_[comp_name].max_vel[2]; //*run_factor_;
+          twist_cmd.linear.z = joy_msg->axes[axis_vz_]*component_config_[comp_name].twist_max_vel[2]; //*run_factor_;
         else
           twist_cmd.linear.z =0.0;
         if(axis_roll_>=0 && axis_roll_<(int)joy_msg->axes.size())
-          twist_cmd.angular.x = joy_msg->axes[axis_roll_]*component_config_[comp_name].max_vel[3]; //*run_factor_;
+          twist_cmd.angular.x = joy_msg->axes[axis_roll_]*component_config_[comp_name].twist_max_vel[3]; //*run_factor_;
         else
           twist_cmd.angular.x =0.0;
         if(axis_pitch_>=0 && axis_pitch_<(int)joy_msg->axes.size())
-          twist_cmd.angular.y = joy_msg->axes[axis_pitch_]*component_config_[comp_name].max_vel[4]; //*run_factor_;
+          twist_cmd.angular.y = joy_msg->axes[axis_pitch_]*component_config_[comp_name].twist_max_vel[4]; //*run_factor_;
         else
           twist_cmd.angular.y =0.0;
         if(axis_yaw_>=0 && axis_yaw_<(int)joy_msg->axes.size())
-          twist_cmd.angular.z = joy_msg->axes[axis_yaw_]*component_config_[comp_name].max_vel[5]; //*run_factor_;
+          twist_cmd.angular.z = joy_msg->axes[axis_yaw_]*component_config_[comp_name].twist_max_vel[5]; //*run_factor_;
         else
           twist_cmd.angular.z =0.0;
         component_config_[comp_name].twist_controller_publisher_.publish(twist_cmd);
@@ -475,8 +542,6 @@ void CobTeleop::init()
   n_.param("run_factor",run_factor_param_,1.5);
 
 	// joy config
-  n_.param("joy_num_buttons",joy_num_buttons_,12);
-  n_.param("joy_num_axes",joy_num_axes_,6);
   n_.param("joy_num_modes",joy_num_modes_,2);
   n_.param("mode_switch_button",mode_switch_button_,0);
 
@@ -495,35 +560,10 @@ void CobTeleop::init()
 
   n_.param("run_button",run_button_,9);
 
-  n_.param("torso_default_target_button",torso_default_target_button_,6);
-  n_.param("sensorring_default_target_button",sensorring_default_target_button_,12);
-  n_.param("head_default_target_button",head_default_target_button_,4);
-  n_.param("arm_left_default_target_button",arm_left_default_target_button_,7);
-  n_.param("arm_right_default_target_button",arm_right_default_target_button_,5);
-  n_.param("gripper_left_default_target_button",gripper_left_default_target_button_,15);
-  n_.param("gripper_right_default_target_button",gripper_right_default_target_button_,13);
-
-  n_.param("torso_joint23_button",torso_joint23_button_,15);
-  n_.param("sensorring_joint1_button",sensorring_joint1_button_,14);
-  n_.param("head_joint23_button",head_joint23_button_,13);
-  n_.param("arm_right_joint12_button",arm_right_joint12_button_,15);
-  n_.param("arm_right_joint34_button",arm_right_joint34_button_,14);
-  n_.param("arm_right_joint56_button",arm_right_joint56_button_,13);
-  n_.param("arm_right_joint7_button",arm_right_joint7_button_,12);
-  n_.param("arm_left_joint12_button",arm_left_joint12_button_,15);
-  n_.param("arm_left_joint34_button",arm_left_joint34_button_,14);
-  n_.param("arm_left_joint56_button",arm_left_joint56_button_,13);
-  n_.param("arm_left_joint7_button",arm_left_joint7_button_,12);
-
   n_.param("right_indicator_button",right_indicator_button_,9);
   n_.param("left_indicator_button",left_indicator_button_,8);
   n_.param("up_down_button",up_down_button_,4);
   n_.param("right_left_button",right_left_button_,5);
-
-  n_.param("torso_twist_button",torso_twist_button_,6);
-  n_.param("head_twist_button",head_twist_button_,4);
-  n_.param("arm_left_twist_button",arm_left_twist_button_,7);
-  n_.param("arm_right_twist_button",arm_right_twist_button_,5);
 
 	// output for debugging
   ROS_DEBUG("init::axis_vx: %d",axis_vx_);
@@ -538,26 +578,6 @@ void CobTeleop::init()
   ROS_DEBUG("init::init_button: %d",init_button_);
   ROS_DEBUG("init::run_button: %d",run_button_);
 
-  ROS_DEBUG("init::torso_default_target_button: %d",torso_default_target_button_);
-  ROS_DEBUG("init::sensorring_default_target_button: %d",sensorring_default_target_button_);
-  ROS_DEBUG("init::head_default_target_button: %d",head_default_target_button_);
-  ROS_DEBUG("init::arm_left_default_target_button: %d",arm_left_default_target_button_);
-  ROS_DEBUG("init::arm_right_default_target_button: %d",arm_right_default_target_button_);
-  ROS_DEBUG("init::gripper_left_default_target_button: %d",gripper_left_default_target_button_);
-  ROS_DEBUG("init::gripper_right_default_target_button: %d",gripper_right_default_target_button_);
-
-  ROS_DEBUG("init::torso_joint23_button: %d",torso_joint23_button_);
-  ROS_DEBUG("init::sensorring_joint1_button: %d",sensorring_joint1_button_);
-  ROS_DEBUG("init::head_joint23_button: %d",head_joint23_button_);
-  ROS_DEBUG("init::arm_right_joint12_button: %d",arm_right_joint12_button_);
-  ROS_DEBUG("init::arm_right_joint34_button: %d",arm_right_joint34_button_);
-  ROS_DEBUG("init::arm_right_joint56_button: %d",arm_right_joint56_button_);
-  ROS_DEBUG("init::arm_right_joint7_button: %d",arm_right_joint7_button_);
-  ROS_DEBUG("init::arm_left_joint12_button: %d",arm_left_joint12_button_);
-  ROS_DEBUG("init::arm_left_joint34_button: %d",arm_left_joint34_button_);
-  ROS_DEBUG("init::arm_left_joint56_button: %d",arm_left_joint56_button_);
-  ROS_DEBUG("init::arm_left_joint7_button: %d",arm_left_joint7_button_);
-
   ROS_DEBUG("init::right_indicator_button: %d",right_indicator_button_);
   ROS_DEBUG("init::left_indicator_button: %d",left_indicator_button_);
   ROS_DEBUG("init::up_down_button: %d",up_down_button_);
@@ -566,6 +586,7 @@ void CobTeleop::init()
   joy_sub_ = n_.subscribe("/joy",1,&CobTeleop::joy_cb,this);
   mode_ = 1;
   LEDS_=led_mode_[mode_];
+
 }
 
 
@@ -574,10 +595,11 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "cob_teleop");
   CobTeleop  cob_teleop;
   cob_teleop.init();
-
+  cob_teleop.getConfigurationFromParameters();
   ros::Rate loop_rate(PUBLISH_FREQ); //Hz
   while(cob_teleop.n_.ok())
   {
+    cob_teleop.updateBase();
     ros::spinOnce();
     loop_rate.sleep();
   }
