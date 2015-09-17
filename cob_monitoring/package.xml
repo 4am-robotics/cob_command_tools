@@ -1,8 +1,8 @@
-<package>
+<package format="2">
   <name>cob_monitoring</name>
-  <version>0.6.2</version>
+  <version>0.6.3</version>
   <description>cob_monitoring</description>
-  
+
   <license>LGPL</license>
 
   <url type="website">http://ros.org/wiki/cob_monitoring</url>
@@ -14,15 +14,15 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <run_depend>cob_light</run_depend>
-  <run_depend>cob_msgs</run_depend>
-  <run_depend>cob_script_server</run_depend>
-  <run_depend>diagnostic_msgs</run_depend>
-  <run_depend>ipmitool</run_depend>
-  <run_depend>python-mechanize</run_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>sysstat</run_depend>
+  <exec_depend>cob_light</exec_depend>
+  <exec_depend>cob_msgs</exec_depend>
+  <exec_depend>cob_script_server</exec_depend>
+  <exec_depend>diagnostic_msgs</exec_depend>
+  <exec_depend>ipmitool</exec_depend>
+  <exec_depend>python-mechanize</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>sysstat</exec_depend>
 
 </package>

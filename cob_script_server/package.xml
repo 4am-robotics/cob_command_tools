@@ -1,8 +1,8 @@
-<package>
+<package format="2">
   <name>cob_script_server</name>
-  <version>0.6.2</version>
+  <version>0.6.3</version>
   <description>The cob_script_server package provides a simple interface to operate Care-O-bot. It can be used via the python API or the actionlib interface.</description>
-  
+
   <license>LGPL</license>
 
   <url type="website">http://ros.org/wiki/cob_script_server</url>
@@ -13,28 +13,25 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>actionlib_msgs</build_depend>
-  <build_depend>actionlib</build_depend>
   <build_depend>message_generation</build_depend>
-  <build_depend>rostest</build_depend>
-  <build_depend>trajectory_msgs</build_depend>
+  <exec_depend>message_runtime</exec_depend>
 
-  <run_depend>actionlib_msgs</run_depend>
-  <run_depend>actionlib</run_depend>
-  <run_depend>cob_light</run_depend>
-  <run_depend>cob_mimic</run_depend>
-  <run_depend>cob_sound</run_depend>
-  <run_depend>control_msgs</run_depend>
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>ipython</run_depend>
-  <run_depend>message_runtime</run_depend>
-  <run_depend>move_base_msgs</run_depend>
-  <run_depend>python-pygraphviz</run_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>rostest</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>std_srvs</run_depend>
-  <run_depend>tf</run_depend>
-  <run_depend>trajectory_msgs</run_depend>
+  <depend>actionlib_msgs</depend>
+  <depend>rostest</depend>
+  <depend>trajectory_msgs</depend>
+
+  <exec_depend>actionlib</exec_depend>
+  <exec_depend>cob_light</exec_depend>
+  <exec_depend>cob_mimic</exec_depend>
+  <exec_depend>cob_sound</exec_depend>
+  <exec_depend>control_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>ipython</exec_depend>
+  <exec_depend>move_base_msgs</exec_depend>
+  <exec_depend>python-pygraphviz</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
+  <exec_depend>tf</exec_depend>
 
 </package>

@@ -34,19 +34,19 @@ class TestActionInterface(unittest.TestCase):
 		goal.function_name = "recover"
 		goal.component_name = "arm"
 		self.script_action_trigger(goal)
-		
+
 	def script_action_trigger(self,goal):
 		rospy.Service("/" + goal.component_name + "_controller/" + goal.function_name, Trigger, self.cb)
 		self.cb_executed = False
-		
+
 		client = actionlib.SimpleActionClient('/script_server', ScriptAction)
-		
+
 		if not client.wait_for_server(rospy.Duration(10)):
 			self.fail('Action server not ready')
 		client.send_goal(goal)
 		if not client.wait_for_result(rospy.Duration(10)):
 			self.fail('Action didnt give a result before timeout')
-		
+
 		if not self.cb_executed:
 			self.fail('Service Server not called. script server error_code: ' + str(client.get_result().error_code))
 
@@ -95,9 +95,9 @@ class TestActionInterface(unittest.TestCase):
 			as_name = "/move_base_" + goal.mode
 		self.as_server = actionlib.SimpleActionServer(as_name, MoveBaseAction, execute_cb=self.base_cb, auto_start=False)
 		self.as_server.start()
-		
+
 		client = actionlib.SimpleActionClient('/script_server', ScriptAction)
-		
+
 		self.cb_move_executed = False
 		if not client.wait_for_server(rospy.Duration(10)):
 			self.fail('Action server not ready')
@@ -105,7 +105,7 @@ class TestActionInterface(unittest.TestCase):
 		client.wait_for_result(rospy.Duration(10))
 		#if not client.wait_for_result(rospy.Duration(10)):
 		#	self.fail('Action didnt give a result before timeout')
-		
+
 		#if not self.cb_executed:
 		#	self.fail('Action Server not called. script server error_code: ' + str(client.get_result().error_code))
 

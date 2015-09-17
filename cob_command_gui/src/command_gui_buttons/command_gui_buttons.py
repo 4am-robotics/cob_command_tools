@@ -42,17 +42,17 @@
 #       this software without specific prior written permission. \n
 #
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License LGPL as 
-# published by the Free Software Foundation, either version 3 of the 
+# it under the terms of the GNU Lesser General Public License LGPL as
+# published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License LGPL for more details.
-# 
-# You should have received a copy of the GNU Lesser General Public 
-# License LGPL along with this program. 
+#
+# You should have received a copy of the GNU Lesser General Public
+# License LGPL along with this program.
 # If not, see <http://www.gnu.org/licenses/>.
 #
 #################################################################
@@ -81,7 +81,7 @@ class command_gui_buttons:
 		#print group_param
 		group_param = self.SortDict(group_param)
 		#print group_param
-		
+
 		for group in group_param:
 			group_name = group[1]["group_name"]
 			component_name = group[1]["component_name"] # \todo check component name with robot_components.yaml files
@@ -119,7 +119,7 @@ class command_gui_buttons:
 					rospy.logerr("Function <<%s>> not known to command gui",button[1])
 					return False
 			group = (group_name,buttons)
-			
+
 			# add nav buttons (optional)
 			if component_name == "base": # \todo get base name from robot_components.yaml
 				param_prefix = "~nav_buttons"
@@ -139,8 +139,8 @@ class command_gui_buttons:
 		self.init_buttons = self.uniqify_list(self.init_buttons)
 		self.recover_buttons = self.uniqify_list(self.recover_buttons)
 		self.halt_buttons = self.uniqify_list(self.halt_buttons)
-		
-	
+
+
 	## Creates one button with functionality
 	def CreateButton(self,button_name,function,component_name,parameter_name=None):
 		if parameter_name == None:
@@ -148,7 +148,7 @@ class command_gui_buttons:
 		else:
 			button = (button_name,function,(component_name,parameter_name,False))
 		return button
-	
+
 	## Sorts a dictionary alphabetically
 	def SortDict(self,dictionary):
 		keys = sorted(dictionary.iterkeys())
@@ -157,9 +157,9 @@ class command_gui_buttons:
 		#for key in keys:
 		#	print "values = ", dictionary[key]
 		return [[key,dictionary[key]] for key in keys]
-		
+
 	## Uniqifies a list to not have double entries
-	def uniqify_list(self,seq, idfun=None): 
+	def uniqify_list(self,seq, idfun=None):
 		# order preserving
 		if idfun is None:
 			def idfun(x): return x

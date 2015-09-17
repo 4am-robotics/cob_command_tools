@@ -72,7 +72,7 @@ class WifiAP:
     response = self.newBrowser().open(url)
 
     body = response.read()
-    
+
     #make sure that we put a stamp on things
     header = Header()
     header.stamp = rospy.Time.now()
@@ -119,7 +119,7 @@ class WifiAP:
       iparts = line.split(":", 1)
       parts = iparts[1].split()
       print interface, parts
-      
+
 
   def fetchCurrentAP(self):
     url = "http://%s/Status_Wireless.live.asp" % self.hostname
@@ -136,12 +136,12 @@ class WifiAP:
       parts = line.split("::", 1)
       if len(parts) == 2:
         d[parts[0]] = parts[1]
-      
+
     essid = d.get('wl_ssid', '')
     wl_channel = d.get('wl_channel', '').split()[0]
     channel = int(wl_channel)
     rate = d.get('wl_rate', '')
-    
+
     signal = None
     noise = None
     snr = None
@@ -166,7 +166,7 @@ class WifiAP:
         noise = int(parts[6])
         snr = int(parts[7])
         quality = int(parts[8])/10
-      
+
       #self.fetchBandwidthStats(interface)
 
       #make sure that we put a stamp on things
@@ -217,7 +217,7 @@ def loop():
           rospy.logwarn("Caught exception %s" % e)
       last_ex = e
     r.sleep()
-        
+
 def test():
   router_ip = rospy.get_param('~router_ip', 'wifi-router')
   username = rospy.get_param('~username', 'root')
@@ -256,5 +256,5 @@ def main(argv, stdout, environ):
 
 if __name__ == "__main__":
   main(sys.argv, sys.stdout, os.environ)
-        
+
 
