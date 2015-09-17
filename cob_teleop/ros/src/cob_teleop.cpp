@@ -85,8 +85,8 @@ public:
     std::vector<double> joint_velocity;
     ros::Publisher vel_group_controller_publisher_;
     ros::Publisher twist_controller_publisher_;
-    std::vector<double> twist_max_vel; //max_vx_,max_vy_,max_vth_;
-    std::vector<double> twist_max_acc; //max_ax_,max_ay_,max_ath_;
+    std::vector<double> twist_max_vel; //max_vx_,max_vy_,max_vz_,max_rotx_,max_roty_,max_rotz_
+    std::vector<double> twist_max_acc; //max_ax_,max_ay_,max_ath_
   };
 
   std::map<std::string,component_config> component_config_;
@@ -237,8 +237,8 @@ void CobTeleop::getConfigurationFromParameters()
   std::string light_topic;
   n_.getParam( "light_topic_name", light_topic);
   light_publisher_ = n_.advertise<cob_light::LightMode>(light_topic,1);
-  sayclient_ = new SayClient_("sound/say", true);
-  sss_client_ = new Client_("script_server", true);
+  sayclient_ = new SayClient_("/sound/say", true);
+  sss_client_ = new Client_("/script_server", true);
 
   vel_req_.resize(component_config_["base"].twist_max_acc.size());
   vel_old_.resize(component_config_["base"].twist_max_acc.size());
