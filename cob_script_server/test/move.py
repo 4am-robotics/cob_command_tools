@@ -26,7 +26,7 @@ class TestMove(unittest.TestCase):
 
 	def test_move_base_linear(self):
 		self.move_base(mode="linear")
-	
+
 	def move_base(self,mode=None):
 		if mode == None or mode == "" or mode == "omni":
 			as_name = "/move_base"
@@ -62,7 +62,7 @@ class TestMove(unittest.TestCase):
 		#result = JointTrajectoryResult()
 		result = FollowJointTrajectoryResult()
 		self.as_server.set_succeeded(result)
-	
+
 	# move cartesian
 #	def test_move_cart(self):
 #		component_name = "arm" # testing for component arm

@@ -1,6 +1,6 @@
-<package>
+<package format="2">
   <name>cob_interactive_teleop</name>
-  <version>0.6.2</version>
+  <version>0.6.3</version>
   <description>COB teleop interactive marker for RViz provided by dcgm-robotics@FIT group.</description>
 
   <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>
@@ -14,20 +14,14 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>interactive_markers</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>tf</build_depend>
-  <build_depend>visualization_msgs</build_depend>
+  <depend>geometry_msgs</depend>
+  <depend>interactive_markers</depend>
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>tf</depend>
+  <depend>visualization_msgs</depend>
 
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>interactive_markers</run_depend>
-  <run_depend>roscpp</run_depend>
-  <run_depend>rviz</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>tf</run_depend>
-  <run_depend>visualization_msgs</run_depend>
+  <exec_depend>rviz</exec_depend>
 
   <export>
     <rosdoc config="rosdoc.yaml"/>

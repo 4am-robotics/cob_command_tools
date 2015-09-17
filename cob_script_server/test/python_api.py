@@ -28,7 +28,7 @@ class PythonAPITest(unittest.TestCase):
 				self.fail('Parameter command does not exist on ROS Parameter Server')
 			command = rospy.get_param('~command')
 		except KeyError, e:
-			self.fail('Parameters not set properly')		
+			self.fail('Parameters not set properly')
 
 		# choose command to test
 		if command == "move":
@@ -37,7 +37,7 @@ class PythonAPITest(unittest.TestCase):
 			##as_name = "/" + component_name + "_controller/joint_trajectory_action"
 			##self.as_server = actionlib.SimpleActionServer(as_name, JointTrajectoryAction, execute_cb=self.as_cb)
 			as_name = "/" + component_name + "_controller/follow_joint_trajectory"
-			self.as_server = actionlib.SimpleActionServer(as_name, FollowJointTrajectoryAction, execute_cb=self.as_cb)			
+			self.as_server = actionlib.SimpleActionServer(as_name, FollowJointTrajectoryAction, execute_cb=self.as_cb)
 			#execute test (as all components have the same trajectory interface, we only test for arm)
 			self.move_test(component_name,"home") # test trajectories with a single point (home)
 			self.move_test(component_name,"grasp-to-tray") # test trajectories with multiple points (grasp-to-tray)
@@ -77,21 +77,21 @@ class PythonAPITest(unittest.TestCase):
 
 	def move_test(self,component_name, parameter_name):
 		self.as_cb_executed = False
-		
+
 		# call sss functions
-		self.sss.move(component_name,parameter_name)		
-		
+		self.sss.move(component_name,parameter_name)
+
 		# check result
 		if not self.as_cb_executed:
 			self.fail('No goal received at action server')
-		
+
 		# get joint_names from parameter server
 		param_string = self.ns_global_prefix + "/" + component_name + "/joint_names"
 		if not rospy.has_param(param_string):
 			error_msg = "parameter " + param_string +" does not exist on ROS Parameter Server"
 			self.fail(error_msg)
 		joint_names = rospy.get_param(param_string)
-		
+
 		# get joint values from parameter server
 		if type(parameter_name) is str:
 			param_string = self.ns_global_prefix + "/" + component_name + "/" + parameter_name
@@ -101,14 +101,14 @@ class PythonAPITest(unittest.TestCase):
 			param = rospy.get_param(param_string)
 		else:
 			param = parameter_name
-			
+
 		# check trajectory parameters
 		if not type(param) is list: # check outer list
 				error_msg = "no valid parameter for " + component_name + ": not a list, aborting..."
 				self.fail(error_msg)
-		
+
 		traj = []
-		
+
 		for point in param:
 			#print point,"type1 = ", type(point)
 			if type(point) is str:
@@ -123,7 +123,7 @@ class PythonAPITest(unittest.TestCase):
 			else:
 				error_msg = "no valid parameter for " + component_name + ": not a list of lists or strings, aborting..."
 				self.fail(error_msg)
-		
+
 			# here: point should be list of floats/ints
 			#print point
 			if not len(point) == len(joint_names): # check dimension
@@ -137,7 +137,7 @@ class PythonAPITest(unittest.TestCase):
 					error_msg = "no valid parameter for " + component_name + ": not a list of float or int, aborting..."
 					self.fail(error_msg)
 			traj.append(point)
-		
+
 		traj_msg = JointTrajectory()
 		traj_msg.header.stamp = rospy.Time.now()+rospy.Duration(0.5)
 		traj_msg.joint_names = joint_names
@@ -147,14 +147,14 @@ class PythonAPITest(unittest.TestCase):
 			point_msg.positions = point
 			point_msg.time_from_start=rospy.Duration(3*point_nr) # this value is set to 3 sec per point. \todo: read from parameter
 			traj_msg.points.append(point_msg)
-		
+
 		#print traj_msg
 		#print self.traj
-		
+
 		# check amount of trajectory points
 		if not (len(traj_msg.points) == len(self.traj.points)):
 			self.fail('Not the same amount of points in trajectory')
-		
+
 		# check points
 		#print traj_msg.points
 		#print self.traj.points
@@ -164,12 +164,12 @@ class PythonAPITest(unittest.TestCase):
 			#print self.traj.points[i].positions
 			if not (len(traj_msg.points[i].positions) == len(self.traj.points[i].positions)):
 				self.fail('Not the same amount of values in point')
-			
+
 			# check values of points
 			for j in range(len(traj_msg.points[i].positions)):
 				if not (traj_msg.points[i].positions[j] == self.traj.points[i].positions[j]):
 					self.fail('Not the same values in point')
-		
+
 	def as_cb(self, goal):
 		#result = JointTrajectoryResult()
 		result = FollowJointTrajectoryResult()
@@ -178,7 +178,7 @@ class PythonAPITest(unittest.TestCase):
 		self.traj = goal.trajectory
 		print "action server callback"
 		self.as_server.set_succeeded(result)
-	
+
 	def ss_cb(self,req):
 		self.ss_cb_executed = True
 		res = TriggerResponse()
