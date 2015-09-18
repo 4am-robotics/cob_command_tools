@@ -86,7 +86,7 @@ public:
     ros::Publisher vel_group_controller_publisher_;
     ros::Publisher twist_controller_publisher_;
     std::vector<double> twist_max_vel; //max_vx_,max_vy_,max_vz_,max_rotx_,max_roty_,max_rotz_
-    std::vector<double> twist_max_acc; //max_ax_,max_ay_,max_ath_
+    std::vector<double> twist_max_acc; //max_ax_,max_ay_,max_arotz_
   };
 
   std::map<std::string,component_config> component_config_;
@@ -258,6 +258,7 @@ sensor_msgs::JoyFeedbackArray CobTeleop::switch_mode(){
 
   cob_light::LightMode light;
   std_msgs::ColorRGBA color;
+  std::vector<std_msgs::ColorRGBA> colors;
 
   if (mode_ == 1){
     ROS_INFO("Switched to mode 1: move the base using twist controller");
@@ -278,13 +279,16 @@ sensor_msgs::JoyFeedbackArray CobTeleop::switch_mode(){
   }
 
   light.mode = 2;
+  light.frequency = 1;
   color.r = 0;
   color.g = 1;
-  color.b = 0.1;
+  color.b = 0;
   color.a = 1;
   light.color = color;
+  colors.push_back(color);
+  light.colors = colors;
   light_publisher_.publish(light);
-  sayclient_->sendGoal(saygoal);
+  //sayclient_->sendGoal(saygoal);
 
   LEDS_=led_mode_[mode_];
 
@@ -299,10 +303,12 @@ sensor_msgs::JoyFeedbackArray CobTeleop::switch_mode(){
 }
 
 void CobTeleop::updateBase(){
+
+  if(mode_==1){
     double dt = 1.0/double(PUBLISH_FREQ);
     geometry_msgs::Twist base_cmd;
     if(!joy_active_){
-      for(unsigned int i=0; i<component_config_["base"].twist_max_acc.size(); i++){
+      for(unsigned int i=0; i<3; i++){
         vel_old_[i]=0;
         vel_req_[i]=0;
       }
@@ -330,6 +336,7 @@ void CobTeleop::updateBase(){
     base_cmd.angular.z = vel_base_[2];
     component_config_["base"].twist_controller_publisher_.publish(base_cmd);
     }
+  }
 }
 
 
@@ -384,6 +391,11 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
       sss_.function_name="init";
       sss_client_->sendGoal(sss_);
       ROS_INFO("Init %s",comp_name.c_str());
+      sss_client_ -> waitForResult();
+      sss_.function_name="recover";
+      sss_client_->sendGoal(sss_);
+      ROS_INFO("Recover %s",comp_name.c_str());
+      sss_client_ -> waitForResult();
     }
   }
 
@@ -538,6 +550,12 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
  */
 void CobTeleop::init()
 {
+
+  n_ = ros::NodeHandle("~");
+  if(!n_.hasParam("components")){
+    ROS_ERROR("parameter components does not exist on ROS Parameter Server, aborting...");
+    exit(0);
+	}
 	// common
   n_.param("run_factor",run_factor_param_,1.5);
 
