@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <launch>
 
+	<!-- include script_server -->
+	<include file="$(find cob_script_server)/launch/script_server.launch" />
+
 	<!-- test python interface -->
 	<!-- test trigger -->
 	<test test-name="trigger" pkg="cob_script_server" type="trigger.py" name="trigger_test_node" time-limit="30" />
