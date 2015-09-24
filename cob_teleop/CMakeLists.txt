@@ -6,7 +6,6 @@ find_package(catkin REQUIRED COMPONENTS actionlib cob_light cob_script_server co
 catkin_package()
 
 ### Build ###
-
 add_executable(cob_teleop_keyboard ros/src/cob_teleop_keyboard.cpp)
 target_link_libraries(cob_teleop_keyboard ${catkin_LIBRARIES})
 
@@ -21,10 +20,6 @@ install(TARGETS cob_teleop_keyboard keyboard_publisher cob_teleop
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(DIRECTORY config
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 install(DIRECTORY ros/launch
