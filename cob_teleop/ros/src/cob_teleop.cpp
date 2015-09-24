@@ -59,7 +59,7 @@
 #include <ros/ros.h>
 
 #include <actionlib/client/simple_action_client.h>
-#include <cob_light/LightMode.h>
+#include <cob_light/SetLightModeAction.h>
 #include <cob_script_server/ScriptAction.h>
 #include <cob_sound/SayAction.h>
 #include <geometry_msgs/Twist.h>
@@ -123,13 +123,16 @@ public:
   ros::Subscriber joy_sub_;  //subscribe topic joy
   ros::Subscriber joint_states_sub_;  //subscribe topic joint_states
 
-  ros::Publisher light_publisher_;
   typedef actionlib::SimpleActionClient<cob_script_server::ScriptAction> Client_;
   cob_script_server::ScriptGoal sss_;
   Client_ * sss_client_;
   typedef actionlib::SimpleActionClient<cob_sound::SayAction> SayClient_;
   SayClient_ * sayclient_;
   cob_sound::SayGoal saygoal;
+  typedef actionlib::SimpleActionClient<cob_light::SetLightModeAction> SetLightClient_;
+  SetLightClient_ * setlightclient_;
+  cob_light::SetLightModeGoal lightgoal;
+  
 
   void getConfigurationFromParameters();
   void init();
@@ -234,9 +237,10 @@ void CobTeleop::getConfigurationFromParameters()
       }
     }
   }
-  std::string light_topic;
-  n_.getParam( "light_topic_name", light_topic);
-  light_publisher_ = n_.advertise<cob_light::LightMode>(light_topic,1);
+  std::string light_action;
+  n_.getParam( "light_action_name", light_action);
+  setlightclient_ = new SetLightClient_(light_action, true);
+  
   sayclient_ = new SayClient_("/sound/say", true);
   sss_client_ = new Client_("/script_server", true);
 
@@ -257,38 +261,37 @@ sensor_msgs::JoyFeedbackArray CobTeleop::switch_mode(){
   }
 
   cob_light::LightMode light;
-  std_msgs::ColorRGBA color;
-  std::vector<std_msgs::ColorRGBA> colors;
 
   if (mode_ == 1){
     ROS_INFO("Switched to mode 1: move the base using twist controller");
-     saygoal.text = "Teleop mode one : base twist controller";
+     saygoal.text = "Base twist controller mode";
      light.pulses = 1;
   }if (mode_ == 2){
     ROS_INFO("Switched to mode 2: move the actuators to a default position (Trajectory controller)");
-     saygoal.text = "Teleop mode two : actuators trajectory controller";
+     saygoal.text = "Default position mode";
      light.pulses = 2;
   }if(mode_ == 3){
-    ROS_INFO("Switched to mode 3: move the actuators using the group velocity controller");
-     saygoal.text = "Teleop mode three : actuators velocity controller";
+    ROS_INFO("Switched to mode 3: move the actuators using joint group velocity controller");
+     saygoal.text = "Velocity controller mode";
      light.pulses = 3;
   }if(mode_ == 4){
-    ROS_INFO("Switched to mode 4: move the actuators using the twist controller");
-     saygoal.text = "Teleop mode four : actuators twist controller";
+    ROS_INFO("Switched to mode 4: move the actuators using twist controller");
+     saygoal.text = "Actuators twist controller mode";
      light.pulses = 4;
   }
 
   light.mode = 2;
-  light.frequency = 1;
+  light.frequency = 5;
+  std_msgs::ColorRGBA color;
   color.r = 0;
   color.g = 1;
   color.b = 0;
   color.a = 1;
+  light.pulses = mode_;
   light.color = color;
-  colors.push_back(color);
-  light.colors = colors;
-  light_publisher_.publish(light);
-  //sayclient_->sendGoal(saygoal);
+  lightgoal.mode = light;
+  setlightclient_->sendGoal(lightgoal);
+  sayclient_->sendGoal(saygoal);
 
   LEDS_=led_mode_[mode_];
 
@@ -303,38 +306,39 @@ sensor_msgs::JoyFeedbackArray CobTeleop::switch_mode(){
 }
 
 void CobTeleop::updateBase(){
+  if (joy_active_){
+    if(mode_==1){
+      double dt = 1.0/double(PUBLISH_FREQ);
+      geometry_msgs::Twist base_cmd;
+      if(!joy_active_){
+        for(unsigned int i=0; i<3; i++){
+          vel_old_[i]=0;
+          vel_req_[i]=0;
+        }
+      }
 
-  if(mode_==1){
-    double dt = 1.0/double(PUBLISH_FREQ);
-    geometry_msgs::Twist base_cmd;
-    if(!joy_active_){
-      for(unsigned int i=0; i<3; i++){
-        vel_old_[i]=0;
-        vel_req_[i]=0;
-      }
-    }
+      for( int i =0; i<3; i++)
+      {
+        // filter v with ramp
+        if ((vel_req_[i]-vel_old_[i])/dt > component_config_["base"].twist_max_acc[i])
+        {
+          vel_base_[i] = vel_old_[i] + component_config_["base"].twist_max_acc[i]*dt;
+        }
+        else if((vel_req_[i]-vel_old_[i])/dt < -component_config_["base"].twist_max_acc[i])
+        {
+          vel_base_[i] = vel_old_[i] - component_config_["base"].twist_max_acc[i]*dt;
+        }
+        else
+        {
+          vel_base_[i] = vel_req_[i];
+        }
+        vel_old_[i] = vel_base_[i];
 
-    for( int i =0; i<3; i++)
-    {
-      // filter v with ramp
-      if ((vel_req_[i]-vel_old_[i])/dt > component_config_["base"].twist_max_acc[i])
-      {
-        vel_base_[i] = vel_old_[i] + component_config_["base"].twist_max_acc[i]*dt;
+      base_cmd.linear.x = vel_base_[0];
+      base_cmd.linear.y = vel_base_[1];
+      base_cmd.angular.z = vel_base_[2];
+      component_config_["base"].twist_controller_publisher_.publish(base_cmd);
       }
-      else if((vel_req_[i]-vel_old_[i])/dt < -component_config_["base"].twist_max_acc[i])
-      {
-        vel_base_[i] = vel_old_[i] - component_config_["base"].twist_max_acc[i]*dt;
-      }
-      else
-      {
-        vel_base_[i] = vel_req_[i];
-      }
-      vel_old_[i] = vel_base_[i];
-
-    base_cmd.linear.x = vel_base_[0];
-    base_cmd.linear.y = vel_base_[1];
-    base_cmd.angular.z = vel_base_[2];
-    component_config_["base"].twist_controller_publisher_.publish(base_cmd);
     }
   }
 }
@@ -350,11 +354,7 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
 
   if(deadman_button_>=0 && deadman_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[deadman_button_]==1)
   {
-    if (!joy_active_)
-    {
-      ROS_INFO("joystick is active");
-      joy_active_ = true;
-    }
+    ROS_INFO("joystick is active");
   }else
   {
     for(unsigned int i=0; i<component_config_["base"].twist_max_acc.size(); i++){
@@ -403,14 +403,17 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
   if (mode_==1){
     ROS_DEBUG("Mode 1: Move the base using twist controller");
     if(axis_vx_>=0 && axis_vx_<(int)joy_msg->axes.size()){
+      joy_active_ = true;
       vel_req_[0] = joy_msg->axes[axis_vx_]*component_config_["base"].twist_max_vel[0]*run_factor_;
     }else{
       vel_req_[0] =0.0;
     }if(axis_vy_>=0 && axis_vy_<(int)joy_msg->axes.size()){
+      joy_active_ = true;
       vel_req_[1] = joy_msg->axes[axis_vy_]*component_config_["base"].twist_max_vel[1]*run_factor_;
     }else{
       vel_req_[1] = 0.0;
     }if(axis_yaw_>=0 && axis_yaw_<(int)joy_msg->axes.size()){
+      joy_active_ = true;
       vel_req_[2] = joy_msg->axes[axis_yaw_]*component_config_["base"].twist_max_vel[2]*run_factor_;
     }else{
       vel_req_[2] = 0.0;
@@ -438,7 +441,7 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
       }
     }
   }
-
+//-------MODE 3
    if (mode_==3){
      ROS_DEBUG("Mode 3: Move the actuators using the group velocity controller");
       for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components_.begin();p!=components_.end();++p)
@@ -456,6 +459,7 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
           count++;
           if(!(comp_name.find("left") != std::string::npos) && !(comp_name.find("right") != std::string::npos)){
             if(component_joint_button_temp>=0 && component_joint_button_temp<(int)joy_msg->buttons.size() && joy_msg->buttons[component_joint_button_temp]==1 && joy_msg->buttons[right_indicator_button_]==0 && joy_msg->buttons[left_indicator_button_]==0){
+              joy_active_ = true;
               ROS_INFO("%s velocity mode",comp_name.c_str());
               vel_cmd.data.resize(component_config_[comp_name].joint_velocity.size());
               if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size()){
@@ -471,6 +475,7 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
         }
         else if(!(comp_name.find("left") != std::string::npos) && (comp_name.find("right") != std::string::npos)){
           if(component_joint_button_temp>=0 && component_joint_button_temp<(int)joy_msg->buttons.size() && joy_msg->buttons[component_joint_button_temp]==1 && joy_msg->buttons[right_indicator_button_]==1){
+            joy_active_ = true;
             ROS_INFO("%s velocity mode",comp_name.c_str());
             vel_cmd.data.resize(component_config_[comp_name].joint_velocity.size());
             if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size()){
@@ -486,6 +491,7 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
         }
         else if((comp_name.find("left") != std::string::npos) && !(comp_name.find("right") != std::string::npos)){
           if(component_joint_button_temp>=0 && component_joint_button_temp<(int)joy_msg->buttons.size() && joy_msg->buttons[component_joint_button_temp]==1 && joy_msg->buttons[left_indicator_button_]==1){
+            joy_active_ = true;
             ROS_INFO("%s velocity mode",comp_name.c_str());
             vel_cmd.data.resize(component_config_[comp_name].joint_velocity.size());
             if(up_down_button_>=0 && up_down_button_<(int)joy_msg->axes.size()){
@@ -514,6 +520,7 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
       n_.getParam(component_twist_button,component_twist_button_temp);
       geometry_msgs::Twist twist_cmd;
       if (component_twist_button_temp>=0 && component_twist_button_temp<(int)joy_msg->buttons.size() && joy_msg->buttons[component_twist_button_temp]==1){
+        joy_active_ = true;
         ROS_INFO("%s twist mode",comp_name.c_str());
         if(axis_vx_>=0 && axis_vx_<(int)joy_msg->axes.size())
           twist_cmd.linear.x = joy_msg->axes[axis_vx_]*component_config_[comp_name].twist_max_vel[0]; //*run_factor_;
@@ -604,6 +611,7 @@ void CobTeleop::init()
   joy_sub_ = n_.subscribe("/joy",1,&CobTeleop::joy_cb,this);
   mode_ = 1;
   LEDS_=led_mode_[mode_];
+  joy_active_ = false;
 
 }
 
