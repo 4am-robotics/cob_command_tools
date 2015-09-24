@@ -7,12 +7,15 @@ catkin_package()
 
 ### Build ###
 add_executable(cob_teleop_keyboard ros/src/cob_teleop_keyboard.cpp)
+add_dependencies(cob_teleop_keyboard ${catkin_EXPORTED_TARGETS})
 target_link_libraries(cob_teleop_keyboard ${catkin_LIBRARIES})
 
 add_executable(keyboard_publisher ros/src/keyboard_publisher.cpp)
+add_dependencies(cob_teleop_publisher ${catkin_EXPORTED_TARGETS})
 target_link_libraries(keyboard_publisher ${catkin_LIBRARIES})
 
 add_executable(cob_teleop ros/src/cob_teleop.cpp)
+add_dependencies(cob_teleop ${catkin_EXPORTED_TARGETS})
 target_link_libraries(cob_teleop ${catkin_LIBRARIES})
 
 ### Install ###
