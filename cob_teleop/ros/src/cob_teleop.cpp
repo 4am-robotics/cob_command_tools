@@ -71,7 +71,7 @@
 #include <std_srvs/Trigger.h>
 #include <XmlRpcValue.h>
 
-const int PUBLISH_FREQ = 100.0;
+const int PUBLISH_FREQ = 30.0;
 
 class CobTeleop
 {
@@ -264,7 +264,7 @@ sensor_msgs::JoyFeedbackArray CobTeleop::switch_mode(){
 
   if (mode_ == 1){
     ROS_INFO("Switched to mode 1: move the base using twist controller");
-     saygoal.text = "Base twist controller mode";
+     saygoal.text = "Base mode";
      light.pulses = 1;
   }if (mode_ == 2){
     ROS_INFO("Switched to mode 2: move the actuators to a default position (Trajectory controller)");
@@ -272,11 +272,11 @@ sensor_msgs::JoyFeedbackArray CobTeleop::switch_mode(){
      light.pulses = 2;
   }if(mode_ == 3){
     ROS_INFO("Switched to mode 3: move the actuators using joint group velocity controller");
-     saygoal.text = "Velocity controller mode";
+     saygoal.text = "Velocity mode";
      light.pulses = 3;
   }if(mode_ == 4){
-    ROS_INFO("Switched to mode 4: move the actuators using twist controller");
-     saygoal.text = "Actuators twist controller mode";
+    ROS_INFO("Switched to mode 4: move the actuators in cartesian mode using twist controller");
+     saygoal.text = "Cartesian mode";
      light.pulses = 4;
   }
 
