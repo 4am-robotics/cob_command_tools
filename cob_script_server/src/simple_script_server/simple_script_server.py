@@ -267,7 +267,8 @@ class simple_script_server:
 		parameter_name = self.ns_global_prefix + "/" + component_name + "/service_ns"
 		if not rospy.has_param(parameter_name):
 				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",parameter_name)
-				return 2
+				ah.set_failed(2)
+				return ah
 		service_ns_name = rospy.get_param(parameter_name)
 		service_full_name = service_ns_name + "/" + service_name
 
