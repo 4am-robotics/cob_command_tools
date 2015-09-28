@@ -128,7 +128,6 @@ public:
   Client_ * sss_client_;
   typedef actionlib::SimpleActionClient<cob_sound::SayAction> SayClient_;
   SayClient_ * sayclient_;
-  cob_sound::SayGoal saygoal;
   typedef actionlib::SimpleActionClient<cob_light::SetLightModeAction> SetLightClient_;
   SetLightClient_ * setlightclient_;
   cob_light::SetLightModeGoal lightgoal;
@@ -137,6 +136,7 @@ public:
   void getConfigurationFromParameters();
   void init();
   void updateBase();
+  void say(std::string text, bool blocking);
   void joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg);
   sensor_msgs::JoyFeedbackArray switch_mode();
   std::vector<double> vel_old_;
@@ -260,23 +260,25 @@ sensor_msgs::JoyFeedbackArray CobTeleop::switch_mode(){
     mode_ = 1;
   }
 
+  std::string saytext;
   cob_light::LightMode light;
+  light.timeout = 1;
 
   if (mode_ == 1){
     ROS_INFO("Switched to mode 1: move the base using twist controller");
-     saygoal.text = "Base mode";
+     saytext = "Base mode";
      light.pulses = 1;
   }if (mode_ == 2){
     ROS_INFO("Switched to mode 2: move the actuators to a default position (Trajectory controller)");
-     saygoal.text = "Default position mode";
+     saytext = "Default position mode";
      light.pulses = 2;
   }if(mode_ == 3){
     ROS_INFO("Switched to mode 3: move the actuators using joint group velocity controller");
-     saygoal.text = "Velocity mode";
+     saytext = "Velocity mode";
      light.pulses = 3;
   }if(mode_ == 4){
     ROS_INFO("Switched to mode 4: move the actuators in cartesian mode using twist controller");
-     saygoal.text = "Cartesian mode";
+     saytext = "Cartesian mode";
      light.pulses = 4;
   }
 
@@ -290,8 +292,8 @@ sensor_msgs::JoyFeedbackArray CobTeleop::switch_mode(){
   light.pulses = mode_;
   light.color = color;
   lightgoal.mode = light;
-  setlightclient_->sendGoal(lightgoal);
-  sayclient_->sendGoal(saygoal);
+//  setlightclient_->sendGoal(lightgoal);
+  say(saytext, false);
 
   LEDS_=led_mode_[mode_];
 
@@ -343,14 +345,19 @@ void CobTeleop::updateBase(){
   }
 }
 
+void CobTeleop::say(std::string text, bool blocking)
+{
+  cob_sound::SayGoal saygoal;
+  std::replace(text.begin(), text.end(), '_', ' ');
+  saygoal.text = text;
+  sayclient_->sendGoal(saygoal);
+  if (blocking)
+  {
+    sayclient_->waitForResult(ros::Duration(5));
+  }
+}
 
 void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
-
-  if(mode_switch_button_>=0 && mode_switch_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[mode_switch_button_]==1)
-  {
-    ROS_INFO("Switch mode button pressed");
-    switch_mode();
-  }
 
   if(deadman_button_>=0 && deadman_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[deadman_button_]==1)
   {
@@ -366,6 +373,12 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
     return;
   }
 
+  if(mode_switch_button_>=0 && mode_switch_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[mode_switch_button_]==1)
+  {
+    ROS_INFO("Switch mode button pressed");
+    switch_mode();
+  }
+  
   if(run_button_>=0 && run_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[run_button_]==1)
   {
     run_factor_ = run_factor_param_;
@@ -382,20 +395,32 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
 
   if(init_button_>=0 && init_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[init_button_]==1)
   {
-    ROS_INFO("Init button pressed");
+    ROS_INFO("Init and recover issued");
+    say("init and recover issued", true);
 
     for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components_.begin();p!=components_.end();++p)
     {
       std::string comp_name = p->first;
+      say(comp_name, true);
+
+      ROS_INFO("Init %s",comp_name.c_str());
       sss_.component_name = comp_name.c_str();
       sss_.function_name="init";
       sss_client_->sendGoal(sss_);
-      ROS_INFO("Init %s",comp_name.c_str());
       sss_client_ -> waitForResult();
+      if(sss_client_->getResult()->error_code != 0)
+      {
+        say("Init " + comp_name + " failed", false);
+      }
+
+      ROS_INFO("Recover %s",comp_name.c_str());
       sss_.function_name="recover";
       sss_client_->sendGoal(sss_);
-      ROS_INFO("Recover %s",comp_name.c_str());
       sss_client_ -> waitForResult();
+      if(sss_client_->getResult()->error_code != 0)
+      {
+        say("Recover " + comp_name + " failed", false);
+      }
     }
   }
 
