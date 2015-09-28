@@ -461,8 +461,9 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
         sss_.component_name = comp_name;
         sss_.function_name = "move";
         sss_.parameter_name = component_config_[comp_name].sss_default_target.c_str();
-        sss_client_->sendGoal(sss_);
         ROS_INFO("Move %s to %s",comp_name.c_str(), component_config_[comp_name].sss_default_target.c_str());
+        say("Move " + comp_name + " to " + sss_.parameter_name, false);
+        sss_client_->sendGoal(sss_);
       }
     }
   }
