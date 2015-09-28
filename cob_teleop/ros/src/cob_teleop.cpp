@@ -395,8 +395,8 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
 
   if(init_button_>=0 && init_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[init_button_]==1)
   {
-    ROS_INFO("Init and recover issued");
-    say("init and recover issued", true);
+    ROS_INFO("Init and recover");
+    say("init and recover", true);
 
     for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components_.begin();p!=components_.end();++p)
     {
