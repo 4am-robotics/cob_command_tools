@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
-PKG="cob_script_server"
-import roslib; roslib.load_manifest(PKG)
-
 import sys
 import unittest
 
+import rospy
 from simple_script_server import *
 sss = simple_script_server()
 
@@ -28,7 +26,7 @@ class TestMove(unittest.TestCase):
 
 	def test_move_base_linear(self):
 		self.move_base(mode="linear")
-	
+
 	def move_base(self,mode=None):
 		if mode == None or mode == "" or mode == "omni":
 			as_name = "/move_base"
@@ -64,7 +62,7 @@ class TestMove(unittest.TestCase):
 		#result = JointTrajectoryResult()
 		result = FollowJointTrajectoryResult()
 		self.as_server.set_succeeded(result)
-	
+
 	# move cartesian
 #	def test_move_cart(self):
 #		component_name = "arm" # testing for component arm
@@ -99,4 +97,4 @@ class TestMove(unittest.TestCase):
 
 if __name__ == '__main__':
 	import rostest
-	rostest.rosrun(PKG, 'move', TestMove)
+	rostest.rosrun('cob_script_server', 'move', TestMove)

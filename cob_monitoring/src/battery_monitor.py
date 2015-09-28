@@ -19,7 +19,7 @@
 # \author
 #   Author: Florian Weisshardt
 # \author
-#   Supervised by: 
+#   Supervised by:
 #
 # \date Date of creation: Dec 2012
 #
@@ -42,27 +42,23 @@
 #       this software without specific prior written permission. \n
 #
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License LGPL as 
-# published by the Free Software Foundation, either version 3 of the 
+# it under the terms of the GNU Lesser General Public License LGPL as
+# published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License LGPL for more details.
-# 
-# You should have received a copy of the GNU Lesser General Public 
-# License LGPL along with this program. 
+#
+# You should have received a copy of the GNU Lesser General Public
+# License LGPL along with this program.
 # If not, see <http://www.gnu.org/licenses/>.
 #
 #################################################################
 
-import roslib
-roslib.load_manifest('cob_monitoring')
 import rospy
-
 from cob_msgs.msg import *
-
 from simple_script_server import *
 sss = simple_script_server()
 
@@ -83,15 +79,15 @@ class battery_monitor():
 			if rospy.Time.now() - self.last_announced_time >= self.error_announce_time:
 				sss.say(["My battery is empty, please recharge now."])
 				self.last_announced_time = rospy.Time.now()
-		elif msg.relative_capacity <= 30.0:			
-			rospy.logwarn("Battery nearly empty, consider recharging. Battery state is at " + str(msg.relative_capacity) + "%.") 
+		elif msg.relative_capacity <= 30.0:
+			rospy.logwarn("Battery nearly empty, consider recharging. Battery state is at " + str(msg.relative_capacity) + "%.")
 			#TODO: "start flashing yellow slowly --> action call to lightmode"
 			if rospy.Time.now() - self.last_announced_time >= self.warn_announce_time:
 				sss.say(["My battery is nearly empty, please consider recharging."])
 				self.last_announced_time = rospy.Time.now()
 		else:
-			rospy.logdebug("Battery level ok.")	
-		
+			rospy.logdebug("Battery level ok.")
+
 		# sleep
 		self.rate.sleep()
 

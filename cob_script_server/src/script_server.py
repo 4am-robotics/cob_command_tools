@@ -42,17 +42,17 @@
 #       this software without specific prior written permission. \n
 #
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License LGPL as 
-# published by the Free Software Foundation, either version 3 of the 
+# it under the terms of the GNU Lesser General Public License LGPL as
+# published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License LGPL for more details.
-# 
-# You should have received a copy of the GNU Lesser General Public 
-# License LGPL along with this program. 
+#
+# You should have received a copy of the GNU Lesser General Public
+# License LGPL along with this program.
 # If not, see <http://www.gnu.org/licenses/>.
 #
 #################################################################
@@ -60,8 +60,6 @@
 import time
 import inspect
 
-import roslib
-roslib.load_manifest('cob_script_server')
 import rospy
 import actionlib
 
@@ -104,7 +102,7 @@ class script_server():
 		if server_goal.function_name == None or server_goal.function_name.strip() == "":
 			rospy.logerr("function name cannot be blank")
 			return
-			
+
 		if server_goal.function_name in dir(sss):
 			func = getattr(sss, server_goal.function_name)
 			argspec = inspect.getargspec(func)
@@ -118,13 +116,13 @@ class script_server():
 						except:
 							pass
 					args[arg] = serverArg
-			
+
 			handle01 = func(*(), **args)
 		else:
 			rospy.logerr("function <<%s>> not supported", server_goal.function_name)
 			self.script_action_server.set_aborted(server_result)
 			return
-		
+
 		if 'get_error_code' in dir(handle01):
 			server_result.error_code = handle01.get_error_code()
 		else:

@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import roslib
-roslib.load_manifest('cob_script_server')
 
 import sys
 import unittest

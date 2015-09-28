@@ -42,30 +42,30 @@
 #       this software without specific prior written permission. \n
 #
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License LGPL as 
-# published by the Free Software Foundation, either version 3 of the 
+# it under the terms of the GNU Lesser General Public License LGPL as
+# published by the Free Software Foundation, either version 3 of the
 # License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Lesser General Public License LGPL for more details.
-# 
-# You should have received a copy of the GNU Lesser General Public 
-# License LGPL along with this program. 
+#
+# You should have received a copy of the GNU Lesser General Public
+# License LGPL along with this program.
 # If not, see <http://www.gnu.org/licenses/>.
 #
 #################################################################
 
 import gtk
 import gtk.gdk
-import roslib; roslib.load_manifest('cob_script_server')
-import rospy
 import xdot
-from std_msgs.msg import String
-from cob_script_server.msg import *
 
 import pygraphviz as pgv
+
+import rospy
+from std_msgs.msg import String
+from cob_script_server.msg import *
 
 gtk.gdk.threads_init()
 
@@ -87,18 +87,18 @@ def graph_cb(msg):
 	dotcode = msg.data
 	print dotcode
 	G=pgv.AGraph(dotcode)
-	
+
 	# update vizualisation
 	gtk.gdk.threads_enter()
 	widget.set_dotcode(dotcode)
 	widget.zoom_to_fit()
 	gtk.gdk.threads_leave()
-	
-	
+
+
 ## State callback.
 def state_cb(msg):
 	global widget
-	
+
 	# modify active node
 	active_node = msg.full_graph_name
 	rospy.loginfo("Received state <<%s>> from node <<%s>>",str(msg.state),active_node)
@@ -127,7 +127,7 @@ def state_cb(msg):
 	widget.set_dotcode(dotcode)
 	widget.zoom_to_fit()
 	gtk.gdk.threads_leave()
-		
+
 
 # create gtk window
 window = gtk.Window()

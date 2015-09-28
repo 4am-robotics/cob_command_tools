@@ -1,10 +1,7 @@
 #!/usr/bin/python
-
-import roslib
-roslib.load_manifest('cob_monitoring')
-import rospy
 import sys
 
+import rospy
 from sensor_msgs.msg import JointState
 from diagnostic_msgs.msg import DiagnosticStatus
 
@@ -56,11 +53,11 @@ class emergency_stop_monitor():
 			self.first_time = False
 			self.em_status = msg.emergency_state
 			return
-		
+
 		if self.em_status != msg.emergency_state:
 			self.em_status = msg.emergency_state
 			rospy.loginfo("Emergency change to "+ str(self.em_status))
-			
+
 			if msg.emergency_state == 0: # ready
 				self.set_light(self.color_ok)
 				if(self.sound_enabled):
@@ -94,11 +91,11 @@ class emergency_stop_monitor():
 		if self.em_status != 0:
 			#emergency_stop_monitoring has higher priority
 			return
-		
+
 		if self.diag_status != msg.level:
 			self.diag_status = msg.level
 			rospy.loginfo("Diagnostics change to "+ str(self.diag_status))
-			
+
 			if msg.level == 0:	# ok
 				self.set_light(self.color_ok)
 				self.motion_status = -1
@@ -114,18 +111,18 @@ class emergency_stop_monitor():
 		if self.diag_status != 0:
 			#diagnostics_monitoring has higher priority
 			return
-		
+
 		threshold = 0.1
 		moving = 0
 		for v in msg.velocity:
 			if abs(v) > threshold:
 				moving = 1
 				break
-		
+
 		if self.motion_status != moving:
 			self.motion_status = moving
 			rospy.loginfo("Motion change to "+ str(self.motion_status))
-			
+
 			if moving == 0:	# not moving
 				self.set_light(self.color_ok)
 			else:						# moving
@@ -136,7 +133,7 @@ class emergency_stop_monitor():
 	def set_light(self, color, flashing=False):
 		for component in self.light_components:
 			color_rgba = sss.compose_color(component, color)
-			
+
 			action_server_name = component + "/set_light"
 			client = actionlib.SimpleActionClient(action_server_name, SetLightModeAction)
 			# trying to connect to server
@@ -146,7 +143,7 @@ class emergency_stop_monitor():
 				rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
 			else:
 				rospy.logdebug("%s action server ready",action_server_name)
-				
+
 				# sending goal
 				mode = LightMode()
 				mode.color = color_rgba
@@ -155,12 +152,12 @@ class emergency_stop_monitor():
 					mode.frequency = 2.0	#Hz
 				else:
 					mode.mode = 1		#Static
-				
+
 				goal = SetLightModeGoal()
 				goal.mode = mode
 				client.send_goal(goal)
 				client.wait_for_result()
-				
+
 				self.color = color
 
 

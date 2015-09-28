@@ -38,15 +38,10 @@
 
 from __future__ import with_statement
 
-PKG = 'cob_monitoring'
-import roslib
-roslib.load_manifest(PKG)
-
-import rospy
-
 import threading
 import sys
 
+import rospy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 from cob_msgs.msg import AccessPoint
 
@@ -91,7 +86,7 @@ def mark_diag_stale(diag_stat = None, error = False):
 class WifiMonitor(object):
     def __init__(self):
         self._mutex = threading.Lock()
-        
+
         self._last_msg = None
         self._last_update_time = None
         self._start_time = rospy.get_time()
@@ -125,7 +120,7 @@ class WifiMonitor(object):
         msg = DiagnosticArray()
         msg.header.stamp = rospy.get_rostime()
         msg.status.append(ddwrt_stat)
-        
+
         self._diag_pub.publish(msg)
 
 
@@ -135,7 +130,7 @@ if __name__ == '__main__':
     except rospy.exceptions.ROSInitException:
         print 'Wifi monitor is unable to initialize node. Master may not be running.'
         sys.exit(2)
-        
+
     wifi_monitor = WifiMonitor()
     rate = rospy.Rate(1.0)
 
@@ -150,6 +145,4 @@ if __name__ == '__main__':
         traceback.print_exc()
 
     sys.exit(0)
-    
 
-            
