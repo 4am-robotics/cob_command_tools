@@ -348,7 +348,6 @@ void CobTeleop::updateBase(){
 void CobTeleop::say(std::string text, bool blocking)
 {
   cob_sound::SayGoal saygoal;
-  std::replace(text.begin(), text.end(), '_', ' ');
   saygoal.text = text;
   sayclient_->sendGoal(saygoal);
   if (blocking)
@@ -388,7 +387,7 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
     run_factor_ = 1.0;
   }
 
-  if(!sss_client_ -> waitForServer(ros::Duration(3.0))){
+  if(!sss_client_->waitForServer(ros::Duration(3.0))){
     ROS_INFO("Waiting for script server");
     return;
   }
@@ -401,25 +400,32 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
     for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components_.begin();p!=components_.end();++p)
     {
       std::string comp_name = p->first;
-      say(comp_name, true);
 
       ROS_INFO("Init %s",comp_name.c_str());
+      std::string saytext = comp_name;
+      std::replace(saytext.begin(), saytext.end(), '_', ' ');
+      say(saytext, true);
       sss_.component_name = comp_name.c_str();
       sss_.function_name="init";
       sss_client_->sendGoal(sss_);
-      sss_client_ -> waitForResult();
+      sss_client_->waitForResult();
       if(sss_client_->getResult()->error_code != 0)
       {
-        say("Init " + comp_name + " failed", false);
+        std::string saytext = "Init " + comp_name + " failed";
+        std::replace(saytext.begin(), saytext.end(), '_', ' ');
+        say(saytext, true);
       }
 
       ROS_INFO("Recover %s",comp_name.c_str());
       sss_.function_name="recover";
       sss_client_->sendGoal(sss_);
-      sss_client_ -> waitForResult();
+      sss_client_->waitForResult();
       if(sss_client_->getResult()->error_code != 0)
       {
-        say("Recover " + comp_name + " failed", false);
+        std::string saytext = "Recover " + comp_name + " failed";
+        std::replace(saytext.begin(), saytext.end(), '_', ' ');
+        say(saytext, true);
+
       }
     }
   }
@@ -462,7 +468,9 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
         sss_.function_name = "move";
         sss_.parameter_name = component_config_[comp_name].sss_default_target.c_str();
         ROS_INFO("Move %s to %s",comp_name.c_str(), component_config_[comp_name].sss_default_target.c_str());
-        say("Move " + comp_name + " to " + sss_.parameter_name, false);
+        std::string saytext = "Move " + comp_name + " to " + sss_.parameter_name;
+        std::replace(saytext.begin(), saytext.end(), '_', ' ');
+        say(saytext, true);
         sss_client_->sendGoal(sss_);
       }
     }
