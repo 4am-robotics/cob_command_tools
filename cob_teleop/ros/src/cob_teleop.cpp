@@ -91,21 +91,21 @@ public:
 
   std::map<std::string,component_config> component_config_;
 
-	//axis
+  //axis
   int axis_vx_,axis_vy_,axis_vz_,axis_roll_,axis_pitch_,axis_yaw_;
 
-	//buttons
-	//mode 1: Base
+  //buttons
+  //mode 1: Base
   int run_button_;
-	//mode 2: Trajectory controller (to default target position using sss.move)
-	//mode 3: Velocity group controller
+  //mode 2: Trajectory controller (to default target position using sss.move)
+  //mode 3: Velocity group controller
   int right_indicator_button_;
   int left_indicator_button_;
   int up_down_button_;
   int right_left_button_;
-	//mode 4: Twist controller
+  //mode 4: Twist controller
 
-	//common
+  //common
   int deadman_button_;
   int safety_button_;
   int init_button_;
@@ -364,9 +364,9 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
   }else
   {
     for(unsigned int i=0; i<component_config_["base"].twist_max_acc.size(); i++){
-		    vel_req_[i]=0;
-		    vel_old_[i]=0;
-	    }
+        vel_req_[i]=0;
+        vel_old_[i]=0;
+      }
     ROS_DEBUG("joystick is not active");
     joy_active_ = false;
     return;
@@ -596,15 +596,15 @@ void CobTeleop::init()
   if(!n_.hasParam("components")){
     ROS_ERROR("parameter components does not exist on ROS Parameter Server, aborting...");
     exit(0);
-	}
-	// common
+  }
+  // common
   n_.param("run_factor",run_factor_param_,1.5);
 
-	// joy config
+  // joy config
   n_.param("joy_num_modes",joy_num_modes_,2);
   n_.param("mode_switch_button",mode_switch_button_,0);
 
-	// assign axis
+  // assign axis
   n_.param("axis_vx",axis_vx_,17);
   n_.param("axis_vy",axis_vy_,16);
   n_.param("axis_vz",axis_vz_,17);
@@ -612,7 +612,7 @@ void CobTeleop::init()
   n_.param("axis_pitch",axis_pitch_,19);
   n_.param("axis_yaw",axis_yaw_,19);
 
-	// assign buttons
+  // assign buttons
   n_.param("deadman_button",deadman_button_,11);
   n_.param("safety_button",safety_button_,10);
   n_.param("init_button",init_button_,3);
@@ -624,7 +624,7 @@ void CobTeleop::init()
   n_.param("up_down_button",up_down_button_,4);
   n_.param("right_left_button",right_left_button_,5);
 
-	// output for debugging
+  // output for debugging
   ROS_DEBUG("init::axis_vx: %d",axis_vx_);
   ROS_DEBUG("init::axis_vy: %d",axis_vy_);
   ROS_DEBUG("init::axis_vz: %d",axis_vz_);
