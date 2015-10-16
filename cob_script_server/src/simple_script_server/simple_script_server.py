@@ -534,8 +534,12 @@ class simple_script_server:
 			point_msg.positions = point
 
 			# set zero velocities for last trajectory point only
-			if point_nr == len(traj):
-				point_msg.velocities = [0]*len(joint_names)
+			#if point_nr == len(traj):
+			#	point_msg.velocities = [0]*len(joint_names)
+
+			# set zero velocity and accelerations for all trajectory points
+			point_msg.velocities = [0]*len(joint_names)
+			point_msg.accelerations = [0]*len(joint_names)
 
 			# use hardcoded point_time if no start_pos available
 			if start_pos != []:
