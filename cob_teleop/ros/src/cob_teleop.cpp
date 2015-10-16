@@ -428,6 +428,8 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
 
       }
     }
+    
+    say("go", true);
   }
 
 //-------MODE 1
