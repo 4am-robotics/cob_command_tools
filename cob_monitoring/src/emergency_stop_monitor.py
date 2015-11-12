@@ -132,7 +132,7 @@ class emergency_stop_monitor():
 	## set light
 	def set_light(self, color, flashing=False):
 		for component in self.light_components:
-			color_rgba = sss.compose_color(component, color)
+			comp, color_rgba = sss.compose_color(component, color)
 
 			action_server_name = component + "/set_light"
 			client = actionlib.SimpleActionClient(action_server_name, SetLightModeAction)
