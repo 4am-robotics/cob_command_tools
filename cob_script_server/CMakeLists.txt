@@ -6,12 +6,6 @@ find_package(catkin REQUIRED COMPONENTS actionlib_msgs message_generation rostes
 catkin_python_setup()
 
 ### Message Generation ###
-add_action_files(
-  FILES
-  Script.action
-  State.action
-)
-
 add_message_files(
   FILES
   ScriptState.msg
@@ -20,6 +14,12 @@ add_message_files(
 add_service_files(
   FILES
   ComposeTrajectory.srv
+)
+
+add_action_files(
+  FILES
+  Script.action
+  State.action
 )
 
 generate_messages(
