@@ -1,17 +1,11 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_script_server)
 
-find_package(catkin REQUIRED COMPONENTS actionlib_msgs message_generation rostest trajectory_msgs)
+find_package(catkin REQUIRED COMPONENTS actionlib actionlib_msgs message_generation rostest trajectory_msgs)
 
 catkin_python_setup()
 
 ### Message Generation ###
-add_action_files(
-  FILES
-  Script.action
-  State.action
-)
-
 add_message_files(
   FILES
   ScriptState.msg
@@ -20,6 +14,12 @@ add_message_files(
 add_service_files(
   FILES
   ComposeTrajectory.srv
+)
+
+add_action_files(
+  FILES
+  Script.action
+  State.action
 )
 
 generate_messages(
