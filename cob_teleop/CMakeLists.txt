@@ -6,6 +6,8 @@ find_package(catkin REQUIRED COMPONENTS actionlib cob_light cob_script_server co
 catkin_package()
 
 ### Build ###
+include_directories(${catkin_INCLUDE_DIRS})
+
 add_executable(cob_teleop_keyboard ros/src/cob_teleop_keyboard.cpp)
 add_dependencies(cob_teleop_keyboard ${catkin_EXPORTED_TARGETS})
 target_link_libraries(cob_teleop_keyboard ${catkin_LIBRARIES})
