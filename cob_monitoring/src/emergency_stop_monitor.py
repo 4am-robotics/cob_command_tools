@@ -31,17 +31,17 @@ class emergency_stop_monitor():
 			self.color_off = rospy.get_param("~color_off","black")
 
 		#emergency_stop_monitoring always enabled
-		rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.emergency_callback)
+		rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.emergency_callback, queue_size=1)
 		self.em_status = -1
 		self.first_time = True
 
 		if(self.diagnostics_based):
-			rospy.Subscriber("/diagnostics_toplevel_state", DiagnosticStatus, self.diagnostics_callback)
+			rospy.Subscriber("/diagnostics_toplevel_state", DiagnosticStatus, self.diagnostics_callback, queue_size=1)
 			self.diag_status = -1
 			self.last_diag = rospy.get_rostime()
 
 		if(self.motion_based):
-			rospy.Subscriber("/joint_states", JointState, self.jointstate_callback)
+			rospy.Subscriber("/joint_states", JointState, self.jointstate_callback, queue_size=1)
 			self.motion_status = -1
 			self.last_vel = rospy.get_rostime()
 
@@ -132,7 +132,7 @@ class emergency_stop_monitor():
 	## set light
 	def set_light(self, color, flashing=False):
 		for component in self.light_components:
-			color_rgba = sss.compose_color(component, color)
+			error_code, color_rgba = sss.compose_color(component, color)
 
 			action_server_name = component + "/set_light"
 			client = actionlib.SimpleActionClient(action_server_name, SetLightModeAction)

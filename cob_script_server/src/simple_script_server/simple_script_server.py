@@ -535,8 +535,12 @@ class simple_script_server:
 			point_msg.positions = point
 
 			# set zero velocities for last trajectory point only
-			if point_nr == len(traj):
-				point_msg.velocities = [0]*len(joint_names)
+			#if point_nr == len(traj):
+			#	point_msg.velocities = [0]*len(joint_names)
+
+			# set zero velocity and accelerations for all trajectory points
+			point_msg.velocities = [0]*len(joint_names)
+			point_msg.accelerations = [0]*len(joint_names)
 
 			# use hardcoded point_time if no start_pos available
 			if start_pos != []:
@@ -693,7 +697,7 @@ class simple_script_server:
 			full_parameter_name = self.ns_global_prefix + "/" + component_name + "/" + parameter_name
 			if not rospy.has_param(full_parameter_name):
 				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",full_parameter_name)
-				return 2
+				return 2, None
 			param = rospy.get_param(full_parameter_name)
 		else:
 			param = parameter_name
@@ -702,14 +706,12 @@ class simple_script_server:
 		if not type(param) is list: # check outer list
 			rospy.logerr("no valid parameter for light: not a list, aborting...")
 			print "parameter is:",param
-			ah.error_code = 3
-			return ah
+			return 3, None
 		else:
 			if not len(param) == 4: # check dimension
 				rospy.logerr("no valid parameter for light: dimension should be 4 (r,g,b,a) and is %d, aborting...",len(param))
 				print "parameter is:",param
-				ah.error_code = 3
-				return ah
+				return 3, None
 			else:
 				for i in param:
 					#print i,"type1 = ", type(i)
@@ -717,8 +719,7 @@ class simple_script_server:
 						#print type(i)
 						rospy.logerr("no valid parameter for light: not a list of float or int, aborting...")
 						print "parameter is:",param
-						ah.error_code = 3
-						return ah
+						return 3, None
 					else:
 						rospy.logdebug("accepted parameter %f for light",i)
 
@@ -728,7 +729,7 @@ class simple_script_server:
 		color.g = param[1]
 		color.b = param[2]
 		color.a = param[3] # Transparency
-		return color
+		return 0, color
 
 	def set_light(self,component_name,parameter_name,blocking=False):
 		ah = action_handle("set_light", component_name, parameter_name, blocking, self.parse)
@@ -741,7 +742,10 @@ class simple_script_server:
 
 		mode = LightMode()
 		mode.mode = 1
-		mode.color = self.compose_color(component_name, parameter_name)
+		(error,mode.color) = self.compose_color(component_name, parameter_name)
+		if error != 0:
+			ah.set_failed(error)
+			return ah
 
 		# call action server
 		action_server_name = component_name + "/set_light"
@@ -764,6 +768,7 @@ class simple_script_server:
 		ah.set_client(client)
 
 		ah.wait_inside()
+
 		return ah
 
 #------------------- Mimic section -------------------#

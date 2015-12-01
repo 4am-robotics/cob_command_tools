@@ -142,6 +142,7 @@ public:
   std::vector<double> vel_old_;
   std::vector<double> vel_req_;
   std::vector<double> vel_base_;
+  bool apply_ramp_;
 };
 
 void CobTeleop::getConfigurationFromParameters()
@@ -319,28 +320,36 @@ void CobTeleop::updateBase(){
         }
       }
 
-      for( int i =0; i<3; i++)
+      if(apply_ramp_)
       {
-        // filter v with ramp
-        if ((vel_req_[i]-vel_old_[i])/dt > component_config_["base"].twist_max_acc[i])
+        for( int i =0; i<3; i++)
         {
-          vel_base_[i] = vel_old_[i] + component_config_["base"].twist_max_acc[i]*dt;
+          // filter v with ramp
+          if ((vel_req_[i]-vel_old_[i])/dt > component_config_["base"].twist_max_acc[i])
+          {
+            vel_base_[i] = vel_old_[i] + component_config_["base"].twist_max_acc[i]*dt;
+          }
+          else if((vel_req_[i]-vel_old_[i])/dt < -component_config_["base"].twist_max_acc[i])
+          {
+            vel_base_[i] = vel_old_[i] - component_config_["base"].twist_max_acc[i]*dt;
+          }
+          else
+          {
+            vel_base_[i] = vel_req_[i];
+          }
+          vel_old_[i] = vel_base_[i];
         }
-        else if((vel_req_[i]-vel_old_[i])/dt < -component_config_["base"].twist_max_acc[i])
-        {
-          vel_base_[i] = vel_old_[i] - component_config_["base"].twist_max_acc[i]*dt;
-        }
-        else
-        {
-          vel_base_[i] = vel_req_[i];
-        }
-        vel_old_[i] = vel_base_[i];
-
+      }
+      else
+      {
+        vel_base_[0] = vel_req_[0];
+        vel_base_[1] = vel_req_[1];
+        vel_base_[2] = vel_req_[2];
+      }
       base_cmd.linear.x = vel_base_[0];
       base_cmd.linear.y = vel_base_[1];
       base_cmd.angular.z = vel_base_[2];
       component_config_["base"].twist_controller_publisher_.publish(base_cmd);
-      }
     }
   }
 }
@@ -428,6 +437,8 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
 
       }
     }
+    
+    say("go", true);
   }
 
 //-------MODE 1
@@ -599,6 +610,7 @@ void CobTeleop::init()
   }
   // common
   n_.param("run_factor",run_factor_param_,1.5);
+  n_.param("apply_ramp",apply_ramp_,true);
 
   // joy config
   n_.param("joy_num_modes",joy_num_modes_,2);
