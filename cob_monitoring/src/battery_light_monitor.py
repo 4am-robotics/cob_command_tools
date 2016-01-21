@@ -58,7 +58,6 @@
 #################################################################
 
 import rospy
-import actionlib
 
 from cob_msgs.msg import *
 from cob_light.msg import *
@@ -74,9 +73,9 @@ class battery_light_monitor():
     self.is_chargeing = False
     self.num_leds = rospy.get_param('num_leds', 58)
 
-    self.ac = actionlib.SimpleActionClient('/light_torso/set_light', SetLightModeAction)
-    rospy.loginfo("waiting for service server")
+    rospy.logdebug("waiting for service server")
     rospy.wait_for_service('/light_torso/set_light')
+    rospy.logdebug("found service server")
     try:
       self.sproxy = rospy.ServiceProxy('/light_torso/set_light', SetLightMode)
     except rospy.ServiceException, e:
@@ -116,7 +115,7 @@ class battery_light_monitor():
       self.sproxy(self.mode)
     elif self.is_chargeing == True:
       if abs(self.relative_remaining_capacity - self.power_state.relative_remaining_capacity) > 2:
-        rospy.loginfo('adjusting leds')
+        rospy.logdebug('adjusting leds')
         leds = int(self.num_leds * self.power_state.relative_remaining_capacity / 100.)
         self.mode.mode = self.mode.CIRCLE_COLORS
         self.mode.frequency = 60.0
