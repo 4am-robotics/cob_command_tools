@@ -82,15 +82,10 @@ class battery_light_monitor():
     except rospy.ServiceException, e:
       print "Service proxy failed: %s"%e
 
-    #rospy.loginfo("waiting for action server")
-    #if self.ac.wait_for_server(rospy.Duration(5)) == False:
-    #  rospy.loginfo("error connecting to action server")
-    #  return
-    #rospy.loginfo("connected to action server")
     self.goal = SetLightModeGoal()
     self.mode = LightMode()
     self.mode.mode = self.mode.CIRCLE_COLORS
-    self.mode.frequency = 1.0
+    self.mode.frequency = 60.0
     self.mode.priority = 0
     self.goal.mode = self.mode
 
@@ -105,12 +100,10 @@ class battery_light_monitor():
     rospy.Timer(rospy.Duration(1), self.timer_callback)
 
   def power_callback(self,msg):
-    print 'power_callback'
     self.power_state = msg
 
   def timer_callback(self,event):
     if self.is_chargeing == False and self.power_state.charging == True:
-      print 'is_chargeing'
       self.is_chargeing = True
 
     if self.is_chargeing == True and self.power_state.charging == False:
@@ -120,19 +113,17 @@ class battery_light_monitor():
       self.mode.color = self.color
       self.mode.colors = []
       self.mode.frequency = 0.25
-      #self.ac.send_goal(self.goal)
       self.sproxy(self.mode)
     elif self.is_chargeing == True:
       if abs(self.relative_remaining_capacity - self.power_state.relative_remaining_capacity) > 2:
-        print 'adjusting'
+        rospy.loginfo('adjusting leds')
         leds = int(self.num_leds * self.power_state.relative_remaining_capacity / 100.)
         self.mode.mode = self.mode.CIRCLE_COLORS
-        self.mode.frequency = 1.0
+        self.mode.frequency = 60.0
         self.mode.colors = []
         for i in range(leds):
           self.mode.colors.append(self.color)
         self.relative_remaining_capacity = self.power_state.relative_remaining_capacity
-        #self.ac.send_goal(self.goal)
         self.sproxy(self.mode)
 
 
