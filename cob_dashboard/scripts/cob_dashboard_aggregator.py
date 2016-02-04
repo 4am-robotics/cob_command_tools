@@ -37,7 +37,8 @@
 
 import time
 import rospy
-from cob_msgs.msg import PowerBoardState, PowerState, DashboardState, AccessPoint
+from cob_msgs.msg import EmergencyStopState, PowerState, DashboardState
+from diagnostic_msgs.msg import DiagnosticStatus
 
 class DashboardAggregator:
   def __init__(self):
@@ -47,46 +48,31 @@ class DashboardAggregator:
     self.pub = rospy.Publisher("dashboard_agg", DashboardState, queue_size=1)
 
     # Create subscribers
-    # Circuit Breaker
-    rospy.Subscriber("power_board/state", PowerBoardState, self.powerBoardCB)
-    self.last_power_board_state = 0
-    # Battery
-    rospy.Subscriber("power_state", PowerState, self.powerCB)
-    self.last_power_state = 0
-    # Wireless
-    rospy.Subscriber("ddwrt/accesspoint", AccessPoint, self.accessPointCB)
-    self.last_access_point = 0
+    # Diagnostics
+    rospy.Subscriber("diagnostics_toplevel_state", DiagnosticStatus, self.DiagnosticStatusCB)
+    # Power state
+    rospy.Subscriber("power_state", PowerState, self.PowerStateCB)
+    # Emergency stop state
+    rospy.Subscriber("emergency_stop_state", EmergencyStopState, self.EmergencyStopStateCB)
 
-  def powerBoardCB(self, msg):
-    self.last_power_board_state = time.time()
-    self.msg.power_board_state = msg
+  def DiagnosticStatusCB(self, msg):
+    self.msg.diagnostics_toplevel_state = msg
 
-  def powerCB(self, msg):
-    self.last_power_state = time.time()
+  def PowerStateCB(self, msg):
     self.msg.power_state = msg
 
-  def accessPointCB(self, msg):
-    self.last_access_point = time.time()
-    self.msg.access_point = msg
+  def EmergencyStopStateCB(self, msg):
+    self.msg.emergency_stop_state = msg
 
   def publish(self):
     now = time.time()
-    self.msg.motors_halted_valid = (now - 0) < 3
-    self.msg.power_board_state_valid = (now - self.last_power_board_state) < 3
-    self.msg.power_state_valid = (now - self.last_power_state) < 25
-    self.msg.access_point_valid = (now - self.last_access_point) < 5
     self.pub.publish(self.msg)
 
-def main():
+if __name__ == "__main__":
   rospy.init_node("cob_dashboard_aggregator")
+  rospy.sleep(1)
   da = DashboardAggregator()
   r = rospy.Rate(1)
   while not rospy.is_shutdown():
     da.publish()
-    try:
-      r.sleep()
-    except rospy.exceptions.ROSInterruptException:
-      rospy.logdebug('Sleep interrupted')
-
-if __name__ == "__main__":
-  main()
+    r.sleep()

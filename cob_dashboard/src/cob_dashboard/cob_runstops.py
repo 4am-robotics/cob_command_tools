@@ -27,10 +27,10 @@ class COBRunstops(IconToolButton):
     def set_ok(self):
         self.update_state(0)
 
-    def set_button_engaged(self):
+    def set_button_stop(self):
         self.update_state(1)
 
-    def set_scanner_engaged(self):
+    def set_scanner_stop(self):
         self.update_state(2)
 
     def set_stale(self):

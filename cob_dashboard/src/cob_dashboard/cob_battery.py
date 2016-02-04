@@ -47,11 +47,8 @@ class COBBattery(BatteryDashWidget):
         :type context: qt_gui.plugin.Plugin
         """
         super(COBBattery, self).__init__('COB Battery')
-        self._power_consumption = 0.0
-        self._pct = 0
-        self._time_remaining = rospy.rostime.Duration(0)
-        self._ac_present = 0
-        self._plugged_in = False
+        self._time_remaining = 0.0
+        self._charging = False
 
         self.setFixedSize(self._icons[1].actualSize(QSize(50, 30)))
 
@@ -64,25 +61,20 @@ class COBBattery(BatteryDashWidget):
         :param msg: message containing the power state of the COB
         :type msg: cob_msgs.PowerState
         """
-        last_pct = self._pct
-        last_plugged_in = self._plugged_in
+        last_charging = self._charging
         last_time_remaining = self._time_remaining
 
-        self._power_consumption = msg.power_consumption
         self._time_remaining = msg.time_remaining
-        self._pct = msg.relative_capacity / 100.0
-        self._plugged_in = msg.AC_present
-        if (last_pct != self._pct or last_plugged_in != self._plugged_in or last_time_remaining != self._time_remaining):
+        self._charging = msg.charging
+        if (last_charging != self._charging or last_time_remaining != self._time_remaining):
             drain_str = "remaining"
-            if (self._plugged_in):
+            if (self._charging):
                 drain_str = "to full charge"
                 self.charging = True
-            self.setToolTip("Battery: %.2f%% \nTime %s: %d Minutes" % (self._pct * 100.0, drain_str, self._time_remaining.to_sec() / 60.0))
-            self.update_perc(msg.relative_capacity)
+            self.setToolTip("Battery: %.2f%% \nTime %s: %d Minutes" % (msg.relative_remaining_capacity, drain_str, self._time_remaining * 60.0))
+            self.update_perc(msg.relative_remaining_capacity)
 
     def set_stale(self):
-        self._plugged_in = 0
-        self._pct = 0
+        self._charging = 0
         self._time_remaining = rospy.rostime.Duration(0)
-        self._power_consumption = 0
         self.setToolTip("Battery: Stale")
