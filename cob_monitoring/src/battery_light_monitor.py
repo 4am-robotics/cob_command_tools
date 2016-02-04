@@ -58,6 +58,7 @@
 #################################################################
 
 import rospy
+import colorsys
 
 from cob_msgs.msg import *
 from cob_light.msg import *
@@ -70,16 +71,19 @@ class battery_light_monitor():
     self.power_state = PowerState()
     self.relative_remaining_capacity = 0.0
     self.temperature = 0.0
-    self.is_chargeing = False
-    self.num_leds = rospy.get_param('num_leds', 58)
+    self.is_charging = False
+    self.num_leds = rospy.get_param('num_leds', 1)
+    self.service_name = 'set_light'
+    self.topic_name = 'power_state'
 
     rospy.logdebug("waiting for service server")
-    rospy.wait_for_service('/light_torso/set_light')
+    rospy.wait_for_service(self.service_name)
     rospy.logdebug("found service server")
     try:
-      self.sproxy = rospy.ServiceProxy('/light_torso/set_light', SetLightMode)
+      self.sproxy = rospy.ServiceProxy(self.service_name, SetLightMode)
     except rospy.ServiceException, e:
       print "Service proxy failed: %s"%e
+      return
 
     self.goal = SetLightModeGoal()
     self.mode = LightMode()
@@ -94,7 +98,9 @@ class battery_light_monitor():
     self.color.b = 0.7
     self.color.a = 0.4
 
-    rospy.Subscriber("/power_state", PowerState, self.power_callback)
+    self.last_time_warned = rospy.get_time()
+
+    rospy.Subscriber(self.topic_name, PowerState, self.power_callback)
 
     rospy.Timer(rospy.Duration(1), self.timer_callback)
 
@@ -102,26 +108,59 @@ class battery_light_monitor():
     self.power_state = msg
 
   def timer_callback(self,event):
-    if self.is_chargeing == False and self.power_state.charging == True:
-      self.is_chargeing = True
+    #warn if battery is empty
+    if self.is_charging == False:
+      #below 10%
+      if self.power_state.relative_remaining_capacity <= 10 and (rospy.get_time() - self.last_time_warned) > 5:
+        self.last_time_warned = rospy.get_time()
+        self.mode.mode = self.mode.FLASH
+        self.mode.color.r=1
+        self.mode.color.g=0
+        self.mode.color.b=0
+        self.mode.color.a=1
+        self.mode.colors = []
+        self.mode.frequency = 2
+        self.mode.pulses = 2
+        #below 5%
+        if self.power_state.relative_remaining_capacity <= 5:
+          self.mode.frequency = 5
+          self.mode.pulses = 4
+        self.sproxy(self.mode)
 
-    if self.is_chargeing == True and self.power_state.charging == False:
-      self.is_chargeing = False
+    if self.is_charging == False and self.power_state.charging == True:
+      self.is_charging = True
+
+    if self.is_charging == True and self.power_state.charging == False:
+      self.is_charging = False
       self.relative_remaining_capacity = 0.0
       self.mode.mode = self.mode.BREATH
       self.mode.color = self.color
       self.mode.colors = []
       self.mode.frequency = 0.25
       self.sproxy(self.mode)
-    elif self.is_chargeing == True:
+    elif self.is_charging == True:
+      #only change color mode if capacity change is bigger than 2%
       if abs(self.relative_remaining_capacity - self.power_state.relative_remaining_capacity) > 2:
         rospy.logdebug('adjusting leds')
-        leds = int(self.num_leds * self.power_state.relative_remaining_capacity / 100.)
-        self.mode.mode = self.mode.CIRCLE_COLORS
-        self.mode.frequency = 60.0
-        self.mode.colors = []
-        for i in range(leds):
-          self.mode.colors.append(self.color)
+        if self.num_leds > 1:
+          leds = int(self.num_leds * self.power_state.relative_remaining_capacity / 100.)
+          self.mode.mode = self.mode.CIRCLE_COLORS
+          self.mode.frequency = 60.0
+          self.mode.colors = []
+          for i in range(leds):
+            self.mode.colors.append(self.color)
+        else:
+          self.mode.mode = self.mode.BREATH
+          self.mode.frequency = 0.4
+          #0.34 => green in hsv space
+          hue = 0.34 * (self.power_state.relative_remaining_capacity/100.0)
+          rgb = colorsys.hsv_to_rgb(hue, 1, 1)
+          self.mode.colors = []
+          self.mode.color.r = rgb[0]
+          self.mode.color.g = rgb[1]
+          self.mode.color.b = rgb[2]
+          self.mode.color.a = 1.0
+
         self.relative_remaining_capacity = self.power_state.relative_remaining_capacity
         self.sproxy(self.mode)
 
