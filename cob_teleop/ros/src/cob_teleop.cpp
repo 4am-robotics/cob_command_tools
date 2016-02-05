@@ -303,8 +303,8 @@ sensor_msgs::JoyFeedbackArray CobTeleop::switch_mode()
     saytext = "Cartesian mode";
   }
 
-  say(saytext, false);
   setLight(mode_);
+  say(saytext, false);
 
   LEDS_=led_mode_[mode_];
 
