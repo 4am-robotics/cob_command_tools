@@ -219,7 +219,7 @@ class simple_script_server:
 		if blocking:
 			# trying to connect to server
 			rospy.logdebug("waiting for %s action server to start",action_server_name)
-			if not client.wait_for_server(rospy.Duration(5)):
+			if not client.wait_for_server(rospy.Duration(1)):
 				# error: server did not respond
 				rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
 				ah.set_failed(4)
