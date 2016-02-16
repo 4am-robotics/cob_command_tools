@@ -146,7 +146,8 @@ class emergency_stop_monitor():
 
 				# sending goal
 				mode = LightMode()
-				mode.color = color_rgba
+				mode.colors = []
+				mode.colors.append(color_rgba)
 				if flashing:
 					mode.mode = 2		#Flashing
 					mode.frequency = 2.0	#Hz
