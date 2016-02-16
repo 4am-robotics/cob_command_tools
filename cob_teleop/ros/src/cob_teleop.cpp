@@ -131,7 +131,7 @@ public:
   typedef actionlib::SimpleActionClient<cob_light::SetLightModeAction> SetLightClient_;
   SetLightClient_ * setlightclient_;
   cob_light::SetLightModeGoal lightgoal;
-  
+
 
   void getConfigurationFromParameters();
   void init();
@@ -241,7 +241,7 @@ void CobTeleop::getConfigurationFromParameters()
   std::string light_action;
   n_.getParam( "light_action_name", light_action);
   setlightclient_ = new SetLightClient_(light_action, true);
-  
+
   sayclient_ = new SayClient_("/sound/say", true);
   sss_client_ = new Client_("/script_server", true);
 
@@ -285,15 +285,16 @@ sensor_msgs::JoyFeedbackArray CobTeleop::switch_mode(){
 
   light.mode = 2;
   light.frequency = 5;
+  light.priority = 2;
   std_msgs::ColorRGBA color;
   color.r = 0;
   color.g = 1;
   color.b = 0;
   color.a = 1;
   light.pulses = mode_;
-  light.color = color;
+  light.colors.push_back(color);
   lightgoal.mode = light;
-//  setlightclient_->sendGoal(lightgoal);
+  setlightclient_->sendGoal(lightgoal);
   say(saytext, false);
 
   LEDS_=led_mode_[mode_];
@@ -386,7 +387,7 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
     ROS_INFO("Switch mode button pressed");
     switch_mode();
   }
-  
+
   if(run_button_>=0 && run_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[run_button_]==1)
   {
     run_factor_ = run_factor_param_;
@@ -437,7 +438,7 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg){
 
       }
     }
-    
+
     say("go", true);
   }
 
@@ -679,5 +680,3 @@ int main(int argc, char** argv)
   exit(0);
   return(0);
 }
-
-
