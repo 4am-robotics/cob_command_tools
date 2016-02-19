@@ -162,7 +162,7 @@ class emergency_stop_monitor():
 				goal.mode = mode
 				client.send_goal(goal)
 				client.wait_for_result()
-				result = client.getResult()
+				result = client.get_result()
 				self.track_id_light = result.track_id
 
 				self.color = color
