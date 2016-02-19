@@ -59,6 +59,7 @@
 #include <ros/ros.h>
 
 #include <actionlib/client/simple_action_client.h>
+#include <cob_light/LightModes.h>
 #include <cob_light/SetLightModeAction.h>
 #include <cob_script_server/ScriptAction.h>
 #include <cob_sound/SayAction.h>
@@ -389,16 +390,16 @@ void CobTeleop::setLight(int mode)
   if(enable_light_)
   {
     cob_light::LightMode light;
-    light.timeout = 1;
-    light.mode = 2;
+    light.mode = cob_light::LightModes::FLASH;
     light.frequency = 5;
+    light.priority = 2;
     std_msgs::ColorRGBA color;
     color.r = 0;
     color.g = 1;
     color.b = 0;
     color.a = 1;
     light.pulses = mode;
-    light.color = color;
+    light.colors.push_back(color);
     cob_light::SetLightModeGoal light_goal;
     light_goal.mode = light;
     setlight_client_->sendGoal(light_goal);
@@ -428,7 +429,7 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
     ROS_INFO("Switch mode button pressed");
     switch_mode();
   }
-  
+
   if(run_button_>=0 && run_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[run_button_]==1)
   {
     run_factor_ = run_factor_param_;
@@ -480,7 +481,7 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 
       }
     }
-    
+
     say("go", true);
   }
 
