@@ -14,6 +14,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <exec_depend>actionlib</exec_depend>
   <exec_depend>cob_light</exec_depend>
   <exec_depend>cob_msgs</exec_depend>
   <exec_depend>cob_script_server</exec_depend>
