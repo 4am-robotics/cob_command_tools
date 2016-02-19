@@ -60,6 +60,7 @@
 import rospy
 import colorsys
 import copy
+import actionlib
 
 from cob_msgs.msg import *
 from cob_light.msg import *
@@ -74,7 +75,7 @@ class battery_light_monitor():
         self.relative_remaining_capacity = 0.0
         self.temperature = 0.0
         self.is_charging = False
-        self.num_leds = rospy.get_param('num_leds', 1)
+        self.num_leds = rospy.get_param('~num_leds', 1)
         self.service_name = 'set_light'
         self.topic_name = 'power_state'
         self.track_id_light = {}
@@ -122,9 +123,9 @@ class battery_light_monitor():
     def stop_light(self):
         for component in self.light_components:
             if self.track_id_light[component] is not None:
-                srv_server_name = component + "/stop_light"
+                srv_server_name = component + "/stop_mode"
                 try:
-                    rospy.wait_for_service('srv_server_name', timeout=2)
+                    rospy.wait_for_service(srv_server_name, timeout=2)
                     srv_proxy = rospy.ServiceProxy(srv_server_name, StopLightMode)
                     req = StopLightModeRequest()
                     req.track_id = self.track_id_light[component]
@@ -191,7 +192,7 @@ class battery_light_monitor():
                     mode.colors = []
                     color = ColorRGBA(0.0, 1.0, 0.7, 0.4)
                     for i in range(leds):
-                        mode.colors.append(self.color)
+                        mode.colors.append(color)
                 else:
                     mode.mode = LightModes.BREATH
                     mode.frequency = 0.4
