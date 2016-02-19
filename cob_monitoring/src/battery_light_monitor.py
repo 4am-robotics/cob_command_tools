@@ -59,6 +59,7 @@
 
 import rospy
 import colorsys
+import copy
 
 from cob_msgs.msg import *
 from cob_light.msg import *
@@ -76,28 +77,17 @@ class battery_light_monitor():
         self.num_leds = rospy.get_param('num_leds', 1)
         self.service_name = 'set_light'
         self.topic_name = 'power_state'
+        self.track_id_light = {}
 
-        rospy.logdebug("waiting for service server")
-        rospy.wait_for_service(self.service_name)
-        rospy.logdebug("found service server")
-        try:
-            self.sproxy = rospy.ServiceProxy(self.service_name, SetLightMode)
-        except rospy.ServiceException as e:
-            print "Service proxy failed: %s" % e
+        if not rospy.has_param("~led_components"):
+            rospy.logwarn("parameter led_components does not exist on ROS Parameter Server")
             return
+        self.light_components = rospy.get_param("~led_components")
+        for component in self.light_components:
+            self.track_id_light[component] = None
 
-        self.goal = SetLightModeGoal()
         self.mode = LightMode()
-        self.mode.mode = LightModes.CIRCLE_COLORS
-        self.mode.frequency = 60.0
-        self.mode.priority = 0
-        self.goal.mode = self.mode
-
-        self.color = ColorRGBA()
-        self.color.r = 0.0
-        self.color.g = 1.0
-        self.color.b = 0.7
-        self.color.a = 0.4
+        self.mode.priority = 2
 
         self.last_time_warned = rospy.get_time()
 
@@ -108,51 +98,78 @@ class battery_light_monitor():
     def power_callback(self, msg):
         self.power_state = msg
 
+    def set_light(self, mode, track=False):
+        for component in self.light_components:
+            action_server_name = component + "/set_light"
+            client = actionlib.SimpleActionClient(action_server_name, SetLightModeAction)
+            # trying to connect to server
+            rospy.logdebug("waiting for %s action server to start",action_server_name)
+            if not client.wait_for_server(rospy.Duration(5)):
+                # error: server did not respond
+                rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
+            else:
+                rospy.logdebug("%s action server ready",action_server_name)
+
+                # sending goal
+                goal = SetLightModeGoal()
+                goal.mode = mode
+                client.send_goal(goal)
+                client.wait_for_result()
+                res = client.getResult()
+                if track:
+                    self.track_id_light[component] = res.track_id
+
+    def stop_light(self):
+        for component in self.light_components:
+            if self.track_id_light[component] is not None:
+                srv_server_name = component + "/stop_light"
+                try:
+                    rospy.wait_for_service('srv_server_name', timeout=2)
+                    srv_proxy = rospy.ServiceProxy(srv_server_name, StopLightMode)
+                    req = StopLightModeRequest()
+                    req.track_id = self.track_id_light[component]
+                    srv_proxy(req)
+                    self.track_id_light[component] = None
+                except Exception as e:
+                    rospy.logerr("%s service failed: %s",srv_server_name, e)
+
     def timer_callback(self, event):
         # warn if battery is empty
         if self.is_charging == False:
             # 5%
             if self.power_state.relative_remaining_capacity <= 5 and (rospy.get_time() - self.last_time_warned) > 5:
                 self.last_time_warned = rospy.get_time()
-                self.mode.mode = LightModes.FLASH
-                color = ColorRGBA()
-                color.r = 1
-                color.g = 0
-                color.b = 0
-                color.a = 1
-                self.mode.colors = []
-                self.mode.colors.append(color)
-                self.mode.frequency = 5
-                self.mode.pulses = 4
-                self.sproxy(self.mode)
+                mode = copy.copy(self.mode)
+                mode.mode = LightModes.FLASH
+                color = ColorRGBA(1, 0, 0, 1)
+                mode.colors = []
+                mode.colors.append(color)
+                mode.frequency = 5
+                mode.pulses = 4
+                self.set_light(mode)
+
             # 10%
             elif self.power_state.relative_remaining_capacity <= 10 and (rospy.get_time() - self.last_time_warned) > 15:
                 self.last_time_warned = rospy.get_time()
-                self.mode.mode = LightModes.FLASH
-                color = ColorRGBA()
-                color.r = 1
-                color.g = 0
-                color.b = 0
-                color.a = 1
-                self.mode.colors = []
-                self.mode.colors.append(color)
-                self.mode.frequency = 2
-                self.mode.pulses = 2
-                self.sproxy(self.mode)
+                mode = copy.copy(self.mode)
+                mode.mode = LightModes.FLASH
+                color = ColorRGBA(1, 0, 0, 1)
+                mode.colors = []
+                mode.colors.append(color)
+                mode.frequency = 2
+                mode.pulses = 2
+                self.set_light(mode)
             # 20%
             elif self.power_state.relative_remaining_capacity <= 20 and (rospy.get_time() - self.last_time_warned) > 30:
                 self.last_time_warned = rospy.get_time()
-                self.mode.mode = LightModes.FLASH
-                color = ColorRGBA()
-                color.r = 1
-                color.g = 1
-                color.b = 0
-                color.a = 1
-                self.mode.colors = []
-                self.mode.colors.append(color)
-                self.mode.frequency = 2
-                self.mode.pulses = 2
-                self.sproxy(self.mode)
+                mode = copy.copy(self.mode)
+                mode.mode = LightModes.FLASH
+                color = ColorRGBA(1, 1, 0, 1)
+                mode.colors = []
+                mode.colors.append(color)
+                mode.frequency = 2
+                mode.pulses = 2
+                self.set_light(mode)
 
         if self.is_charging == False and self.power_state.charging == True:
             self.is_charging = True
@@ -160,37 +177,33 @@ class battery_light_monitor():
         if self.is_charging == True and self.power_state.charging == False:
             self.is_charging = False
             self.relative_remaining_capacity = 0.0
-            self.mode.mode = LightModes.BREATH
-            self.mode.colors = []
-            self.mode.frequency = 0.25
-            self.sproxy(self.mode)
+            self.stop_light()
+
         elif self.is_charging == True:
             # only change color mode if capacity change is bigger than 2%
             if abs(self.relative_remaining_capacity - self.power_state.relative_remaining_capacity) > 2:
                 rospy.logdebug('adjusting leds')
+                mode = copy.copy(self.mode)
                 if self.num_leds > 1:
                     leds = int(self.num_leds * self.power_state.relative_remaining_capacity / 100.)
-                    self.mode.mode = LightModes.CIRCLE_COLORS
-                    self.mode.frequency = 60.0
-                    self.mode.colors = []
+                    mode.mode = LightModes.CIRCLE_COLORS
+                    mode.frequency = 60.0
+                    mode.colors = []
+                    color = ColorRGBA(0.0, 1.0, 0.7, 0.4)
                     for i in range(leds):
-                        self.mode.colors.append(self.color)
+                        mode.colors.append(self.color)
                 else:
-                    self.mode.mode = LightModes.BREATH
-                    self.mode.frequency = 0.4
+                    mode.mode = LightModes.BREATH
+                    mode.frequency = 0.4
                     # 0.34 => green in hsv space
                     hue = 0.34 * (self.power_state.relative_remaining_capacity / 100.0)
                     rgb = colorsys.hsv_to_rgb(hue, 1, 1)
-                    color = ColorRGBA()
-                    color.r = rgb[0]
-                    color.g = rgb[1]
-                    color.b = rgb[2]
-                    color.a = 1.0
-                    self.mode.colors = []
-                    self.mode.colors.append(color)
+                    color = ColorRGBA(rgb[0], rgb[1], rgb[2], 1.0)
+                    mode.colors = []
+                    mode.colors.append(color)
 
                 self.relative_remaining_capacity = self.power_state.relative_remaining_capacity
-                self.sproxy(self.mode)
+                self.set_light(mode, True)
 
 
 if __name__ == "__main__":
