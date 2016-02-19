@@ -85,7 +85,7 @@ from tf.transformations import *
 # care-o-bot includes
 from cob_sound.msg import *
 from cob_script_server.msg import *
-from cob_light.msg import LightMode, SetLightModeGoal, SetLightModeAction
+from cob_light.msg import LightMode, LightModes, SetLightModeGoal, SetLightModeAction
 from cob_mimic.msg import SetMimicGoal, SetMimicAction
 
 graph=""
@@ -741,11 +741,14 @@ class simple_script_server:
 		rospy.loginfo("Set <<%s>> to <<%s>>", component_name, parameter_name)
 
 		mode = LightMode()
-		mode.mode = 1
-		(error,mode.color) = self.compose_color(component_name, parameter_name)
+		mode.mode = LightModes.STATIC
+		color = ColorRGBA()
+		(error,color) = self.compose_color(component_name, parameter_name)
 		if error != 0:
 			ah.set_failed(error)
 			return ah
+		mode.colors = []
+		mode.colors.append(color)
 
 		# call action server
 		action_server_name = component_name + "/set_light"
