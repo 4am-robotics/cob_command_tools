@@ -741,7 +741,7 @@ class simple_script_server:
 		rospy.loginfo("Set <<%s>> to <<%s>>", component_name, parameter_name)
 
 		mode = LightMode()
-		mode.mode = 1
+		mode.mode = LightModes.STATIC
 		color = ColorRGBA()
 		(error,color) = self.compose_color(component_name, parameter_name)
 		if error != 0:
