@@ -6,7 +6,8 @@ from sensor_msgs.msg import JointState
 from diagnostic_msgs.msg import DiagnosticStatus
 
 from cob_msgs.msg import *
-from cob_light.msg import LightMode, SetLightModeGoal, SetLightModeAction
+from cob_light.msg import LightMode, LightModes, SetLightModeGoal, SetLightModeAction
+from cob_light.srv import StopLightMode, StopLightModeRequest
 
 from simple_script_server import *
 sss = simple_script_server()
@@ -19,6 +20,7 @@ class emergency_stop_monitor():
 		self.led_enabled = rospy.get_param("~led_enabled", True)
 		self.diagnostics_based = rospy.get_param("~diagnostics_based", False)
 		self.motion_based = rospy.get_param("~motion_based", False)
+		self.track_id_light = None
 
 		if(self.led_enabled):
 			if not rospy.has_param("~led_components"):
@@ -59,7 +61,7 @@ class emergency_stop_monitor():
 			rospy.loginfo("Emergency change to "+ str(self.em_status))
 
 			if msg.emergency_state == 0: # ready
-				self.set_light(self.color_ok)
+				self.stop_light()
 				if(self.sound_enabled):
 					sss.say(["emergency stop released"])
 				self.diag_status = -1
@@ -97,7 +99,7 @@ class emergency_stop_monitor():
 			rospy.loginfo("Diagnostics change to "+ str(self.diag_status))
 
 			if msg.level == 0:	# ok
-				self.set_light(self.color_ok)
+				self.stop_light()
 				self.motion_status = -1
 			else:								# warning or error
 				self.set_light(self.color_warn)
@@ -124,7 +126,7 @@ class emergency_stop_monitor():
 			rospy.loginfo("Motion change to "+ str(self.motion_status))
 
 			if moving == 0:	# not moving
-				self.set_light(self.color_ok)
+				self.stop_light()
 			else:						# moving
 				self.set_light(self.color_warn, True)
 
@@ -146,20 +148,36 @@ class emergency_stop_monitor():
 
 				# sending goal
 				mode = LightMode()
+				mode.priority = 10
 				mode.colors = []
 				mode.colors.append(color_rgba)
 				if flashing:
-					mode.mode = 2		#Flashing
-					mode.frequency = 2.0	#Hz
+					mode.mode = LightModes.FLASH	#Flashing
+					mode.frequency = 2.0			#Hz
 				else:
-					mode.mode = 1		#Static
+					mode.mode = LightModes.GLOW		#Glow
+					mode.frequency = 10.0			#Hz
 
 				goal = SetLightModeGoal()
 				goal.mode = mode
 				client.send_goal(goal)
 				client.wait_for_result()
+				result = client.getResult()
+				self.track_id_light = result.track_id
 
 				self.color = color
+	def stop_light(self):
+		if track_id_light is not None:
+			for component in self.light_components:
+				srv_server_name = component + "/stop_light"
+				try:
+					rospy.wait_for_service('srv_server_name', timeout=2)
+					srv_proxy = rospy.ServiceProxy(srv_server_name, StopLightMode)
+					req = StopLightModeRequest()
+					req.track_id = self.track_id_light
+					srv_proxy(req)
+				except Exception as e:
+					rospy.logerr("%s service failed: %s",srv_server_name, e)
 
 
 if __name__ == "__main__":
