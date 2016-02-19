@@ -115,7 +115,7 @@ class battery_light_monitor():
                 goal.mode = mode
                 client.send_goal(goal)
                 client.wait_for_result()
-                res = client.getResult()
+                res = client.get_result()
                 if track:
                     self.track_id_light[component] = res.track_id
 
