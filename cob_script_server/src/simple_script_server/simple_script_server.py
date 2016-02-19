@@ -219,7 +219,7 @@ class simple_script_server:
 		if blocking:
 			# trying to connect to server
 			rospy.logdebug("waiting for %s action server to start",action_server_name)
-			if not client.wait_for_server(rospy.Duration(5)):
+			if not client.wait_for_server(rospy.Duration(1)):
 				# error: server did not respond
 				rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
 				ah.set_failed(4)
@@ -411,7 +411,7 @@ class simple_script_server:
 		client = actionlib.SimpleActionClient(action_server_name, MoveBaseAction)
 		# trying to connect to server
 		rospy.logdebug("waiting for %s action server to start",action_server_name)
-		if not client.wait_for_server(rospy.Duration(5)):
+		if not client.wait_for_server(rospy.Duration(1)):
 			# error: server did not respond
 			rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
 			ah.set_failed(4)
@@ -590,7 +590,7 @@ class simple_script_server:
 		client = actionlib.SimpleActionClient(action_server_name, FollowJointTrajectoryAction)
 		# trying to connect to server
 		rospy.logdebug("waiting for %s action server to start",action_server_name)
-		if not client.wait_for_server(rospy.Duration(5)):
+		if not client.wait_for_server(rospy.Duration(1)):
 			# error: server did not respond
 			rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
 			ah.set_failed(4)
@@ -756,7 +756,7 @@ class simple_script_server:
 		client = actionlib.SimpleActionClient(action_server_name, SetLightModeAction)
 		# trying to connect to server
 		rospy.logdebug("waiting for %s action server to start",action_server_name)
-		if not client.wait_for_server(rospy.Duration(5)):
+		if not client.wait_for_server(rospy.Duration(1)):
 			# error: server did not respond
 			rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
 			ah.set_failed(4)
@@ -827,7 +827,7 @@ class simple_script_server:
 		client = actionlib.SimpleActionClient(action_server_name, SetMimicAction)
 		# trying to connect to server
 		rospy.logdebug("waiting for %s action server to start",action_server_name)
-		if not client.wait_for_server(rospy.Duration(5)):
+		if not client.wait_for_server(rospy.Duration(1)):
 			# error: server did not respond
 			rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
 			ah.set_failed(4)
@@ -897,7 +897,7 @@ class simple_script_server:
 		client = actionlib.SimpleActionClient(action_server_name, SayAction)
 		# trying to connect to server
 		rospy.logdebug("waiting for %s action server to start",action_server_name)
-		if not client.wait_for_server(rospy.Duration(5)):
+		if not client.wait_for_server(rospy.Duration(1)):
 			# error: server did not respond
 			rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
 			ah.set_failed(4)
@@ -963,7 +963,7 @@ class simple_script_server:
 		client = actionlib.SimpleActionClient(action_server_name, PlayAction)
 		# trying to connect to server
 		rospy.logdebug("waiting for %s action server to start",action_server_name)
-		if not client.wait_for_server(rospy.Duration(5)):
+		if not client.wait_for_server(rospy.Duration(1)):
 			# error: server did not respond
 			rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
 			ah.set_failed(4)
