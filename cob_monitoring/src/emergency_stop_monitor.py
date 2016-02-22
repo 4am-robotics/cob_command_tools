@@ -167,7 +167,7 @@ class emergency_stop_monitor():
 
 				self.color = color
 	def stop_light(self):
-		if track_id_light is not None:
+		if self.track_id_light is not None:
 			for component in self.light_components:
 				srv_server_name = component + "/stop_light"
 				try:
@@ -180,7 +180,7 @@ class emergency_stop_monitor():
 					rospy.logerr("%s service failed: %s",srv_server_name, e)
 
 	def say(self, text):
-		if self.enable_sound:
+		if self.sound_enabled:
 			for component in self.sound_components:
 				sss.say(component, [text])
 
