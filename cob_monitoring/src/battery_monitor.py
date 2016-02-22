@@ -71,7 +71,7 @@ from simple_script_server import *
 sss = simple_script_server()
 
 
-class battery_light_monitor():
+class battery_monitor():
 
     def __init__(self):
         self.power_state = PowerState()
@@ -233,6 +233,6 @@ class battery_light_monitor():
 
 
 if __name__ == "__main__":
-    rospy.init_node("battery_light_monitor")
-    battery_light_monitor()
+    rospy.init_node("battery_monitor")
+    battery_monitor()
     rospy.spin()
