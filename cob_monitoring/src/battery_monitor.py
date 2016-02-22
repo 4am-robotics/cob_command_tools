@@ -79,6 +79,10 @@ class battery_light_monitor():
         self.temperature = 0.0
         self.is_charging = False
         self.topic_name = 'power_state'
+        
+        self.threshold_warning = rospy.get_param("~threshold_warning", 20.0) # % of battery level
+        self.threshold_error = rospy.get_param("~threshold_error", 10.0)     # % of battery level
+        self.threshold_critical = rospy.get_param("~threshold_critical", 5.0)# % of battery level
 
         self.enable_light = rospy.get_param("~enable_light", True)
         self.num_leds = rospy.get_param("~num_leds", 1)
@@ -155,7 +159,7 @@ class battery_light_monitor():
         # warn if battery is empty
         if self.is_charging == False:
             # 5%
-            if self.power_state.relative_remaining_capacity <= 5 and (rospy.get_time() - self.last_time_warned) > 5:
+            if self.power_state.relative_remaining_capacity <= self.threshold_critical and (rospy.get_time() - self.last_time_warned) > 5:
                 self.last_time_warned = rospy.get_time()
                 mode = copy.copy(self.mode)
                 mode.mode = LightModes.FLASH
@@ -169,7 +173,7 @@ class battery_light_monitor():
                 self.say("My battery is empty, please recharge now.")
 
             # 10%
-            elif self.power_state.relative_remaining_capacity <= 10 and (rospy.get_time() - self.last_time_warned) > 15:
+            elif self.power_state.relative_remaining_capacity <= self.threshold_error and (rospy.get_time() - self.last_time_warned) > 15:
                 self.last_time_warned = rospy.get_time()
                 mode = copy.copy(self.mode)
                 mode.mode = LightModes.FLASH
@@ -180,7 +184,7 @@ class battery_light_monitor():
                 mode.pulses = 2
                 self.set_light(mode)
             # 20%
-            elif self.power_state.relative_remaining_capacity <= 20 and (rospy.get_time() - self.last_time_warned) > 30:
+            elif self.power_state.relative_remaining_capacity <= self.threshold_warning and (rospy.get_time() - self.last_time_warned) > 30:
                 self.last_time_warned = rospy.get_time()
                 mode = copy.copy(self.mode)
                 mode.mode = LightModes.FLASH
