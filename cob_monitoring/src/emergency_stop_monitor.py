@@ -16,8 +16,8 @@ sss = simple_script_server()
 class emergency_stop_monitor():
 	def __init__(self):
 		self.color = "None"
-		self.sound_enabled = rospy.get_param("~sound_enabled", True)
-		self.led_enabled = rospy.get_param("~led_enabled", True)
+		self.sound_enabled = rospy.get_param("~sound_enabled", False)
+		self.led_enabled = rospy.get_param("~led_enabled", False)
 		self.diagnostics_based = rospy.get_param("~diagnostics_based", False)
 		self.motion_based = rospy.get_param("~motion_based", False)
 		self.track_id_light = None
@@ -31,6 +31,12 @@ class emergency_stop_monitor():
 			self.color_warn = rospy.get_param("~color_warn","yellow")
 			self.color_ok = rospy.get_param("~color_ok","green")
 			self.color_off = rospy.get_param("~color_off","black")
+		
+		if(self.sound_enabled):
+			if not rospy.has_param("~sound_components"):
+				rospy.logwarn("parameter sound_components does not exist on ROS Parameter Server, aborting...")
+				sys.exit(1)
+			self.sound_components = rospy.get_param("~sound_components")
 
 		#emergency_stop_monitoring always enabled
 		rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.emergency_callback, queue_size=1)
@@ -62,30 +68,24 @@ class emergency_stop_monitor():
 
 			if msg.emergency_state == 0: # ready
 				self.stop_light()
-				if(self.sound_enabled):
-					sss.say(["emergency stop released"])
+				self.say("emergency stop released")
 				self.diag_status = -1
 				self.motion_status = -1
 			elif msg.emergency_state == 1: # em stop
 				self.set_light(self.color_error)
 				if msg.scanner_stop and not msg.emergency_button_stop:
-					if(self.sound_enabled):
-						sss.say(["laser emergency stop issued"])
+					self.say("laser emergency stop issued")
 				elif not msg.scanner_stop and msg.emergency_button_stop:
-					if(self.sound_enabled):
-						sss.say(["emergency stop button pressed"])
+					self.say("emergency stop button pressed")
 				else:
-					if(self.sound_enabled):
-						sss.say(["emergency stop issued"])
+					self.say("emergency stop issued")
 			elif msg.emergency_state == 2: # release
 				self.set_light(self.color_warn)
-				if(self.sound_enabled):
-					sss.say(["emergency stop acknowledged"])
+				self.say("emergency stop acknowledged")
 			else:
 				rospy.logerr("Unknown emergency status issued: %s",str(msg.emergency_state))
 				self.set_light(self.color_error)
-				if(self.sound_enabled):
-					sss.say(["Unknown emergency status issued"])
+				self.say("Unknown emergency status issued")
 
 
 	## Diagnostics monitoring
@@ -179,6 +179,10 @@ class emergency_stop_monitor():
 				except Exception as e:
 					rospy.logerr("%s service failed: %s",srv_server_name, e)
 
+	def say(self, text):
+		if self.enable_sound:
+			for component in self.sound_components:
+				sss.say(component, [text])
 
 if __name__ == "__main__":
 	rospy.init_node("emergency_stop_monitor")

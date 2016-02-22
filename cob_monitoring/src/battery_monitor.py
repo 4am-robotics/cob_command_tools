@@ -83,21 +83,23 @@ class battery_light_monitor():
         self.enable_light = rospy.get_param("~enable_light", True)
         self.num_leds = rospy.get_param("~num_leds", 1)
         self.track_id_light = {}
-        if not rospy.has_param("~led_components"):
-            rospy.logwarn("parameter led_components does not exist on ROS Parameter Server")
-            return
-        self.light_components = rospy.get_param("~led_components")
-        for component in self.light_components:
-            self.track_id_light[component] = None
-        self.mode = LightMode()
-        self.mode.priority = 2
+        if self.enable_light:
+            if not rospy.has_param("~led_components"):
+                rospy.logwarn("parameter led_components does not exist on ROS Parameter Server")
+                return
+            self.light_components = rospy.get_param("~led_components")
+            for component in self.light_components:
+                self.track_id_light[component] = None
+            self.mode = LightMode()
+            self.mode.priority = 2
 
         self.enable_sound = rospy.get_param("~enable_sound", True)
         self.sound_components = {}
-        if not rospy.has_param("~sound_components"):
-            rospy.logwarn("parameter sound_components does not exist on ROS Parameter Server")
-            return
-        self.sound_components = rospy.get_param("~sound_components")
+        if self.enable_sound:
+            if not rospy.has_param("~sound_components"):
+                rospy.logwarn("parameter sound_components does not exist on ROS Parameter Server")
+                return
+            self.sound_components = rospy.get_param("~sound_components")
 
         self.last_time_warned = rospy.get_time()
         rospy.Subscriber(self.topic_name, PowerState, self.power_callback)
