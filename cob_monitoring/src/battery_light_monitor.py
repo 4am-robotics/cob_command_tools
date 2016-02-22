@@ -62,10 +62,13 @@ import colorsys
 import copy
 import actionlib
 
+from std_msgs.msg import *
 from cob_msgs.msg import *
 from cob_light.msg import *
-from std_msgs.msg import *
 from cob_light.srv import *
+
+from simple_script_server import *
+sss = simple_script_server()
 
 
 class battery_light_monitor():
@@ -75,23 +78,28 @@ class battery_light_monitor():
         self.relative_remaining_capacity = 0.0
         self.temperature = 0.0
         self.is_charging = False
-        self.num_leds = rospy.get_param('~num_leds', 1)
-        self.service_name = 'set_light'
         self.topic_name = 'power_state'
-        self.track_id_light = {}
 
+        self.enable_light = rospy.get_param("~enable_light", True)
+        self.num_leds = rospy.get_param("~num_leds", 1)
+        self.track_id_light = {}
         if not rospy.has_param("~led_components"):
             rospy.logwarn("parameter led_components does not exist on ROS Parameter Server")
             return
         self.light_components = rospy.get_param("~led_components")
         for component in self.light_components:
             self.track_id_light[component] = None
-
         self.mode = LightMode()
         self.mode.priority = 2
 
-        self.last_time_warned = rospy.get_time()
+        self.enable_sound = rospy.get_param("~enable_sound", True)
+        self.sound_components = {}
+        if not rospy.has_param("~sound_components"):
+            rospy.logwarn("parameter sound_components does not exist on ROS Parameter Server")
+            return
+        self.sound_components = rospy.get_param("~sound_components")
 
+        self.last_time_warned = rospy.get_time()
         rospy.Subscriber(self.topic_name, PowerState, self.power_callback)
 
         rospy.Timer(rospy.Duration(1), self.timer_callback)
@@ -100,39 +108,46 @@ class battery_light_monitor():
         self.power_state = msg
 
     def set_light(self, mode, track=False):
-        for component in self.light_components:
-            action_server_name = component + "/set_light"
-            client = actionlib.SimpleActionClient(action_server_name, SetLightModeAction)
-            # trying to connect to server
-            rospy.logdebug("waiting for %s action server to start",action_server_name)
-            if not client.wait_for_server(rospy.Duration(5)):
-                # error: server did not respond
-                rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
-            else:
-                rospy.logdebug("%s action server ready",action_server_name)
+        if self.enable_light:
+            for component in self.light_components:
+                action_server_name = component + "/set_light"
+                client = actionlib.SimpleActionClient(action_server_name, SetLightModeAction)
+                # trying to connect to server
+                rospy.logdebug("waiting for %s action server to start",action_server_name)
+                if not client.wait_for_server(rospy.Duration(5)):
+                    # error: server did not respond
+                    rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
+                else:
+                    rospy.logdebug("%s action server ready",action_server_name)
 
-                # sending goal
-                goal = SetLightModeGoal()
-                goal.mode = mode
-                client.send_goal(goal)
-                client.wait_for_result()
-                res = client.get_result()
-                if track:
-                    self.track_id_light[component] = res.track_id
+                    # sending goal
+                    goal = SetLightModeGoal()
+                    goal.mode = mode
+                    client.send_goal(goal)
+                    client.wait_for_result()
+                    res = client.get_result()
+                    if track:
+                        self.track_id_light[component] = res.track_id
 
     def stop_light(self):
-        for component in self.light_components:
-            if self.track_id_light[component] is not None:
-                srv_server_name = component + "/stop_mode"
-                try:
-                    rospy.wait_for_service(srv_server_name, timeout=2)
-                    srv_proxy = rospy.ServiceProxy(srv_server_name, StopLightMode)
-                    req = StopLightModeRequest()
-                    req.track_id = self.track_id_light[component]
-                    srv_proxy(req)
-                    self.track_id_light[component] = None
-                except Exception as e:
-                    rospy.logerr("%s service failed: %s",srv_server_name, e)
+        if self.enable_light:
+            for component in self.light_components:
+                if self.track_id_light[component] is not None:
+                    srv_server_name = component + "/stop_mode"
+                    try:
+                        rospy.wait_for_service(srv_server_name, timeout=2)
+                        srv_proxy = rospy.ServiceProxy(srv_server_name, StopLightMode)
+                        req = StopLightModeRequest()
+                        req.track_id = self.track_id_light[component]
+                        srv_proxy(req)
+                        self.track_id_light[component] = None
+                    except Exception as e:
+                        rospy.logerr("%s service failed: %s",srv_server_name, e)
+
+    def say(self, text):
+        if self.enable_sound:
+            for component in self.sound_components:
+                sss.say(component, [text])
 
     def timer_callback(self, event):
         # warn if battery is empty
@@ -148,6 +163,8 @@ class battery_light_monitor():
                 mode.frequency = 5
                 mode.pulses = 4
                 self.set_light(mode)
+
+                self.say("My battery is empty, please recharge now.")
 
             # 10%
             elif self.power_state.relative_remaining_capacity <= 10 and (rospy.get_time() - self.last_time_warned) > 15:
@@ -171,6 +188,8 @@ class battery_light_monitor():
                 mode.frequency = 2
                 mode.pulses = 2
                 self.set_light(mode)
+
+                self.say("My battery is nearly empty, please consider recharging.")
 
         if self.is_charging == False and self.power_state.charging == True:
             self.is_charging = True
