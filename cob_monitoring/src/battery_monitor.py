@@ -1,13 +1,13 @@
 #!/usr/bin/python
-#################################################################
-##\file
+#
+# \file
 #
 # \note
-#   Copyright (c) 2012 \n
+#   Copyright (c) 2016 \n
 #   Fraunhofer Institute for Manufacturing Engineering
 #   and Automation (IPA) \n\n
 #
-#################################################################
+#
 #
 # \note
 #   Project name: care-o-bot
@@ -17,16 +17,16 @@
 #   ROS package name: cob_monitoring
 #
 # \author
-#   Author: Florian Weisshardt
+#   Author: Benjamin Maidel
 # \author
 #   Supervised by:
 #
-# \date Date of creation: Dec 2012
+# \date Date of creation: JAN 2015
 #
 # \brief
 #   Monitors the battery level and announces warnings and reminders to recharge.
 #
-#################################################################
+#
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -55,43 +55,178 @@
 # License LGPL along with this program.
 # If not, see <http://www.gnu.org/licenses/>.
 #
-#################################################################
+#
 
 import rospy
+import colorsys
+import copy
+import actionlib
+
+from std_msgs.msg import *
 from cob_msgs.msg import *
+from cob_light.msg import *
+from cob_light.srv import *
+
 from simple_script_server import *
 sss = simple_script_server()
 
-class battery_monitor():
-	def __init__(self):
-		rospy.Subscriber("/power_state", PowerState, self.power_state_callback)
-		self.rate = rospy.Rate(1/10.0) # check every 10 sec
-		self.warn_announce_time  = rospy.Duration(300.0)
-		self.error_announce_time = rospy.Duration(120.0)
-		self.last_announced_time = rospy.Time.now()
 
-	## Battery monitoring
-	### TODO: make values parametrized through yaml file (depending on env ROBOT)
-	def power_state_callback(self,msg):
-		if msg.relative_capacity <= 10.0:
-			rospy.logerr("Battery empty, recharge now! Battery state is at " + str(msg.relative_capacity) + "%.")
-			#TODO: print "start flashing red fast --> action call to lightmode"
-			if rospy.Time.now() - self.last_announced_time >= self.error_announce_time:
-				sss.say(["My battery is empty, please recharge now."])
-				self.last_announced_time = rospy.Time.now()
-		elif msg.relative_capacity <= 30.0:
-			rospy.logwarn("Battery nearly empty, consider recharging. Battery state is at " + str(msg.relative_capacity) + "%.")
-			#TODO: "start flashing yellow slowly --> action call to lightmode"
-			if rospy.Time.now() - self.last_announced_time >= self.warn_announce_time:
-				sss.say(["My battery is nearly empty, please consider recharging."])
-				self.last_announced_time = rospy.Time.now()
-		else:
-			rospy.logdebug("Battery level ok.")
+class battery_light_monitor():
 
-		# sleep
-		self.rate.sleep()
+    def __init__(self):
+        self.power_state = PowerState()
+        self.relative_remaining_capacity = 0.0
+        self.temperature = 0.0
+        self.is_charging = False
+        self.topic_name = 'power_state'
+
+        self.enable_light = rospy.get_param("~enable_light", True)
+        self.num_leds = rospy.get_param("~num_leds", 1)
+        self.track_id_light = {}
+        if not rospy.has_param("~led_components"):
+            rospy.logwarn("parameter led_components does not exist on ROS Parameter Server")
+            return
+        self.light_components = rospy.get_param("~led_components")
+        for component in self.light_components:
+            self.track_id_light[component] = None
+        self.mode = LightMode()
+        self.mode.priority = 2
+
+        self.enable_sound = rospy.get_param("~enable_sound", True)
+        self.sound_components = {}
+        if not rospy.has_param("~sound_components"):
+            rospy.logwarn("parameter sound_components does not exist on ROS Parameter Server")
+            return
+        self.sound_components = rospy.get_param("~sound_components")
+
+        self.last_time_warned = rospy.get_time()
+        rospy.Subscriber(self.topic_name, PowerState, self.power_callback)
+
+        rospy.Timer(rospy.Duration(1), self.timer_callback)
+
+    def power_callback(self, msg):
+        self.power_state = msg
+
+    def set_light(self, mode, track=False):
+        if self.enable_light:
+            for component in self.light_components:
+                action_server_name = component + "/set_light"
+                client = actionlib.SimpleActionClient(action_server_name, SetLightModeAction)
+                # trying to connect to server
+                rospy.logdebug("waiting for %s action server to start",action_server_name)
+                if not client.wait_for_server(rospy.Duration(5)):
+                    # error: server did not respond
+                    rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
+                else:
+                    rospy.logdebug("%s action server ready",action_server_name)
+
+                    # sending goal
+                    goal = SetLightModeGoal()
+                    goal.mode = mode
+                    client.send_goal(goal)
+                    client.wait_for_result()
+                    res = client.get_result()
+                    if track:
+                        self.track_id_light[component] = res.track_id
+
+    def stop_light(self):
+        if self.enable_light:
+            for component in self.light_components:
+                if self.track_id_light[component] is not None:
+                    srv_server_name = component + "/stop_mode"
+                    try:
+                        rospy.wait_for_service(srv_server_name, timeout=2)
+                        srv_proxy = rospy.ServiceProxy(srv_server_name, StopLightMode)
+                        req = StopLightModeRequest()
+                        req.track_id = self.track_id_light[component]
+                        srv_proxy(req)
+                        self.track_id_light[component] = None
+                    except Exception as e:
+                        rospy.logerr("%s service failed: %s",srv_server_name, e)
+
+    def say(self, text):
+        if self.enable_sound:
+            for component in self.sound_components:
+                sss.say(component, [text])
+
+    def timer_callback(self, event):
+        # warn if battery is empty
+        if self.is_charging == False:
+            # 5%
+            if self.power_state.relative_remaining_capacity <= 5 and (rospy.get_time() - self.last_time_warned) > 5:
+                self.last_time_warned = rospy.get_time()
+                mode = copy.copy(self.mode)
+                mode.mode = LightModes.FLASH
+                color = ColorRGBA(1, 0, 0, 1)
+                mode.colors = []
+                mode.colors.append(color)
+                mode.frequency = 5
+                mode.pulses = 4
+                self.set_light(mode)
+
+                self.say("My battery is empty, please recharge now.")
+
+            # 10%
+            elif self.power_state.relative_remaining_capacity <= 10 and (rospy.get_time() - self.last_time_warned) > 15:
+                self.last_time_warned = rospy.get_time()
+                mode = copy.copy(self.mode)
+                mode.mode = LightModes.FLASH
+                color = ColorRGBA(1, 0, 0, 1)
+                mode.colors = []
+                mode.colors.append(color)
+                mode.frequency = 2
+                mode.pulses = 2
+                self.set_light(mode)
+            # 20%
+            elif self.power_state.relative_remaining_capacity <= 20 and (rospy.get_time() - self.last_time_warned) > 30:
+                self.last_time_warned = rospy.get_time()
+                mode = copy.copy(self.mode)
+                mode.mode = LightModes.FLASH
+                color = ColorRGBA(1, 1, 0, 1)
+                mode.colors = []
+                mode.colors.append(color)
+                mode.frequency = 2
+                mode.pulses = 2
+                self.set_light(mode)
+
+                self.say("My battery is nearly empty, please consider recharging.")
+
+        if self.is_charging == False and self.power_state.charging == True:
+            self.is_charging = True
+
+        if self.is_charging == True and self.power_state.charging == False:
+            self.is_charging = False
+            self.relative_remaining_capacity = 0.0
+            self.stop_light()
+
+        elif self.is_charging == True:
+            # only change color mode if capacity change is bigger than 2%
+            if abs(self.relative_remaining_capacity - self.power_state.relative_remaining_capacity) > 2:
+                rospy.logdebug('adjusting leds')
+                mode = copy.copy(self.mode)
+                if self.num_leds > 1:
+                    leds = int(self.num_leds * self.power_state.relative_remaining_capacity / 100.)
+                    mode.mode = LightModes.CIRCLE_COLORS
+                    mode.frequency = 60.0
+                    mode.colors = []
+                    color = ColorRGBA(0.0, 1.0, 0.7, 0.4)
+                    for i in range(leds):
+                        mode.colors.append(color)
+                else:
+                    mode.mode = LightModes.BREATH
+                    mode.frequency = 0.4
+                    # 0.34 => green in hsv space
+                    hue = 0.34 * (self.power_state.relative_remaining_capacity / 100.0)
+                    rgb = colorsys.hsv_to_rgb(hue, 1, 1)
+                    color = ColorRGBA(rgb[0], rgb[1], rgb[2], 1.0)
+                    mode.colors = []
+                    mode.colors.append(color)
+
+                self.relative_remaining_capacity = self.power_state.relative_remaining_capacity
+                self.set_light(mode, True)
+
 
 if __name__ == "__main__":
-	rospy.init_node("battery_monitor")
-	battery_monitor()
-	rospy.spin()
+    rospy.init_node("battery_light_monitor")
+    battery_light_monitor()
+    rospy.spin()
