@@ -88,10 +88,10 @@ class battery_light_monitor():
         self.num_leds = rospy.get_param("~num_leds", 1)
         self.track_id_light = {}
         if self.enable_light:
-            if not rospy.has_param("~led_components"):
-                rospy.logwarn("parameter led_components does not exist on ROS Parameter Server")
+            if not rospy.has_param("~light_components"):
+                rospy.logwarn("parameter light_components does not exist on ROS Parameter Server")
                 return
-            self.light_components = rospy.get_param("~led_components")
+            self.light_components = rospy.get_param("~light_components")
             for component in self.light_components:
                 self.track_id_light[component] = None
             self.mode = LightMode()
