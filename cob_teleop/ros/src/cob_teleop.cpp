@@ -410,7 +410,7 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 {
   if(deadman_button_>=0 && deadman_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[deadman_button_]==1)
   {
-    ROS_INFO("joystick is active");
+    ROS_DEBUG("joystick is active");
   }
   else
   {
