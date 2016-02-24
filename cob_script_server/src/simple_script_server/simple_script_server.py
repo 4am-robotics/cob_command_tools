@@ -850,8 +850,7 @@ class simple_script_server:
 	#
 	# \param parameter_name Name of the parameter
 	# \param language Language to use for the TTS system
-	def say(self,parameter_name,blocking=True):
-		component_name = "sound"
+	def say(self,component_name,parameter_name,blocking=True):
 		ah = action_handle("say", component_name, parameter_name, blocking, self.parse)
 		if(self.parse):
 			return ah

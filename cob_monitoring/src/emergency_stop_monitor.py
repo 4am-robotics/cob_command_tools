@@ -16,21 +16,27 @@ sss = simple_script_server()
 class emergency_stop_monitor():
 	def __init__(self):
 		self.color = "None"
-		self.sound_enabled = rospy.get_param("~sound_enabled", True)
-		self.led_enabled = rospy.get_param("~led_enabled", True)
+		self.enable_sound = rospy.get_param("~enable_sound", False)
+		self.enable_light = rospy.get_param("~enable_light", False)
 		self.diagnostics_based = rospy.get_param("~diagnostics_based", False)
 		self.motion_based = rospy.get_param("~motion_based", False)
 		self.track_id_light = None
 
-		if(self.led_enabled):
-			if not rospy.has_param("~led_components"):
-				rospy.logwarn("parameter led_components does not exist on ROS Parameter Server, aborting...")
+		if(self.enable_light):
+			if not rospy.has_param("~light_components"):
+				rospy.logwarn("parameter light_components does not exist on ROS Parameter Server, aborting...")
 				sys.exit(1)
-			self.light_components = rospy.get_param("~led_components")
+			self.light_components = rospy.get_param("~light_components")
 			self.color_error = rospy.get_param("~color_error","red")
 			self.color_warn = rospy.get_param("~color_warn","yellow")
 			self.color_ok = rospy.get_param("~color_ok","green")
 			self.color_off = rospy.get_param("~color_off","black")
+		
+		if(self.enable_sound):
+			if not rospy.has_param("~sound_components"):
+				rospy.logwarn("parameter sound_components does not exist on ROS Parameter Server, aborting...")
+				sys.exit(1)
+			self.sound_components = rospy.get_param("~sound_components")
 
 		#emergency_stop_monitoring always enabled
 		rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.emergency_callback, queue_size=1)
@@ -62,30 +68,24 @@ class emergency_stop_monitor():
 
 			if msg.emergency_state == 0: # ready
 				self.stop_light()
-				if(self.sound_enabled):
-					sss.say(["emergency stop released"])
+				self.say("emergency stop released")
 				self.diag_status = -1
 				self.motion_status = -1
 			elif msg.emergency_state == 1: # em stop
 				self.set_light(self.color_error)
 				if msg.scanner_stop and not msg.emergency_button_stop:
-					if(self.sound_enabled):
-						sss.say(["laser emergency stop issued"])
+					self.say("laser emergency stop issued")
 				elif not msg.scanner_stop and msg.emergency_button_stop:
-					if(self.sound_enabled):
-						sss.say(["emergency stop button pressed"])
+					self.say("emergency stop button pressed")
 				else:
-					if(self.sound_enabled):
-						sss.say(["emergency stop issued"])
+					self.say("emergency stop issued")
 			elif msg.emergency_state == 2: # release
 				self.set_light(self.color_warn)
-				if(self.sound_enabled):
-					sss.say(["emergency stop acknowledged"])
+				self.say("emergency stop acknowledged")
 			else:
 				rospy.logerr("Unknown emergency status issued: %s",str(msg.emergency_state))
 				self.set_light(self.color_error)
-				if(self.sound_enabled):
-					sss.say(["Unknown emergency status issued"])
+				self.say("Unknown emergency status issued")
 
 
 	## Diagnostics monitoring
@@ -133,52 +133,58 @@ class emergency_stop_monitor():
 
 	## set light
 	def set_light(self, color, flashing=False):
-		for component in self.light_components:
-			error_code, color_rgba = sss.compose_color(component, color)
+		if self.enable_light:
+			for component in self.light_components:
+				error_code, color_rgba = sss.compose_color(component, color)
 
-			action_server_name = component + "/set_light"
-			client = actionlib.SimpleActionClient(action_server_name, SetLightModeAction)
-			# trying to connect to server
-			rospy.logdebug("waiting for %s action server to start",action_server_name)
-			if not client.wait_for_server(rospy.Duration(5)):
-				# error: server did not respond
-				rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
-			else:
-				rospy.logdebug("%s action server ready",action_server_name)
-
-				# sending goal
-				mode = LightMode()
-				mode.priority = 10
-				mode.colors = []
-				mode.colors.append(color_rgba)
-				if flashing:
-					mode.mode = LightModes.FLASH	#Flashing
-					mode.frequency = 2.0			#Hz
+				action_server_name = component + "/set_light"
+				client = actionlib.SimpleActionClient(action_server_name, SetLightModeAction)
+				# trying to connect to server
+				rospy.logdebug("waiting for %s action server to start",action_server_name)
+				if not client.wait_for_server(rospy.Duration(5)):
+					# error: server did not respond
+					rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
 				else:
-					mode.mode = LightModes.GLOW		#Glow
-					mode.frequency = 10.0			#Hz
+					rospy.logdebug("%s action server ready",action_server_name)
 
-				goal = SetLightModeGoal()
-				goal.mode = mode
-				client.send_goal(goal)
-				client.wait_for_result()
-				result = client.get_result()
-				self.track_id_light = result.track_id
+					# sending goal
+					mode = LightMode()
+					mode.priority = 10
+					mode.colors = []
+					mode.colors.append(color_rgba)
+					if flashing:
+						mode.mode = LightModes.FLASH	#Flashing
+						mode.frequency = 2.0			#Hz
+					else:
+						mode.mode = LightModes.GLOW		#Glow
+						mode.frequency = 10.0			#Hz
+
+					goal = SetLightModeGoal()
+					goal.mode = mode
+					client.send_goal(goal)
+					client.wait_for_result()
+					result = client.get_result()
+					self.track_id_light = result.track_id
 
 				self.color = color
 	def stop_light(self):
-		if track_id_light is not None:
-			for component in self.light_components:
-				srv_server_name = component + "/stop_light"
-				try:
-					rospy.wait_for_service('srv_server_name', timeout=2)
-					srv_proxy = rospy.ServiceProxy(srv_server_name, StopLightMode)
-					req = StopLightModeRequest()
-					req.track_id = self.track_id_light
-					srv_proxy(req)
-				except Exception as e:
-					rospy.logerr("%s service failed: %s",srv_server_name, e)
+		if self.enable_light:
+			if self.track_id_light is not None:
+				for component in self.light_components:
+					srv_server_name = component + "/stop_mode"
+					try:
+						rospy.wait_for_service(srv_server_name, timeout=2)
+						srv_proxy = rospy.ServiceProxy(srv_server_name, StopLightMode)
+						req = StopLightModeRequest()
+						req.track_id = self.track_id_light
+						srv_proxy(req)
+					except Exception as e:
+						rospy.logerr("%s service failed: %s",srv_server_name, e)
 
+	def say(self, text):
+		if self.enable_sound:
+			for component in self.sound_components:
+				sss.say(component, [text])
 
 if __name__ == "__main__":
 	rospy.init_node("emergency_stop_monitor")

@@ -15,7 +15,7 @@ class SayTest(unittest.TestCase):
 		rospy.init_node('test_say_test')
 
 	def test_say(self):
-		sss.say(["hello"])
+		sss.say("sound", ["hello"])
 
 	def as_cb(self, goal):
 		result = JointTrajectoryResult()
