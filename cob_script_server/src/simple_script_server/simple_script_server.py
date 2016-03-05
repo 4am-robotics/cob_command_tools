@@ -1042,7 +1042,6 @@ class action_handle:
 		global function_counter
 		self.parent_node = ""
 		self.error_code = -1
-		self.wait_log = False
 		self.function_counter = function_counter
 		self.function_name = function_name
 		self.component_name = component_name
@@ -1053,7 +1052,7 @@ class action_handle:
 		self.level = int(rospy.get_param("/script_server/level",100))
 		self.state_pub = rospy.Publisher("/script_server/state", ScriptState, queue_size=1)
 		self.AppendNode(blocking)
-		self.client = actionlib.SimpleActionClient("dummy",ScriptAction)
+		self.client = None
 		self.client_state = 9
 		self.client_mode = ""
 
