@@ -79,7 +79,7 @@ class battery_monitor():
         self.temperature = 0.0
         self.is_charging = False
         self.topic_name = 'power_state'
-        
+
         self.threshold_warning = rospy.get_param("~threshold_warning", 20.0) # % of battery level
         self.threshold_error = rospy.get_param("~threshold_error", 10.0)     # % of battery level
         self.threshold_critical = rospy.get_param("~threshold_critical", 5.0)# % of battery level
@@ -106,11 +106,13 @@ class battery_monitor():
             self.sound_components = rospy.get_param("~sound_components")
 
         self.last_time_warned = rospy.get_time()
+        self.last_time_power_received = rospy.get_time()
         rospy.Subscriber(self.topic_name, PowerState, self.power_callback)
 
         rospy.Timer(rospy.Duration(1), self.timer_callback)
 
     def power_callback(self, msg):
+        self.last_time_power_received = rospy.get_time()
         self.power_state = msg
 
     def set_light(self, mode, track=False):
@@ -200,7 +202,8 @@ class battery_monitor():
         if self.is_charging == False and self.power_state.charging == True:
             self.is_charging = True
 
-        if self.is_charging == True and self.power_state.charging == False:
+        if self.is_charging == True and (self.power_state.charging == False
+                                    or (rospy.get_time() - self.last_time_power_received) > 2):
             self.is_charging = False
             self.relative_remaining_capacity = 0.0
             self.stop_light()
