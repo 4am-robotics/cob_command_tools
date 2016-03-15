@@ -146,7 +146,7 @@ class script():
 		self.Run()
 
 		# save graph on parameter server for further processing
-#		self.graph = graph
+		#self.graph = graph
 		rospy.set_param("/script_server/graph", graph.string())
 		self.graph_pub.publish(graph.string())
 		rospy.loginfo("...parsing finished")
@@ -165,7 +165,6 @@ class simple_script_server:
 		self.ns_global_prefix = "/script_server"
 		self.wav_path = ""
 		self.parse = parse
-
 		rospy.sleep(1) # we have to wait here until publishers are ready, don't ask why
 
 	#------------------- Init section -------------------#
@@ -232,7 +231,6 @@ class simple_script_server:
 
 		# cancel all goals
 		client.cancel_all_goals()
-
 		ah.set_succeeded() # full success
 		return ah
 
@@ -269,10 +267,10 @@ class simple_script_server:
 		rospy.loginfo("<<%s>> <<%s>>", service_name, component_name)
 		parameter_name = self.ns_global_prefix + "/" + component_name + "/service_ns"
 		if not rospy.has_param(parameter_name):
-				message = "Parameter " + parameter_name + " does not exist on ROS Parameter Server, aborting..."
-				rospy.logerr(message)
-				ah.set_failed(2, message)
-				return ah
+			message = "Parameter " + parameter_name + " does not exist on ROS Parameter Server, aborting..."
+			rospy.logerr(message)
+			ah.set_failed(2, message)
+			return ah
 		service_ns_name = rospy.get_param(parameter_name)
 		service_full_name = service_ns_name + "/" + service_name
 
@@ -433,9 +431,7 @@ class simple_script_server:
 		#print client_goal
 		client.send_goal(client_goal)
 		ah.set_client(client)
-
 		ah.wait_inside()
-
 		return ah
 
 	## Parse and compose trajectory message
@@ -443,15 +439,15 @@ class simple_script_server:
 		# get joint_names from parameter server
 		param_string = self.ns_global_prefix + "/" + component_name + "/joint_names"
 		if not rospy.has_param(param_string):
-				rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",param_string)
-				return (JointTrajectory(), 2)
+			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",param_string)
+			return (JointTrajectory(), 2)
 		joint_names = rospy.get_param(param_string)
 
 		# check joint_names parameter
 		if not type(joint_names) is list: # check list
-				rospy.logerr("no valid joint_names for %s: not a list, aborting...",component_name)
-				print "joint_names are:",joint_names
-				return (JointTrajectory(), 3)
+			rospy.logerr("no valid joint_names for %s: not a list, aborting...",component_name)
+			print "joint_names are:",joint_names
+			return (JointTrajectory(), 3)
 		else:
 			for i in joint_names:
 				#print i,"type1 = ", type(i)
@@ -479,7 +475,6 @@ class simple_script_server:
 				return (JointTrajectory(), 3)
 
 		traj = []
-
 		for point in param:
 			#print point,"type1 = ", type(point)
 			if type(point) is str:
@@ -590,7 +585,6 @@ class simple_script_server:
 			ah.set_failed(error_code, message)
 			return ah
 
-
 		# call action server
 		parameter_name = self.ns_global_prefix + "/" + component_name + "/action_name"
 		if not rospy.has_param(parameter_name):
@@ -618,7 +612,6 @@ class simple_script_server:
 		#print client_goal
 		client.send_goal(client_goal)
 		ah.set_client(client)
-
 		ah.wait_inside()
 		return ah
 
@@ -643,7 +636,6 @@ class simple_script_server:
 			ah.set_failed(3, message)
 			return ah
 		topic_name = rospy.get_param(parameter_topic_name)
-
 		rospy.loginfo("Move base relatively by <<%s>>", parameter_name)
 
 		# step 0: check validity of parameters:
@@ -755,7 +747,6 @@ class simple_script_server:
 			return ah
 		else:
 			ah.set_active()
-
 		rospy.loginfo("Set <<%s>> to <<%s>>", component_name, parameter_name)
 
 		mode = LightMode()
@@ -789,9 +780,7 @@ class simple_script_server:
 		goal.mode = mode
 		client.send_goal(goal)
 		ah.set_client(client)
-
 		ah.wait_inside()
-
 		return ah
 
 #------------------- Mimic section -------------------#
@@ -807,12 +796,10 @@ class simple_script_server:
 			return ah
 		else:
 			ah.set_active()
-
 		rospy.loginfo("Set <<%s>> to <<%s>>", component_name, parameter_name)
 
 		# check mimic parameters
 		mimic = SetMimicGoal()
-
 		if not (type(parameter_name) is str or type(parameter_name) is list): # check outer list
 			message = "No valid parameter for mimic: not a string or list, aborting..."
 			rospy.logerr(message)
@@ -841,7 +828,6 @@ class simple_script_server:
 				return ah
 		else:
 			rospy.logerr("you should never be here")
-
 		rospy.logdebug("accepted parameter %s for mimic",parameter_name)
 
 		# call action server
@@ -859,11 +845,9 @@ class simple_script_server:
 		else:
 			rospy.logdebug("%s action server ready",action_server_name)
 
-
 		# sending goal
 		client.send_goal(mimic)
 		ah.set_client(client)
-
 		ah.wait_inside()
 		return ah
 
@@ -882,7 +866,6 @@ class simple_script_server:
 			ah.set_active()
 
 		text = ""
-
 		# get values from parameter server
 		language = rospy.get_param(self.ns_global_prefix + "/" + component_name + "/language","en")
 		if type(parameter_name) is str:
@@ -915,7 +898,6 @@ class simple_script_server:
 				else:
 					text = text + i + " "
 					rospy.logdebug("accepted parameter <<%s>> for <<%s>>",i,component_name)
-
 		rospy.loginfo("Saying <<%s>>",text)
 
 		# call action server
@@ -939,7 +921,6 @@ class simple_script_server:
 		#print client_goal
 		client.send_goal(client_goal)
 		ah.set_client(client)
-
 		ah.wait_inside()
 		return ah
 
@@ -969,7 +950,6 @@ class simple_script_server:
 				ah.set_failed(2, message)
 				return ah
 			filename = rospy.get_param(full_parameter_name) + "/" + parameter_name + ".wav"
-
 		elif type(parameter_name) is list:
 			if len(parameter_name) != 3:
 				message = "No valid parameter for play: not a list with size 3, aborting..."
@@ -987,7 +967,6 @@ class simple_script_server:
 				return ah
 		else:
 			rospy.logerr("you should never be here")
-
 		rospy.logdebug("accepted parameter %s for play",parameter_name)
 
 		action_server_name = component_name + "/play"
@@ -1011,7 +990,6 @@ class simple_script_server:
 		#print client_goal
 		client.send_goal(client_goal)
 		ah.set_client(client)
-
 		ah.wait_inside()
 		ah.set_succeeded()
 		return ah
@@ -1039,7 +1017,6 @@ class simple_script_server:
 			ah.set_active()
 		rospy.loginfo("Wait for %f sec",duration)
 		rospy.sleep(duration)
-
 		ah.set_succeeded()
 		return ah
 
