@@ -81,7 +81,7 @@ initialized = False
 #gtk.gdk.threads_init()
 
 ## Executes a button click in a new thread
-def start(func, args):
+def start(func, args, dialog=False):
   global planning_enabled
   global base_diff_enabled
   global confirm_commands_enabled
@@ -102,8 +102,10 @@ def start(func, args):
         largs.append("diff")
     #print "Args", tuple(largs)
     #print "func ", func
-    #thread.start_new_thread(func,tuple(largs))              # exits silently without evaluating result
-    thread.start_new_thread(call_thread,(func,tuple(largs))) # calls func(args) and shows result in a MessageDialog
+    if dialog:
+      thread.start_new_thread(call_thread,(func,tuple(largs))) # calls func(args) and shows result in a MessageDialog
+    else:
+      thread.start_new_thread(func,tuple(largs))               # exits silently without evaluating result
 
 def call_thread(func,args):
   result = func(*args)
@@ -190,11 +192,11 @@ class GtkGeneralPanel(gtk.Frame):
 
   def init_all(self,component_names):
     for component_name in component_names:
-      start(self.sss.init,(component_name, True)) # services always blocking
+      start(self.sss.init,(component_name, True), True) # services always blocking, show MessagDialog popup
 
   def recover_all(self,component_names):
     for component_name in component_names:
-      start(self.sss.recover,(component_name, True)) # services always blocking
+      start(self.sss.recover,(component_name, True), True) # services always blocking, show MessagDialog popup
 
   def halt_all(self,component_names):
     for component_name in component_names:
@@ -285,7 +287,11 @@ class Knoeppkes():
     for pname, actions in panels:
       panel = GtkPanel(self, pname)
       for aname, func, args in actions:
-        panel.addButton(text=aname, command=lambda f=func, a=args: start(f, a))
+        if ('init' in func.__name__) or ('recover' in func.__name__):
+          # print "with dialog: " + func.__name__
+          panel.addButton(text=aname, command=lambda f=func, a=args: start(f, a, True))  # show MessagDialog popup
+        else:
+          panel.addButton(text=aname, command=lambda f=func, a=args: start(f, a))
       self.hbox.pack_start(panel,True, True, 3)
 
     self.status_bar = gtk.Statusbar()
