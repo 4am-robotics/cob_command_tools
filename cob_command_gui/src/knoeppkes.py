@@ -81,7 +81,7 @@ initialized = False
 #gtk.gdk.threads_init()
 
 ## Executes a button click in a new thread
-def start(func, args):
+def start(func, args, dialog=False):
   global planning_enabled
   global base_diff_enabled
   global confirm_commands_enabled
@@ -102,7 +102,26 @@ def start(func, args):
         largs.append("diff")
     #print "Args", tuple(largs)
     #print "func ", func
-    thread.start_new_thread(func,tuple(largs))
+    if dialog:
+      thread.start_new_thread(call_thread,(func,tuple(largs))) # calls func(args) and shows result in a MessageDialog
+    else:
+      thread.start_new_thread(func,tuple(largs))               # exits silently without evaluating result
+
+def call_thread(func,args):
+  result = func(*args)
+  if not result.success:    # action_handle returns with failure
+    result_dialog = gtk.MessageDialog(None, 0, gtk.MESSAGE_ERROR,
+                                               gtk.BUTTONS_OK,
+                                               "Executing " + func.__name__ + "(" + args[0] + ") failed!")
+    gtk.gdk.threads_enter()
+    result_dialog.format_secondary_text(result.message)
+    gtk.gdk.threads_leave()
+    gtk.gdk.threads_enter()
+    result_dialog.run()
+    gtk.gdk.threads_leave()
+    gtk.gdk.threads_enter()
+    result_dialog.destroy()
+    gtk.gdk.threads_leave()
 
 def startGTK(widget, data):
   data()
@@ -169,19 +188,19 @@ class GtkGeneralPanel(gtk.Frame):
 
   def stop_all(self,component_names):
     for component_name in component_names:
-      self.sss.stop(component_name,blocking=False)
+      start(self.sss.stop,(component_name, True)) # services always blocking
 
   def init_all(self,component_names):
     for component_name in component_names:
-      self.sss.init(component_name,False)
+      start(self.sss.init,(component_name, True), True) # services always blocking, show MessagDialog popup
 
   def recover_all(self,component_names):
     for component_name in component_names:
-      self.sss.recover(component_name,False)
+      start(self.sss.recover,(component_name, True), True) # services always blocking, show MessagDialog popup
 
   def halt_all(self,component_names):
     for component_name in component_names:
-      self.sss.halt(component_name,False)
+      start(self.sss.halt,(component_name, True)) # services always blocking
 
 
   def setEMStop(self, em):
@@ -268,7 +287,11 @@ class Knoeppkes():
     for pname, actions in panels:
       panel = GtkPanel(self, pname)
       for aname, func, args in actions:
-        panel.addButton(text=aname, command=lambda f=func, a=args: start(f, a))
+        if ('init' in func.__name__) or ('recover' in func.__name__):
+          # print "with dialog: " + func.__name__
+          panel.addButton(text=aname, command=lambda f=func, a=args: start(f, a, True))  # show MessagDialog popup
+        else:
+          panel.addButton(text=aname, command=lambda f=func, a=args: start(f, a))
       self.hbox.pack_start(panel,True, True, 3)
 
     self.status_bar = gtk.Statusbar()
@@ -284,10 +307,10 @@ class Knoeppkes():
     gtk.gdk.threads_leave()
 
 def signal_handler(signal, frame):
-#  print 'You pressed Ctrl+C!'
+  #print 'You pressed Ctrl+C!'
   gtk.main_quit()
 
 if __name__ == "__main__":
-	signal.signal(signal.SIGINT, signal_handler)
-	app = Knoeppkes()
+  signal.signal(signal.SIGINT, signal_handler)
+  app = Knoeppkes()
 
