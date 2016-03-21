@@ -274,21 +274,25 @@ class simple_script_server:
 		service_ns_name = rospy.get_param(parameter_name)
 		service_full_name = service_ns_name + "/" + service_name
 
-		# check if service is available
-		try:
-			rospy.wait_for_service(service_full_name,1)
-		except rospy.ROSException, e:
-			error_message = "%s"%e
-			message = "...service <<" + service_name + ">> of <<" + component_name + ">> not available,\n error: " + error_message
-			rospy.logerr(message)
-			ah.set_failed(4, message)
-			return ah
+		if blocking:
+			# check if service is available
+			try:
+				rospy.wait_for_service(service_full_name,1)
+			except rospy.ROSException, e:
+				error_message = "%s"%e
+				message = "...service <<" + service_name + ">> of <<" + component_name + ">> not available,\n error: " + error_message
+				rospy.logerr(message)
+				ah.set_failed(4, message)
+				return ah
 
 		# check if service is callable
 		try:
 			trigger = rospy.ServiceProxy(service_full_name,Trigger)
-			rospy.loginfo("Wait for <<%s>> to <<%s>>...", component_name, service_name)
-			resp = trigger()
+			if blocking:
+				rospy.loginfo("Wait for <<%s>> to <<%s>>...", component_name, service_name)
+				resp = trigger()
+			else:
+				thread.start_new_thread(trigger,())
 		except rospy.ServiceException, e:
 			error_message = "%s"%e
 			message = "...calling <<" + service_name + ">> of <<" + component_name + ">> not successfull,\n error: " + error_message
@@ -296,16 +300,17 @@ class simple_script_server:
 			ah.set_failed(10, message)
 			return ah
 
-		# evaluate sevice response
-		if not resp.success:
-			message = "...response of <<" + service_name + ">> of <<" + component_name + ">> not successfull,\n error: " + resp.message
-			rospy.logerr(message)
-			ah.set_failed(10, message)
-			return ah
+		if blocking:
+			# evaluate sevice response
+			if not resp.success:
+				message = "...response of <<" + service_name + ">> of <<" + component_name + ">> not successfull,\n error: " + resp.message
+				rospy.logerr(message)
+				ah.set_failed(10, message)
+				return ah
 
-		# full success
-		rospy.loginfo("...<<%s>> is <<%s>>", component_name, service_name)
-		ah.set_succeeded() # full success
+			# full success
+			rospy.loginfo("...<<%s>> is <<%s>>", component_name, service_name)
+			ah.set_succeeded() # full success
 		return ah
 
 #------------------- Move section -------------------#
