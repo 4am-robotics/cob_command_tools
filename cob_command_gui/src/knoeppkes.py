@@ -102,7 +102,24 @@ def start(func, args):
         largs.append("diff")
     #print "Args", tuple(largs)
     #print "func ", func
-    thread.start_new_thread(func,tuple(largs))
+    thread.start_new_thread(func,tuple(largs))  # exits silently without evaluating result
+
+## use this function in order to evaluate result of action_handle, i.e. show pop-up or similar
+def call_thread(func,args):
+  result = func(*args)
+  if not result.success:    # action_handle returns with failure
+    result_dialog = gtk.MessageDialog(None, 0, gtk.MESSAGE_ERROR,
+                                               gtk.BUTTONS_OK,
+                                               "Executing " + func.__name__ + "(" + args[0] + ") failed!")
+    gtk.gdk.threads_enter()
+    result_dialog.format_secondary_text(result.message)
+    gtk.gdk.threads_leave()
+    gtk.gdk.threads_enter()
+    result_dialog.run()
+    gtk.gdk.threads_leave()
+    gtk.gdk.threads_enter()
+    result_dialog.destroy()
+    gtk.gdk.threads_leave()
 
 def startGTK(widget, data):
   data()
@@ -284,10 +301,10 @@ class Knoeppkes():
     gtk.gdk.threads_leave()
 
 def signal_handler(signal, frame):
-#  print 'You pressed Ctrl+C!'
+  #print 'You pressed Ctrl+C!'
   gtk.main_quit()
 
 if __name__ == "__main__":
-	signal.signal(signal.SIGINT, signal_handler)
-	app = Knoeppkes()
+  signal.signal(signal.SIGINT, signal_handler)
+  app = Knoeppkes()
 
