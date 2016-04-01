@@ -5,8 +5,8 @@ Changelog for package cob_monitoring
 0.5.3 (2014-03-28)
 ------------------
 
-Forthcoming
------------
+0.6.4 (2016-04-01)
+------------------
 * stop charging mode if no more power_state msgs received
 * fix node and class name
 * fix emergency_stop_monitor
