@@ -2,6 +2,11 @@
 Changelog for package cob_dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* use aggregated power message
+* Contributors: ipa-fmw
+
 0.6.3 (2015-08-25)
 ------------------
 * remove trailing whitespaces
