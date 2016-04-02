@@ -2,6 +2,32 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.4 (2016-04-01)
+------------------
+* undo pop-up related changes
+* indentation fixes
+* more verbose action_handle (takes an additional string in set_failed())
+  more consistent usage of action_handle throughout code
+* cleanup action_handle
+* parameter for enabling sound and light
+* allow passing of component_name to sss.say
+* use modes definition instead of magic numbers
+* Merge branch 'indigo_dev' into fix/refactor_light
+  Conflicts:
+  cob_teleop/ros/src/cob_teleop.cpp
+* reduce timeout for all wait_for_server calls
+* fixes due to cob_light changes
+* shorten timeout
+* fix CMakeLists.txt
+* add dependency to actionlib
+* fix ScriptAction include in cob_teleop
+* fix sss error handling for light
+* Merge branch 'fix_teleop' into fix_sss
+* set zero velocity and acceleration for all trajectory points
+* fix actionhandle for trigger
+* deleted script_server tests from launch file
+* Contributors: Benjamin Maidel, Florian Köhler, Florian Weisshardt, ipa-cob4-2, ipa-fmw, ipa-fxm
+
 0.6.3 (2015-08-25)
 ------------------
 * do not install headers in executable-only packages

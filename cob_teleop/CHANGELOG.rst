@@ -2,6 +2,42 @@
 Changelog for package cob_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.4 (2016-04-01)
+------------------
+* reduce terminal output
+* changes for new message structure and concurrent mode
+* compile fixes because of changes in cob_light
+* swap say-setLight execution order2
+* introduce enable params, styling, consistency, beautifying
+* add catkin include dirs
+* adapt twist_mux topic names according to https://github.com/ipa320/orga/pull/1#issuecomment-159195427
+* added apply_ramp parameter to switch velocity smoothing on teleop side on and off (if velocity_smoother is active teleop do not need to smooth)
+* changed keyboard default topic to twist_mux input
+* Merge branch 'fix_teleop' of https://github.com/ipa-fmw/cob_command_tools into fix_teleop
+* announce 'go' after init all
+* tabs vs. spaces
+* replace string before passing to say
+* change speach output
+* enable speach for default position mode
+* cob_teleop: disable light, encapsulate say and use deadman button to enable mode switch
+* Fix typo
+* added tag exported targets
+* deleted config folder
+* change frequencies
+* removed configuration files
+* use light action server
+* first robot test
+* global ns for actions
+* cob_teleop review
+* updated package.axml and CMakeLists
+* fisrt testable version
+* adapt the node for other robots
+* beautify
+* update
+* update
+* new node
+* Contributors: Benjamin Maidel, Florian Weisshardt, Marco Bezzon, ipa-fmw, ipa-fxm, ipa-nhg
+
 0.6.3 (2015-08-25)
 ------------------
 * boost revision
