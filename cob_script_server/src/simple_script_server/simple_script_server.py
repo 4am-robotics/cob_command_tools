@@ -1247,7 +1247,10 @@ class action_handle:
 				if logging:
 					rospy.loginfo("Wait for <<%s>> reached <<%s>> (max %f secs)...",self.component_name, self.parameter_name,duration)
 				if not self.client.wait_for_result(rospy.Duration(duration)):
-					message = "Timeout while waiting for <<" + self.component_name +">> to reach <<" + self.parameter_name + ">>. Continuing..."
+					if type(self.parameter_name) is types.StringType:
+						message = "Timeout while waiting for <<" + self.component_name +">> to reach <<" + self.parameter_name + ">>. Continuing..."
+					else:
+						message = "Timeout while waiting for <<" + self.component_name +">>. Continuing..."
 					if logging:
 						rospy.logerr(message)
 					self.set_failed(10, message)
@@ -1264,7 +1267,10 @@ class action_handle:
 			if logging:
 				rospy.loginfo("...<<%s>> reached <<%s>>",self.component_name, self.parameter_name)
 		else:
-			message = "Execution of <<" + self.component_name + ">> to <<" + self.parameter_name + ">> was aborted, wait not possible. Continuing..."
+			if type(self.parameter_name) is types.StringType:
+				message = "Execution of <<" + self.component_name + ">> to <<" + self.parameter_name + ">> was aborted, wait not possible. Continuing..."
+			else:
+				message = "Execution of <<" + self.component_name + ">> was aborted, wait not possible. Continuing..."
 			rospy.logwarn(message)
 			self.set_failed(self.error_code, message)
 			return
