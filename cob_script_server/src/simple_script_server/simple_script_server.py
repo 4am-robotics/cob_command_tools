@@ -1247,7 +1247,7 @@ class action_handle:
 				if logging:
 					rospy.loginfo("Wait for <<%s>> reached <<%s>> (max %f secs)...",self.component_name, self.parameter_name,duration)
 				if not self.client.wait_for_result(rospy.Duration(duration)):
-					message = "Timeout while waiting for <<%s>> to reach <<%s>>Continuing..."%(self.component_name, self.parameter_name)
+					message = "Timeout while waiting for <<%s>> to reach <<%s>>. Continuing..."%(self.component_name, self.parameter_name)
 					if logging:
 						rospy.logerr(message)
 					self.set_failed(10, message)
