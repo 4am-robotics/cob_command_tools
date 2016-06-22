@@ -79,6 +79,7 @@ class battery_monitor():
         self.temperature = 0.0
         self.is_charging = False
         self.topic_name = 'power_state'
+        self.mode = LightMode()
 
         self.threshold_warning = rospy.get_param("~threshold_warning", 20.0) # % of battery level
         self.threshold_error = rospy.get_param("~threshold_error", 10.0)     # % of battery level
