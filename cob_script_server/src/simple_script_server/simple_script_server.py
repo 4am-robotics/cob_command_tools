@@ -1263,7 +1263,7 @@ class action_handle:
 			if logging:
 				rospy.loginfo("...<<%s>> reached <<%s>>",self.component_name, self.parameter_name)
 		else:
-			message = "Execution of  <<%s>> to <<%s>> was aborted, wait not possible. Continuing..."%(self.component_name, self.parameter_name)
+			message = "Execution of <<%s>> to <<%s>> was aborted, wait not possible. Continuing..."%(self.component_name, self.parameter_name)
 			rospy.logwarn(message)
 			self.set_failed(self.error_code, message)
 			return
