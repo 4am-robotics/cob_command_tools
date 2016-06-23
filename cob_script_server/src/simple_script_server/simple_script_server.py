@@ -1255,16 +1255,15 @@ class action_handle:
 			# check state of action server
 			#print self.client.get_state()
 			if self.client.get_state() != 3:
-				message = "...<<" + self.component_name + ">> could not reach <<" + self.parameter_name + ">>, aborting..."
+				message = "...<<%s>> could not reach <<%s>>, aborting..."%(self.component_name, self.parameter_name)
 				if logging:
 					rospy.logerr(message)
 				self.set_failed(11, message)
 				return
-
 			if logging:
 				rospy.loginfo("...<<%s>> reached <<%s>>",self.component_name, self.parameter_name)
 		else:
-			message = "Execution of <<" + self.component_name + ">> to <<" + self.parameter_name + ">> was aborted, wait not possible. Continuing..."
+			message = "Execution of <<%s>> to <<%s>> was aborted, wait not possible. Continuing..."%(self.component_name, self.parameter_name)
 			rospy.logwarn(message)
 			self.set_failed(self.error_code, message)
 			return
