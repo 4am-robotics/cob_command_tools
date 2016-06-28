@@ -82,6 +82,7 @@ public:
   {
     std::string key;
     std::string twist_topic_name;
+    std::string twist_safety_topic_name;
     std::string vel_group_topic_name;
     std::string sss_default_target;
     std::vector<double> joint_velocity;
@@ -89,6 +90,7 @@ public:
     std::vector<double> twist_max_acc; //max_ax_, max_ay_, max_arotz_
     ros::Publisher vel_group_controller_publisher_;
     ros::Publisher twist_controller_publisher_;
+    ros::Publisher twist_safety_controller_publisher_;
   };
 
   std::map<std::string,component_config> component_config_;
@@ -112,6 +114,7 @@ public:
   int safety_button_;
   int init_button_;
   bool joy_active_;
+  bool safe_mode_;
   double run_factor_, run_factor_param_;
   int joy_num_modes_;
   int mode_switch_button_;
@@ -184,6 +187,16 @@ void CobTeleop::getConfigurationFromParameters()
             ROS_DEBUG("twist_topic_name found = %s",s.c_str());
             tempComponent.twist_topic_name = s;
             tempComponent.twist_controller_publisher_ = n_.advertise<geometry_msgs::Twist>((s),1);
+          }
+          if(par_name.compare("twist_safety_topic_name")==0)
+          {
+            ROS_DEBUG("twist saftey topic name found");
+            XmlRpc::XmlRpcValue twist_safety_topic_name= ps->second;
+            ROS_ASSERT(twist_safety_topic_name.getType() == XmlRpc::XmlRpcValue::TypeString);
+            std::string s((std::string)twist_safety_topic_name);
+            ROS_DEBUG("twist_safety_topic_name found = %s",s.c_str());
+            tempComponent.twist_safety_topic_name = s;
+            tempComponent.twist_safety_controller_publisher_ = n_.advertise<geometry_msgs::Twist>((s),1);
           }
           else if(par_name.compare("velocity_topic_name")==0)
           {
@@ -366,7 +379,14 @@ void CobTeleop::updateBase()
       base_cmd.linear.x = vel_base_[0];
       base_cmd.linear.y = vel_base_[1];
       base_cmd.angular.z = vel_base_[2];
-      component_config_["base"].twist_controller_publisher_.publish(base_cmd);
+      if (safe_mode_)
+      {
+        component_config_["base"].twist_safety_controller_publisher_.publish(base_cmd);
+      }
+      else
+      {
+        component_config_["base"].twist_controller_publisher_.publish(base_cmd);
+      }
     }
   }
 }
@@ -428,6 +448,14 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
   {
     ROS_INFO("Switch mode button pressed");
     switch_mode();
+  }
+
+  if(safety_button_>=0 && safety_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[safety_button_]==1)
+  {
+    safe_mode_ = false;
+  }else
+  {
+    safe_mode_ = true;
   }
 
   if(run_button_>=0 && run_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[run_button_]==1)
@@ -738,6 +766,7 @@ void CobTeleop::init()
   mode_ = 1;
   LEDS_=led_mode_[mode_];
   joy_active_ = false;
+  safe_mode_ = true;
 }
 
 

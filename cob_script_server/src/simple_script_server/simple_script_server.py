@@ -652,13 +652,13 @@ class simple_script_server:
 			return ah
 		max_rel_trans_step = 1.0 # [m]
 		max_rel_rot_step = math.pi/2 # [rad]
-		if math.sqrt(parameter_name[0]**2 + parameter_name[1]**2) >= max_rel_trans_step:
-			message = "Parameter " + parameter_name + " exceeds maximal relative translation step (" + str(max_rel_trans_step) + "), aborting move_base_rel"
+		if math.sqrt(parameter_name[0]**2 + parameter_name[1]**2) > max_rel_trans_step:
+			message = "Parameter " + str(parameter_name) + " exceeds maximal relative translation step (" + str(max_rel_trans_step) + "), aborting move_base_rel"
 			rospy.logerr(message)
 			ah.set_failed(3, message)
 			return(ah)
-		if abs(parameter_name[2]) >= max_rel_rot_step:
-			message = "Parameter " + parameter_name + " exceeds maximal relative rotation step (" + str(max_rel_rot_step) + "), aborting move_base_rel"
+		if abs(parameter_name[2]) > max_rel_rot_step:
+			message = "Parameter " + str(parameter_name) + " exceeds maximal relative rotation step (" + str(max_rel_rot_step) + "), aborting move_base_rel"
 			rospy.logerr(message)
 			ah.set_failed(3, message)
 			return(ah)
@@ -1247,7 +1247,7 @@ class action_handle:
 				if logging:
 					rospy.loginfo("Wait for <<%s>> reached <<%s>> (max %f secs)...",self.component_name, self.parameter_name,duration)
 				if not self.client.wait_for_result(rospy.Duration(duration)):
-					message = "Timeout while waiting for <<" + self.component_name +">> to reach <<" + self.parameter_name + ">>. Continuing..."
+					message = "Timeout while waiting for <<%s>> to reach <<%s>>. Continuing..."%(self.component_name, self.parameter_name)
 					if logging:
 						rospy.logerr(message)
 					self.set_failed(10, message)
@@ -1255,16 +1255,15 @@ class action_handle:
 			# check state of action server
 			#print self.client.get_state()
 			if self.client.get_state() != 3:
-				message = "...<<" + self.component_name + ">> could not reach <<" + self.parameter_name + ">>, aborting..."
+				message = "...<<%s>> could not reach <<%s>>, aborting..."%(self.component_name, self.parameter_name)
 				if logging:
 					rospy.logerr(message)
 				self.set_failed(11, message)
 				return
-
 			if logging:
 				rospy.loginfo("...<<%s>> reached <<%s>>",self.component_name, self.parameter_name)
 		else:
-			message = "Execution of <<" + self.component_name + ">> to <<" + self.parameter_name + ">> was aborted, wait not possible. Continuing..."
+			message = "Execution of <<%s>> to <<%s>> was aborted, wait not possible. Continuing..."%(self.component_name, self.parameter_name)
 			rospy.logwarn(message)
 			self.set_failed(self.error_code, message)
 			return
