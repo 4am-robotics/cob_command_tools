@@ -295,14 +295,14 @@ def check_uptime(load1_threshold, load5_threshold):
             return DiagnosticStatus.ERROR, vals
 
         upvals = stdout.split()
-        load1 = upvals[-3].rstrip(',')
-        load5 = upvals[-2].rstrip(',')
-        load15 = upvals[-1]
+        load1 = upvals[-3].rstrip(',').replace(',', '.')
+        load5 = upvals[-2].rstrip(',').replace(',', '.')
+        load15 = upvals[-1].replace(',', '.')
         num_users = upvals[-7]
 
         # Give warning if we go over load limit
-        #if float(load1) > load1_threshold or float(load5) > load5_threshold:
-        #    level = DiagnosticStatus.WARN
+        if float(load1) > load1_threshold or float(load5) > load5_threshold:
+            level = DiagnosticStatus.WARN
 
         vals.append(KeyValue(key = 'Load Average Status', value = load_dict[level]))
         vals.append(KeyValue(key = '1 min Load Average', value = load1))
