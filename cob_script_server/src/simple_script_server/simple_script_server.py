@@ -76,6 +76,7 @@ import actionlib
 # msg imports
 from std_msgs.msg import String,ColorRGBA
 from std_srvs.srv import Trigger
+from sensor_msgs.msg import JointState
 from geometry_msgs.msg import *
 from trajectory_msgs.msg import *
 from move_base_msgs.msg import *
@@ -520,7 +521,7 @@ class simple_script_server:
 		# get current pos
 		timeout = 3.0
 		try:
-			start_pos = rospy.wait_for_message("/" + component_name + "/joint_trajectory_controller/state", JointTrajectoryControllerState, timeout = timeout).actual.positions
+			start_pos = rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout = timeout).position
 		except rospy.ROSException as e:
 			rospy.logwarn("no joint states received from %s within timeout of %ssec. using default point time of 8sec.", component_name, str(timeout))
 			start_pos = []
