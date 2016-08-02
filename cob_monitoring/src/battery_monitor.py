@@ -96,7 +96,7 @@ class battery_monitor():
             for component in self.light_components:
                 self.track_id_light[component] = None
             self.mode = LightMode()
-            self.mode.priority = 2
+            self.mode.priority = 8
 
         self.enable_sound = rospy.get_param("~enable_sound", True)
         self.sound_components = {}
