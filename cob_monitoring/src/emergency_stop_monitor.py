@@ -74,8 +74,7 @@ class emergency_stop_monitor():
 				self.diag_status = -1
 				self.motion_status = -1
 			elif msg.emergency_state == 1: # em stop
-				if(self.enable_light):
-					self.set_light(self.color_error)
+				self.set_light(self.color_error)
 				if msg.scanner_stop and not msg.emergency_button_stop:
 					self.say("laser emergency stop issued")
 				elif not msg.scanner_stop and msg.emergency_button_stop:
@@ -83,13 +82,11 @@ class emergency_stop_monitor():
 				else:
 					self.say("emergency stop issued")
 			elif msg.emergency_state == 2: # release
-				if(self.enable_light):
-					self.set_light(self.color_warn)
+				self.set_light(self.color_warn)
 				self.say("emergency stop acknowledged")
 			else:
 				rospy.logerr("Unknown emergency status issued: %s",str(msg.emergency_state))
-				if(self.enable_light):
-					self.set_light(self.color_error)
+				self.set_light(self.color_error)
 				self.say("Unknown emergency status issued")
 
 
@@ -107,8 +104,7 @@ class emergency_stop_monitor():
 				self.stop_light()
 				self.motion_status = -1
 			else:								# warning or error
-				if(self.enable_light):
-					self.set_light(self.color_warn)
+				self.set_light(self.color_warn)
 
 
 	## Motion Monitoring
