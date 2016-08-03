@@ -27,11 +27,13 @@ class emergency_stop_monitor():
 				rospy.logwarn("parameter light_components does not exist on ROS Parameter Server, aborting...")
 				sys.exit(1)
 			self.light_components = rospy.get_param("~light_components")
-			self.color_error = rospy.get_param("~color_error","red")
-			self.color_warn = rospy.get_param("~color_warn","yellow")
-			self.color_ok = rospy.get_param("~color_ok","green")
-			self.color_off = rospy.get_param("~color_off","black")
-		
+
+		# set colors (also neccessary if self.enable_light is false)
+		self.color_error = rospy.get_param("~color_error","red")
+		self.color_warn = rospy.get_param("~color_warn","yellow")
+		self.color_ok = rospy.get_param("~color_ok","green")
+		self.color_off = rospy.get_param("~color_off","black")
+
 		if(self.enable_sound):
 			if not rospy.has_param("~sound_components"):
 				rospy.logwarn("parameter sound_components does not exist on ROS Parameter Server, aborting...")
