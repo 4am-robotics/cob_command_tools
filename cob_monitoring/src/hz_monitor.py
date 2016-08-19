@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 
 import sys
-import threading
-import time
-import math
 
 import rospy
 import rostopic
 
-from threading import Thread
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 class HzTest():
@@ -32,7 +28,7 @@ class HzTest():
         except KeyError as e:
             rospy.logerr('hztest not initialized properly. Parameter [%s] not set. debug[%s] debug[%s]'%(str(e), rospy.get_caller_id(), rospy.resolve_name(e.args[0])))
             sys.exit(1)
-            
+
         self.pub_diagnostics = rospy.Publisher('~diagnostics', DiagnosticArray, queue_size = 1)
 
     def run(self):
@@ -46,10 +42,10 @@ class HzTest():
             rospy.loginfo("hz monitor is waiting for first message to be published on %s."%self.topic)
             self.publish_diagnostics()
             r.sleep()
-        
+
         # call rostopic hz
         rt = rostopic.ROSTopicHz(self.window_size)
-        sub = rospy.Subscriber(real_topic, rospy.AnyMsg, rt.callback_hz)
+        rospy.Subscriber(real_topic, rospy.AnyMsg, rt.callback_hz)
         print("subscribed to [%s]"%real_topic)
 
         # publish diagnostics continuously
@@ -62,7 +58,7 @@ class HzTest():
     def publish_diagnostics(self, rt = None):
         # set desired rates
         if self.hzerror:
-            if type(self.hzerror) == float or type(self.hzerror) == int:
+            if isinstance(self.hzerror, float) or isinstance(self.hzerror, int):
                 min_rate = self.hz - self.hzerror
                 max_rate = self.hz + self.hzerror
             else:
