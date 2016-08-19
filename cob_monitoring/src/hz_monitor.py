@@ -21,7 +21,7 @@ class HzTest():
             # margin of error allowed
             self.hzerror = rospy.get_param('~hzerror', None)
             # length of test
-            self.window_size = float(rospy.get_param('~window_size', -1))
+            self.window_size = float(rospy.get_param('~window_size', 100))
             # name for diagnostic message
             self.diagnostic_name = rospy.get_param('~diagnostic_name', "hz_monitor_" + self.topic)
             self.diagnostic_name = self.diagnostic_name.replace('/','_')
@@ -54,7 +54,7 @@ class HzTest():
             #rt.print_hz() # taken from 'rostopic hz' (/opt/ros/indigo/lib/python2.7/dist-packages/rostopic/__init__.py)
             self.publish_diagnostics(rt)
             r.sleep()
-    
+
     def publish_diagnostics(self, rt = None):
         # set desired rates
         if self.hzerror:
@@ -91,10 +91,10 @@ class HzTest():
                 rt.last_printed_tn = rt.msg_tn
             hz_status.values.append(KeyValue("rate", str(rate)))
             if min_rate and rate < min_rate:
-                hz_status.level = DiagnosticStatus.OK
+                hz_status.level = DiagnosticStatus.WARN
                 hz_status.message = 'publishing rate is too low'
             elif max_rate and rate > max_rate:
-                hz_status.level = DiagnosticStatus.OK
+                hz_status.level = DiagnosticStatus.WARN
                 hz_status.message = 'publishing rate is too high'
             else:
                 hz_status.level = DiagnosticStatus.OK
@@ -110,4 +110,3 @@ class HzTest():
 if __name__ == '__main__':
     hzt = HzTest()
     hzt.run()
-        
