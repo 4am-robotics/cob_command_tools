@@ -68,6 +68,8 @@ usage_dict = { 0: 'OK', 1: 'Low Disk Space', 2: 'Very Low Disk Space' }
 REMOVABLE = ['/dev/sg1', '/dev/sdb'] # Store removable drives so we can ignore if removed
 
 ## Connects to hddtemp daemon to get temp, HD make.
+####### The code segments related to HDD temperature statistics has been commented out #########
+'''
 def get_hddtemp_data(hostname = 'localhost', port = 7634):
     try:
         hd_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -109,7 +111,7 @@ def get_hddtemp_data(hostname = 'localhost', port = 7634):
     except:
         rospy.logerr(traceback.format_exc())
         return False, [ 'Exception' ], [ traceback.format_exc() ], [ 0 ]
-
+'''
 def update_status_stale(stat, last_update_time):
     time_since_update = rospy.get_time() - last_update_time
 
@@ -153,6 +155,7 @@ class hd_monitor():
         self._temp_timer = None
         self._usage_timer = None
 
+        '''
         self._temp_stat = DiagnosticStatus()
         self._temp_stat.name = "%s HD Temperature" % diag_hostname
         self._temp_stat.level = DiagnosticStatus.ERROR
@@ -160,6 +163,7 @@ class hd_monitor():
         self._temp_stat.message = 'No Data'
         self._temp_stat.values = [ KeyValue(key = 'Update Status', value = 'No Data'),
                                    KeyValue(key = 'Time Since Last Update', value = 'N/A') ]
+        '''
 
         if self._home_dir != '':
             self._usage_stat = DiagnosticStatus()
@@ -170,18 +174,19 @@ class hd_monitor():
                                         KeyValue(key = 'Time Since Last Update', value = 'N/A') ]
             self.check_disk_usage()
 
-        self.check_temps()
+        #self.check_temps()
 
     ## Must have the lock to cancel everything
     def cancel_timers(self):
-        if self._temp_timer:
-            self._temp_timer.cancel()
-            self._temp_timer = None
+        #if self._temp_timer:
+        #    self._temp_timer.cancel()
+        #    self._temp_timer = None
 
         if self._usage_timer:
             self._usage_timer.cancel()
             self._usage_timer = None
-
+    
+    '''
     def check_temps(self):
         if rospy.is_shutdown():
             with self._mutex:
@@ -239,6 +244,7 @@ class hd_monitor():
                 self._temp_timer.start()
             else:
                 self.cancel_timers()
+    '''
 
     def check_disk_usage(self):
         if rospy.is_shutdown():
@@ -325,11 +331,11 @@ class hd_monitor():
 
     def publish_stats(self):
         with self._mutex:
-            update_status_stale(self._temp_stat, self._last_temp_time)
+            #update_status_stale(self._temp_stat, self._last_temp_time)
 
             msg = DiagnosticArray()
             msg.header.stamp = rospy.get_rostime()
-            msg.status.append(self._temp_stat)
+            #msg.status.append(self._temp_stat)
             if self._home_dir != '':
                 update_status_stale(self._usage_stat, self._last_usage_time)
                 msg.status.append(self._usage_stat)
@@ -347,24 +353,32 @@ if __name__ == '__main__':
     hostname = socket.gethostname()
 
     import optparse
-    parser = optparse.OptionParser(usage="usage: hd_monitor.py [--diag-hostname=cX]")
-    parser.add_option("--diag-hostname", dest="diag_hostname",
-                      help="Computer name in diagnostics output (ex: 'c1')",
+    parser = optparse.OptionParser(usage="usage: hd_monitor.py --diag-hostname=X --directory=/name_of_dir")
+    parser.add_option("--diag-hostname", 
+                      dest="diag_hostname",
+                      help="Computer name in diagnostics output (ex: 'b1' for the base PC, 'h32' for the head PC and so on)",
                       metavar="DIAG_HOSTNAME",
-                      action="store", default = hostname)
+                      action="store", 
+                      default=False)
+    parser.add_option("--directory", 
+                      dest="directory",
+                      help="Enter the directory name (ex: /directory/sub_directory)",
+                      metavar="DIR_NAME",
+                      default="/") ## taking the root directory as the default directory for checking HDD usage
     options, args = parser.parse_args(rospy.myargv())
-
-    home_dir = ''
-    if len(args) > 1:
-        home_dir = args[1]
+    if len(sys.argv[1:]) == 0:
+        parser.error("argument not found.")
 
     try:
-        rospy.init_node('hd_monitor_%s' % hostname)
+        ## the hostname consists of hiphens, 
+        ## replacing hiphens "-" with underscore "_", in order to have legal node name
+        node_name = ("hd_monitor_"+hostname).replace ("-", "_")
+        rospy.init_node(node_name)
     except rospy.exceptions.ROSInitException:
         print 'HD monitor is unable to initialize node. Master may not be running.'
         sys.exit(0)
 
-    hd_monitor = hd_monitor(hostname, options.diag_hostname, home_dir)
+    hd_monitor = hd_monitor(hostname, options.diag_hostname, options.directory)
     rate = rospy.Rate(1.0)
 
     try:
