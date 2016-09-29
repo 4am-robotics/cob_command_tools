@@ -15,7 +15,7 @@ class HzTest():
         # get parameters
         try:
             # topic to test
-            self.topic = rospy.get_param('~topic')
+            self.topics = rospy.get_param('~topics')
             # expected publishing rate
             self.hz = rospy.get_param('~hz', None)
             # margin of error allowed
@@ -23,7 +23,7 @@ class HzTest():
             # length of test
             self.window_size = float(rospy.get_param('~window_size', 100))
             # name for diagnostic message
-            self.diagnostic_name = rospy.get_param('~diagnostic_name', "hz_monitor_" + self.topic)
+            self.diagnostic_name = rospy.get_param('~diagnostic_name')
             self.diagnostic_name = self.diagnostic_name.replace('/','_')
         except KeyError as e:
             rospy.logerr('hztest not initialized properly. Parameter [%s] not set. debug[%s] debug[%s]'%(str(e), rospy.get_caller_id(), rospy.resolve_name(e.args[0])))
@@ -36,17 +36,21 @@ class HzTest():
 
         # wait for first message
         while not rospy.is_shutdown():
-            msg_class, real_topic, _ = rostopic.get_topic_class(self.topic, blocking=False) #pause hz until topic is published
-            if real_topic:
-                break
-            rospy.loginfo("hz monitor is waiting for first message to be published on %s."%self.topic)
-            self.publish_diagnostics()
-            r.sleep()
+            real_topic_store = []
+            for topic in self.topics:
+                msg_class, real_topic, _ = rostopic.get_topic_class(topic, blocking=False) #pause hz until topic is published
+                if real_topic:
+                    real_topic_store.append(real_topic)
+                    break
+                rospy.loginfo("hz monitor is waiting for first message to be published on %s."%topic)
+                self.publish_diagnostics()
+                r.sleep()
 
         # call rostopic hz
         rt = rostopic.ROSTopicHz(self.window_size)
-        rospy.Subscriber(real_topic, rospy.AnyMsg, rt.callback_hz)
-        print("subscribed to [%s]"%real_topic)
+        for r_topic in real_topic_store:
+            rospy.Subscriber(r_topic, rospy.AnyMsg, rt.callback_hz)
+            print("subscribed to [%s]"%r_topic)
 
         # publish diagnostics continuously
 
@@ -72,7 +76,7 @@ class HzTest():
         array = DiagnosticArray()
         hz_status = DiagnosticStatus()
         hz_status.name = self.diagnostic_name
-        hz_status.values.append(KeyValue("topic", str(self.topic)))
+        hz_status.values.append(KeyValue("topic", str(self.topics)))
 
         # calculate actual rates
         if not rt or not rt.times:
