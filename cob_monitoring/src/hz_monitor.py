@@ -40,11 +40,13 @@ class HzTest():
             for topic in self.topics:
                 msg_class, real_topic, _ = rostopic.get_topic_class(topic, blocking=False) #pause hz until topic is published
                 if real_topic:
-                    real_topic_store.append(real_topic)
-                    break
-                rospy.loginfo("hz monitor is waiting for first message to be published on %s."%topic)
-                self.publish_diagnostics()
-                r.sleep()
+                    if real_topic not in real_topic_store:
+                        real_topic_store.append(real_topic)
+            if len(real_topic_store) == len(self.topics):
+                break
+            rospy.loginfo("hz monitor is waiting for first message to be published on %s."%topic)
+            self.publish_diagnostics()
+            r.sleep()
 
         # call rostopic hz
         rt = rostopic.ROSTopicHz(self.window_size)
