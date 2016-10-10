@@ -16,6 +16,20 @@ Changelog for package cob_dashboard
 * critically review dependencies
 * Contributors: ipa-fxm
 
+Forthcoming
+-----------
+* 0.6.4
+* update changelog
+* use aggregated power message
+* 0.6.3
+* update changelog
+* remove trailing whitespaces
+* remove trailing whitespaces
+* migrate to package format 2
+* sort dependencies
+* critically review dependencies
+* Contributors: ipa-fmw, ipa-fxm
+
 0.6.2 (2015-06-17)
 ------------------
 * minor fix
