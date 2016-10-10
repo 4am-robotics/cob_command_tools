@@ -16,8 +16,8 @@ Changelog for package cob_dashboard
 * critically review dependencies
 * Contributors: ipa-fxm
 
-Forthcoming
------------
+0.6.5 (2016-10-10)
+------------------
 * 0.6.4
 * update changelog
 * use aggregated power message

@@ -51,8 +51,8 @@ Changelog for package cob_teleop
 * sort dependencies
 * Contributors: ipa-fxm
 
-Forthcoming
------------
+0.6.5 (2016-10-10)
+------------------
 * add safe mode for teleop
 * 0.6.4
 * fix version

@@ -48,8 +48,8 @@ Changelog for package cob_script_server
 * play sound
 * Contributors: Florian Weisshardt, ipa-fxm, ipa-nhg
 
-Forthcoming
------------
+0.6.5 (2016-10-10)
+------------------
 * use joint_states instead of controller_state
 * Removed an extra space
 * Removed a comma

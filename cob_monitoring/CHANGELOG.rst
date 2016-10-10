@@ -45,8 +45,8 @@ Changelog for package cob_monitoring
 * critically review dependencies
 * Contributors: ipa-fxm
 
-Forthcoming
------------
+0.6.5 (2016-10-10)
+------------------
 * fix diagnostics output
 * - Made changes to handle HZ monitoring for multiple topics.
 * - Minor fix for publishing multiple topics.
