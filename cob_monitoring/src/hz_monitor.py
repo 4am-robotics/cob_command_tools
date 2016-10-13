@@ -25,6 +25,10 @@ class HzTest():
             # name for diagnostic message
             self.diagnostics_name = rospy.get_param('~diagnostics_name')
             self.diagnostics_name = self.diagnostics_name.replace('/','_')
+            # sampling rate
+            self.sampling_rate = rospy.get_param('~sampling_rate', 1)
+            if self.hz < 2*self.sampling_rate:
+                rospy.logwarn("sampling_rate is probably to low: desired hz rate should at least be double the sampling_rate. (desired hz rate: %.2f, sampling_rate: %.2f)",self.hz, self.sampling_rate)
         except KeyError as e:
             rospy.logerr('hztest not initialized properly. Parameter [%s] not set. debug[%s] debug[%s]'%(str(e), rospy.get_caller_id(), rospy.resolve_name(e.args[0])))
             sys.exit(1)
@@ -33,7 +37,7 @@ class HzTest():
         self.missing_topics = copy.deepcopy(self.topics)
 
     def run(self):
-        r = rospy.Rate(1)
+        r = rospy.Rate(self.sampling_rate)
 
         # wait for first message
         while not rospy.is_shutdown():
