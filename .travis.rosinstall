@@ -1,12 +1,12 @@
 - git:
     uri: 'https://github.com/ipa320/cob_common.git'
     local-name: cob_common
-    version: indigo_dev
+    version: kinetic_dev
 - git:
     uri: 'https://github.com/ipa320/cob_driver.git'
     local-name: cob_driver
-    version: indigo_dev
+    version: kinetic_dev
 - git:
     uri: 'https://github.com/ipa320/cob_extern.git'
     local-name: cob_extern
-    version: indigo_dev
+    version: kinetic_dev
