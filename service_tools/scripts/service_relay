@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+
+import rospy
+import rosservice
+
+if __name__ == "__main__":
+    argv = rospy.myargv()
+    if len(argv) != 3:
+        rospy.logerr("service_relay IN OUT")
+
+    rospy.init_node("service_relay")
+
+    local_name, remote_name = argv[1], argv[2]
+
+    rospy.wait_for_service(remote_name)
+    srv_def = rosservice.get_service_class_by_name(remote_name)
+    remote = rospy.ServiceProxy(remote_name, srv_def)
+
+    local = rospy.Service(local_name,srv_def, remote.call)
+    rospy.loginfo("Started relay from %s to %s (%s)" % (local_name, remote_name, srv_def._type))
+    rospy.spin()
