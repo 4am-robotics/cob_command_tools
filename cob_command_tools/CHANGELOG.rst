@@ -2,23 +2,14 @@
 Changelog for package cob_command_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.5 (2016-10-10)
+------------------
+
 0.6.4 (2016-04-01)
 ------------------
 
 0.6.3 (2015-08-25)
 ------------------
-* remove trailing whitespaces
-* migrate to package format 2
-* sort dependencies
-* critically review dependencies
-* Contributors: ipa-fxm
-
-0.6.5 (2016-10-10)
-------------------
-* 0.6.4
-* update changelog
-* 0.6.3
-* update changelog
 * remove trailing whitespaces
 * migrate to package format 2
 * sort dependencies
