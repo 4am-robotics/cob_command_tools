@@ -2,6 +2,17 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.5 (2016-10-10)
+------------------
+* use joint_states instead of controller_state
+* Removed an extra space
+* Removed a comma
+* fixed more concatenate messages errors
+* Update log message
+* Fix concatenate error
+* fix error message for move_base_rel
+* Contributors: Florian Weisshardt, Nadia Hammoudeh García, ipa-cob4-5, ipa-fmw, ipa-nhg
+
 0.6.4 (2016-04-01)
 ------------------
 * undo pop-up related changes

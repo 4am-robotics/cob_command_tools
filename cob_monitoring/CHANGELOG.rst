@@ -2,8 +2,24 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.5.3 (2014-03-28)
+0.6.5 (2016-10-10)
 ------------------
+* fix diagnostics output
+* - Made changes to handle HZ monitoring for multiple topics.
+* - Minor fix for publishing multiple topics.
+* - Made changes for handling multiple hz topics.
+* - Completely commented out the code segments for HDD temperature statistics.
+  - Added cla for providing directory name, default is root directory.
+* use reasonable default window size and fix status level
+* fix code style
+* add hz monitor
+* simplify emergency_stop monitor
+* fix emergency_stop monitor for enable_light set to false
+* enable cpu warnings in diagnostics
+* increased battery_monitors led prio
+* check if light is enabled
+* init light mode object
+* Contributors: Benjamin Maidel, Florian Weisshardt, fmw-hb, fmw-ss, ipa-cob4-5, ipa-nhg, msh
 
 0.6.4 (2016-04-01)
 ------------------
