@@ -15,13 +15,23 @@ public:
     ros::NodeHandle nh;
   
     std::string hardware_id;
-    ros::param::get("~hardware_id", hardware_id);
     std::string topic_name;
-    ros::param::get("~topic_name", topic_name);
-    double min_freq;
-    ros::param::get("~min_freq", min_freq_);
+    //ros::param::get("~hardware_id", hardware_id);
+    //ros::param::get("~topic_name", topic_name);
+    //ros::param::get("~min_freq", min_freq_);
+    //ros::param::get("~max_freq", max_freq_);
 
-    ros::param::get("~max_freq", max_freq_);
+    std::vector<std::string> topics;
+    ros::param::get("~topics", topics);
+    topic_name = topics.front();
+    double hz, hzerror;
+    ros::param::get("~hz", hz);
+    ros::param::get("~hzerror", hzerror);
+    min_freq_ = hz-hzerror;
+    max_freq_ = hz+hzerror;
+    std::string diagnostic_name;
+    ros::param::get("~diagnostic_name", diagnostic_name);
+    hardware_id = diagnostic_name;
 
     diagnostic_updater_.setHardwareID(hardware_id);
 

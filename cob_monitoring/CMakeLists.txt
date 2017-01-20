@@ -5,6 +5,8 @@ find_package(catkin REQUIRED COMPONENTS roscpp diagnostic_updater topic_tools)
 
 catkin_package()
 
+include_directories(include ${catkin_INCLUDE_DIRS})
+
 add_executable(topic_status_monitor src/topic_status_monitor.cpp)
 target_link_libraries(topic_status_monitor ${catkin_LIBRARIES})
 
