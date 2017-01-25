@@ -75,4 +75,7 @@ if __name__ == "__main__":
   r = rospy.Rate(1)
   while not rospy.is_shutdown():
     da.publish()
-    r.sleep()
+    try:
+        r.sleep()
+    except rospy.exceptions.ROSInterruptException as e:
+        pass

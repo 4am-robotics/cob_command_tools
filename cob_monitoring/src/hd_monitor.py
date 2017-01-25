@@ -375,7 +375,7 @@ if __name__ == '__main__':
         node_name = ("hd_monitor_"+hostname).replace ("-", "_")
         rospy.init_node(node_name)
     except rospy.exceptions.ROSInitException:
-        print 'HD monitor is unable to initialize node. Master may not be running.'
+        print('HD monitor is unable to initialize node. Master may not be running.', file=sys.stderr)
         sys.exit(0)
 
     hd_monitor = hd_monitor(hostname, options.diag_hostname, options.directory)

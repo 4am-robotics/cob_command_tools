@@ -128,7 +128,7 @@ if __name__ == '__main__':
     try:
         rospy.init_node('ddwrt_diag')
     except rospy.exceptions.ROSInitException:
-        print 'Wifi monitor is unable to initialize node. Master may not be running.'
+        print('Wifi monitor is unable to initialize node. Master may not be running.', file=sys.stderr)
         sys.exit(2)
 
     wifi_monitor = WifiMonitor()
