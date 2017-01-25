@@ -35,7 +35,7 @@
 ##\author Kevin Watts
 # This file has been copied from https://github.com/PR2/pr2_computer_monitor in order to support this feature for indigo indepenendly from PR2 dependencies
 
-from __future__ import with_statement
+from __future__ import with_statement, print_function
 
 import traceback
 import threading

@@ -64,6 +64,7 @@ import gtk
 import os
 import sys
 import signal
+from __future__ import print_function
 
 import rospy
 import roslib
