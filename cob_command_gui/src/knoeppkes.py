@@ -57,6 +57,8 @@
 #
 #################################################################
 
+from __future__ import print_function
+
 import thread
 import pygtk
 pygtk.require('2.0')
@@ -64,7 +66,6 @@ import gtk
 import os
 import sys
 import signal
-from __future__ import print_function
 
 import rospy
 import roslib
