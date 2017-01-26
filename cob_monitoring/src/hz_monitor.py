@@ -97,7 +97,6 @@ class HzTest():
         hz_status.values.append(KeyValue("min_rate", str(min_rate)))
         hz_status.values.append(KeyValue("max_rate", str(max_rate)))
         hz_status.values.append(KeyValue("window_size", str(self.window_size)))
-        publishing_rate_error = True
         publishing_rate_error = False
         rates = []
         
@@ -142,9 +141,8 @@ class HzTest():
                     publishing_rate_error = True
                     consolidated_error_messages["publishing rate is too high for topics"].append(topic)
                 else:
-                    if not publishing_rate_error:
-                        hz_status.level = DiagnosticStatus.OK
-                        hz_status.message = 'all publishing rates are ok'
+                    hz_status.level = DiagnosticStatus.OK
+                    hz_status.message = 'all publishing rates are ok'
 
         if publishing_rate_error:
             message = ""
