@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cob_helper_tools</name>
+  <version>0.6.5</version>
+  <description>Helper scripts for Care-O-bot</description>
+
+  <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
+  <author email="fxm@ipa.fhg.de">Felix Messmer</author>
+
+  <license>LGPL</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>cob_msgs</exec_depend>
+  <exec_depend>cob_script_server</exec_depend>
+  <exec_depend>diagnostic_msgs</exec_depend>
+  <exec_depend>rospy</exec_depend>
+
+</package>
