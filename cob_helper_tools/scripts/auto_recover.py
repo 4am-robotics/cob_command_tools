@@ -28,6 +28,10 @@ class AutoRecover():
     # call recover for all components
     for component in self.components:
       handle = sss.recover(component)
+      if not (handle.get_error_code() == 0):
+        rospy.logerr("[auto_recover]: Could not recover %s", component)
+      else:
+        rospy.loginfo("[auto_recover]: Component %s recovered successfully", component)
     self.last_time_recover = rospy.Time.now()
 
   # auto recover based on diagnostics
@@ -35,10 +39,10 @@ class AutoRecover():
     for status in msg.status:
       if status.level > 1: # only recover on error, not on warning status
         if "Actuators" in status.name and self.em_state == 0 and (rospy.Time.now() - self.last_time_recover) > rospy.Duration(10):
+          rospy.loginfo("auto_recover from diagnostic failure")
           self.recover()
 
 if __name__ == "__main__":
-
   rospy.init_node("auto_recover")
   AR = AutoRecover()
   rospy.loginfo("auto recover running")
