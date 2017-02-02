@@ -10,6 +10,6 @@ catkin_package()
 #############
 
 install(PROGRAMS
-  scripts/auto_recover.py
+  scripts/auto_init.py scripts/auto_recover.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
