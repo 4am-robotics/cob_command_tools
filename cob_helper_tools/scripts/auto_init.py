@@ -1,4 +1,30 @@
 #!/usr/bin/python
+#################################################################
+##\file
+#
+# \note
+#   Copyright (c) Felix Messmer \n
+#   Fraunhofer Institute for Manufacturing Engineering
+#   and Automation (IPA) \n
+#
+#   All rights reserved. \n\n
+#
+#################################################################
+#
+# \note
+#   Repository name: cob_command_tools
+# \note
+#   ROS package name: cob_helper_tools
+#
+# \author
+#   Author: Felix Messmer
+#
+# \date Date of creation: January 2017
+#
+# \brief
+#   A script to automatically initialize hardware on startup
+#
+#################################################################
 
 import rospy
 import tf
@@ -19,7 +45,7 @@ class AutoInit():
     for component in self.components:
       rospy.loginfo("[auto_init]: Waiting for %s to start...", component)
       rospy.wait_for_service("/" + component + "/driver/init")
-    
+
     # wait for emergency_stop to be released
     while not rospy.is_shutdown():
       if self.em_state == 1: # EMSTOP

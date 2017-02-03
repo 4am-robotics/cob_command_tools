@@ -1,4 +1,30 @@
 #!/usr/bin/python
+#################################################################
+##\file
+#
+# \note
+#   Copyright (c) Felix Messmer \n
+#   Fraunhofer Institute for Manufacturing Engineering
+#   and Automation (IPA) \n
+#
+#   All rights reserved. \n\n
+#
+#################################################################
+#
+# \note
+#   Repository name: cob_command_tools
+# \note
+#   ROS package name: cob_helper_tools
+#
+# \author
+#   Author: Felix Messmer
+#
+# \date Date of creation: January 2017
+#
+# \brief
+#   A script to automatically recover hardware after e-stop and HW failure
+#
+#################################################################
 
 import rospy
 
