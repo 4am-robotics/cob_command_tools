@@ -16,6 +16,7 @@
 
   <exec_depend>cob_command_gui</exec_depend>
   <exec_depend>cob_dashboard</exec_depend>
+  <exec_depend>cob_helper_tools</exec_depend>
   <exec_depend>cob_interactive_teleop</exec_depend>
   <exec_depend>cob_monitoring</exec_depend>
   <exec_depend>cob_script_server</exec_depend>
