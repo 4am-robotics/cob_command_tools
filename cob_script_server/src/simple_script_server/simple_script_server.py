@@ -568,7 +568,7 @@ class simple_script_server:
 	def calculate_point_time(self, component_name, start_pos, end_pos, default_vel):
 		try:
 			d_max = max(list(abs(numpy.array(start_pos) - numpy.array(end_pos))))
-			point_time = max(d_max / default_vel, 0.2)	# use minimal point_time
+			point_time = max(d_max / default_vel, 0.4)	# use minimal point_time
 		except ValueError as e:
 			print "Value Error", e
 			print "Likely due to mimic joints. Using default point_time: 3.0 [sec]"
