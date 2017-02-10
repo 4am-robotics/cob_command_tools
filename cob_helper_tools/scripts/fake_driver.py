@@ -28,6 +28,7 @@
 
 import rospy
 from std_srvs.srv import *
+from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 
 class FakeDriver():
 
@@ -36,6 +37,22 @@ class FakeDriver():
         self.recover_srv = rospy.Service('driver/recover', Trigger, self.srv_cb)
         self.halt_srv = rospy.Service('driver/halt', Trigger, self.srv_cb)
         self.shutdown_srv = rospy.Service('driver/shutdown', Trigger, self.srv_cb)
+
+        self._fake_diag_pub = rospy.Publisher('/diagnostics', DiagnosticArray, queue_size=1)
+        rospy.Timer(rospy.Duration(1.0), self.publish_diagnostics)
+
+    def publish_diagnostics(self, event):
+        msg = DiagnosticArray()
+        msg.header.stamp = rospy.get_rostime()
+
+        status = DiagnosticStatus()
+        status.name = rospy.get_name()
+        status.level = DiagnosticStatus.OK
+        status.message = "fake diagnostics"
+        status.hardware_id = rospy.get_name()
+        msg.status.append(status)
+
+        self._fake_diag_pub.publish(msg)
 
     def srv_cb(self, req):
         resp = TriggerResponse()
