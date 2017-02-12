@@ -45,6 +45,7 @@ from time import sleep
 import subprocess
 import string
 import socket
+import psutil
 
 import rospy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
@@ -534,7 +535,7 @@ class CPUMonitor():
         self._load1_threshold = rospy.get_param('~load1_threshold', 5.0)
         self._load5_threshold = rospy.get_param('~load5_threshold', 3.0)
 
-        self._num_cores = rospy.get_param('~num_cores', 8.0)
+        self._num_cores = rospy.get_param('~num_cores', psutil.NUM_CPUS)
 
         self._temps_timer = None
         self._usage_timer = None
