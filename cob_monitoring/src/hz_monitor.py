@@ -141,8 +141,9 @@ class HzTest():
                     publishing_rate_error = True
                     consolidated_error_messages["publishing rate is too high for topics"].append(topic)
                 else:
-                    hz_status.level = DiagnosticStatus.OK
-                    hz_status.message = 'all publishing rates are ok'
+                    if not publishing_rate_error:
+                        hz_status.level = DiagnosticStatus.OK
+                        hz_status.message = 'all publishing rates are ok'
 
         if publishing_rate_error:
             message = ""
