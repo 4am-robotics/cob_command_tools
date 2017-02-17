@@ -535,7 +535,10 @@ class CPUMonitor():
         self._load1_threshold = rospy.get_param('~load1_threshold', 5.0)
         self._load5_threshold = rospy.get_param('~load5_threshold', 3.0)
 
-        self._num_cores = rospy.get_param('~num_cores', psutil.NUM_CPUS)
+        if versiontuple(psutil.__version__) < versiontuple('2.0.0'):
+            self._num_cores = rospy.get_param('~num_cores', psutil.NUM_CPUS)
+        else:
+            self._num_cores = rospy.get_param('~num_cores', psutil.cpu_count())
 
         self._temps_timer = None
         self._usage_timer = None
