@@ -97,7 +97,6 @@ class HzTest():
         hz_status.values.append(KeyValue("min_rate", str(min_rate)))
         hz_status.values.append(KeyValue("max_rate", str(max_rate)))
         hz_status.values.append(KeyValue("window_size", str(self.window_size)))
-        publishing_rate_error = True
         publishing_rate_error = False
         rates = []
         
