@@ -2,6 +2,9 @@
 Changelog for package cob_command_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.5 (2016-10-10)
+------------------
+
 0.6.4 (2016-04-01)
 ------------------
 * undo pop-up related changes

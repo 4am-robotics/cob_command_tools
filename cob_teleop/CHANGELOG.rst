@@ -2,6 +2,11 @@
 Changelog for package cob_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.5 (2016-10-10)
+------------------
+* add safe mode for teleop
+* Contributors: Florian Weisshardt, ipa-fmw, ipa-nhg
+
 0.6.4 (2016-04-01)
 ------------------
 * reduce terminal output

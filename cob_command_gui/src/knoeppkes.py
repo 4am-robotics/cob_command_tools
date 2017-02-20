@@ -57,6 +57,8 @@
 #
 #################################################################
 
+from __future__ import print_function
+
 import thread
 import pygtk
 pygtk.require('2.0')
@@ -100,8 +102,8 @@ def start(func, args):
     if(largs[0] == "base"):
       if(base_diff_enabled):
         largs.append("diff")
-    #print "Args", tuple(largs)
-    #print "func ", func
+    #print("Args", tuple(largs))
+    #print("func ", func)
     thread.start_new_thread(func,tuple(largs))  # exits silently without evaluating result
 
 ## use this function in order to evaluate result of action_handle, i.e. show pop-up or similar
@@ -203,7 +205,7 @@ class GtkGeneralPanel(gtk.Frame):
 
   def setEMStop(self, em):
     if(em):
-      #print "Emergency Stop Active"
+      #print("Emergency Stop Active")
       gtk.threads_enter()
       self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/error.png")
       self.status_label.set_text("EM Stop !")
@@ -211,7 +213,7 @@ class GtkGeneralPanel(gtk.Frame):
       if(self.em_stop == False):
         self.em_stop = True
     else:
-      #print "Status OK"
+      #print("Status OK")
       self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/ok.png")
       gtk.threads_enter()
       self.status_label.set_text("Status OK")
@@ -301,7 +303,7 @@ class Knoeppkes():
     gtk.gdk.threads_leave()
 
 def signal_handler(signal, frame):
-  #print 'You pressed Ctrl+C!'
+  #print("You pressed Ctrl+C!")
   gtk.main_quit()
 
 if __name__ == "__main__":

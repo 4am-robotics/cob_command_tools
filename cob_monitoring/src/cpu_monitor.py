@@ -35,7 +35,7 @@
 ##\author Kevin Watts
 # This file has been copied from https://github.com/PR2/pr2_computer_monitor in order to support this feature for indigo indepenendly from PR2 dependencies
 
-from __future__ import with_statement
+from __future__ import with_statement, print_function
 
 import traceback
 import threading
@@ -45,6 +45,7 @@ from time import sleep
 import subprocess
 import string
 import socket
+import psutil
 
 import rospy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
@@ -534,7 +535,10 @@ class CPUMonitor():
         self._load1_threshold = rospy.get_param('~load1_threshold', 5.0)
         self._load5_threshold = rospy.get_param('~load5_threshold', 3.0)
 
-        self._num_cores = rospy.get_param('~num_cores', 8.0)
+        if versiontuple(psutil.__version__) < versiontuple('2.0.0'):
+            self._num_cores = rospy.get_param('~num_cores', psutil.NUM_CPUS)
+        else:
+            self._num_cores = rospy.get_param('~num_cores', psutil.cpu_count())
 
         self._temps_timer = None
         self._usage_timer = None
@@ -816,7 +820,7 @@ if __name__ == '__main__':
     try:
         rospy.init_node('cpu_monitor_%s' % hostname)
     except rospy.exceptions.ROSInitException:
-        print >> sys.stderr, 'CPU monitor is unable to initialize node. Master may not be running.'
+        print('CPU monitor is unable to initialize node. Master may not be running.', file=sys.stderr)
         sys.exit(0)
 
     cpu_node = CPUMonitor(hostname, options.diag_hostname)

@@ -35,7 +35,7 @@
 ##\author Kevin Watts
 # This file has been copied from https://github.com/PR2/pr2_computer_monitor in order to support this feature for indigo indepenendly from PR2 dependencies
 
-from __future__ import with_statement
+from __future__ import with_statement, print_function
 
 import traceback
 import threading
@@ -375,7 +375,7 @@ if __name__ == '__main__':
         node_name = ("hd_monitor_"+hostname).replace ("-", "_")
         rospy.init_node(node_name)
     except rospy.exceptions.ROSInitException:
-        print 'HD monitor is unable to initialize node. Master may not be running.'
+        print('HD monitor is unable to initialize node. Master may not be running.', file=sys.stderr)
         sys.exit(0)
 
     hd_monitor = hd_monitor(hostname, options.diag_hostname, options.directory)

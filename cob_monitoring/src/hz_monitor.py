@@ -50,7 +50,11 @@ class HzTest():
                 break
             rospy.loginfo("hz monitor is waiting for type of topics %s."%str(self.missing_topics))
             self.publish_diagnostics()
-            r.sleep()
+            
+            try:
+                r.sleep()
+            except rospy.exceptions.ROSInterruptException as e:
+                pass
 
         # call rostopic hz
         #rt = rostopic.ROSTopicHz(self.window_size)
@@ -65,7 +69,10 @@ class HzTest():
         while not rospy.is_shutdown():
             #rt.print_hz() # taken from 'rostopic hz' (/opt/ros/indigo/lib/python2.7/dist-packages/rostopic/__init__.py)
             self.publish_diagnostics(rt_HZ_store)
-            r.sleep()
+            try:
+                r.sleep()
+            except rospy.exceptions.ROSInterruptException as e:
+                pass
 
     def publish_diagnostics(self, rt_HZ_store = []):
         # set desired rates

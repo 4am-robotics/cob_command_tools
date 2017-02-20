@@ -1,0 +1,18 @@
+<package format="2">
+  <name>service_tools</name>
+  <version>0.6.4</version>
+  <description>
+    Service tools
+  </description>
+
+  <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>
+  <author email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</author>
+
+  <license>LGPL</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>rosservice</exec_depend>
+
+</package>

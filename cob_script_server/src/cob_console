@@ -1,4 +1,8 @@
-#/bin/bash
-source $ROS_ROOT/../rosbash/rosbash
-roscd cob_script_server/src
-ipython -i cob_console.py
+#!/usr/bin/ipython -i
+
+import rospy
+from simple_script_server import *
+sss = simple_script_server()
+
+if __name__ == "__main__":
+        rospy.init_node("cob_console")
