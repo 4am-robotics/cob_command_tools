@@ -18,8 +18,8 @@ class TestMove(unittest.TestCase):
 	def test_move_base(self):
 		self.move_base()
 
-#	def test_move_base_omni(self): #FIXME fails because client is already in DONE state (mode="" and mode="omni" is the same)
-#		self.move_base(mode="omni")
+	def test_move_base_omni(self):
+		self.move_base(mode="omni")
 
 	def test_move_base_diff(self):
 		self.move_base(mode="diff")
@@ -47,9 +47,7 @@ class TestMove(unittest.TestCase):
 	# test move trajectory commands
 	def test_move_traj(self):
 		component_name = "arm" # testing for component arm
-		#as_name = "/" + component_name + "_controller/joint_trajectory_action"
-		#self.as_server = actionlib.SimpleActionServer(as_name, JointTrajectoryAction, execute_cb=self.traj_cb, auto_start=False)
-		as_name = "/" + component_name + "_controller/follow_joint_trajectory"
+		as_name = "/" + component_name + "/joint_trajectory_controller/follow_joint_trajectory"
 		self.as_server = actionlib.SimpleActionServer(as_name, FollowJointTrajectoryAction, execute_cb=self.traj_cb, auto_start=False)
 		self.as_server.start()
 		self.cb_executed = False
@@ -59,41 +57,8 @@ class TestMove(unittest.TestCase):
 
 	def traj_cb(self, goal):
 		self.cb_executed = True
-		#result = JointTrajectoryResult()
 		result = FollowJointTrajectoryResult()
 		self.as_server.set_succeeded(result)
-
-	# move cartesian
-#	def test_move_cart(self):
-#		component_name = "arm" # testing for component arm
-#		as_name = "/" + component_name + "_controller/move_cart"
-#		self.as_server = actionlib.SimpleActionServer(as_name, MoveCartAction, execute_cb=self.cart_cb, auto_start=False)
-#		self.as_server.start()
-#		self.cb_executed = False
-#		sss.move(component_name,["base_link",[0,0,0],[0,0,0]])
-#		if not self.cb_executed:
-#			self.fail('Action Server not called')
-
-#	def cart_cb(self, goal):
-#		self.cb_executed = True
-#		result = MoveCartResult()
-#		self.as_server.set_succeeded(result)
-
-	# move planned
-#	def test_move_planned(self):
-#		component_name = "arm" # testing for component arm
-#		as_name = "/" + component_name + "_controller/move_cart"
-#		self.as_server = actionlib.SimpleActionServer(as_name, MoveCartAction, execute_cb=self.planned_cb, auto_start=False)
-#		self.as_server.start()
-#		self.cb_executed = False
-#		sss.move(component_name,["base_link",[0,0,0],[0,0,0]])
-#		if not self.cb_executed:
-#			self.fail('Action Server not called')
-
-#	def planned_cb(self, goal):
-#		self.cb_executed = True
-#		result = MoveCartResult()
-#		self.as_server.set_succeeded(result)
 
 if __name__ == '__main__':
 	import rostest
