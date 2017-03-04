@@ -1,13 +1,15 @@
 engines:
-  duplication:
+#  duplication:
+#    enabled: true
+#    config:
+#      languages:
+#      - python
+#  fixme:
+#    enabled: true
+  pep8:
     enabled: true
-    config:
-      languages:
-      - python
-  fixme:
-    enabled: true
-  radon:
-    enabled: true
+#  radon:
+#    enabled: true
 ratings:
   paths:
   - "**.py"
