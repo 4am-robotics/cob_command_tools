@@ -58,7 +58,7 @@ class AutoRecover():
         rospy.logerr("[auto_recover]: Could not recover %s", component)
       else:
         rospy.loginfo("[auto_recover]: Component %s recovered successfully", component)
-    self.last_time_recover = rospy.Time.now()
+        self.last_time_recover = rospy.Time.now()
 
   # auto recover based on diagnostics
   def diagnostics_cb(self, msg):
