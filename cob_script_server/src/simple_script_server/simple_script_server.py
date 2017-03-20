@@ -325,8 +325,6 @@ class simple_script_server:
 	def move(self,component_name,parameter_name,blocking=True, mode=None):
 		if component_name == "base":
 			return self.move_base(component_name,parameter_name,blocking, mode)
-		elif component_name == "arm" and mode=="planned":
-			return self.move_planned(component_name,parameter_name,blocking)
 		else:
 			return self.move_traj(component_name,parameter_name,blocking)
 

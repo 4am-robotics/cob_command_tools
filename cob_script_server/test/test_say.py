@@ -13,16 +13,20 @@ class SayTest(unittest.TestCase):
 	def __init__(self, *args):
 		super(SayTest, self).__init__(*args)
 		rospy.init_node('test_say_test')
+		self.cb_executed = False
 
 	def test_say(self):
-		sss.say("sound", ["hello"])
+		as_name = "/sound/say"
+		self.as_server = actionlib.SimpleActionServer(as_name, SayAction, execute_cb=self.say_cb, auto_start=False)
+		self.as_server.start()
+		self.cb_executed = False
+		handle = sss.say("sound", ["hello"])
+		if not self.cb_executed:
+			self.fail('Service Server not called. script server error_code: ' + str(handle.get_error_code()))
 
-	def as_cb(self, goal):
-		result = JointTrajectoryResult()
-		#self.as_server.set_preempted(result)
-		self.as_cb_executed = True
-		self.traj = goal.trajectory
-		print "action server callback"
+	def say_cb(self, goal):
+		self.cb_executed = True
+		result = SayResult()
 		self.as_server.set_succeeded(result)
 
 if __name__ == '__main__':
