@@ -94,7 +94,7 @@ class command_gui_buttons:
 				elif button[1] == "move_base_rel":
 					buttons.append(self.CreateButton(button[0],self.sss.move_base_rel,component_name,button[2]))
 				elif button[1] == "trigger_action":
-					buttons.append(self.CreateButton(button[0],self.sss.trigger_action,component_name,button[2]))
+					buttons.append(self.CreateButton(button[0],self.sss.trigger_action,component_name,button[2],True))
 				elif button[1] == "trigger":
 					buttons.append(self.CreateButton(button[0],self.sss.trigger,component_name,button[2]))
 					if button[2] == "stop":
@@ -144,11 +144,11 @@ class command_gui_buttons:
 
 
 	## Creates one button with functionality
-	def CreateButton(self,button_name,function,component_name,parameter_name=None):
+	def CreateButton(self,button_name,function,component_name,parameter_name=None,blocking=False):
 		if parameter_name == None:
-			button = (button_name,function,(component_name,False))
+			button = (button_name,function,(component_name,blocking))
 		else:
-			button = (button_name,function,(component_name,parameter_name,False))
+			button = (button_name,function,(component_name,parameter_name,blocking))
 		return button
 
 	## Sorts a dictionary alphabetically
