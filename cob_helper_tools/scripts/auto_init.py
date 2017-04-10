@@ -58,11 +58,13 @@ class AutoInit():
         # call init for all components
         rospy.loginfo("[auto_init]: Initializing components")
         for component in self.components:
-          handle = sss.init(component)
-          if not (handle.get_error_code() == 0):
-            rospy.logerr("[auto_init]: Could not initialize %s", component)
-          else:
-            rospy.loginfo("[auto_init]: Component %s initialized successfully", component)
+          while not rospy.is_shutdown():
+            handle = sss.init(component)
+            if not (handle.get_error_code() == 0):
+              rospy.logerr("[auto_init]: Could not initialize %s. Retrying...", component)
+            else:
+              rospy.loginfo("[auto_init]: Component %s initialized successfully", component)
+              break
         break # done
 
   def em_cb(self, msg):
