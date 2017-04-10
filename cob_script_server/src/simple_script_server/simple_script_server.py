@@ -88,6 +88,8 @@ from cob_sound.msg import *
 from cob_script_server.msg import *
 from cob_light.msg import LightMode, LightModes, SetLightModeGoal, SetLightModeAction
 from cob_mimic.msg import SetMimicGoal, SetMimicAction
+from actionlib.msg import TestAction, TestGoal
+from actionlib import GoalStatus
 
 graph=""
 graph_wait_list=[]
@@ -313,6 +315,57 @@ class simple_script_server:
 			rospy.loginfo("...<<%s>> is <<%s>>", component_name, service_name)
 			ah.set_succeeded() # full success
 		return ah
+
+	## Allows to trigger actions of the type actionlib/TestAction
+	#
+	# Based on the component and action name, the corresponding ActionServer will be called.
+	#
+	# \param component_name Name of the component.
+	# \param action_name Name of the action.
+	# \param blocking Whether to wait for the Action to return.
+	def trigger_action(self,component_name,action_name,blocking=True):
+		ah = action_handle(action_name, component_name, "", blocking, self.parse)
+		if(self.parse):
+			return ah
+		else:
+			ah.set_active(mode="action")
+
+		rospy.loginfo("<<%s>> <<%s>>", action_name, component_name)
+		#parameter_name = self.ns_global_prefix + "/" + component_name + "/service_ns"
+		#if not rospy.has_param(parameter_name):
+			#message = "Parameter " + parameter_name + " does not exist on ROS Parameter Server, aborting..."
+			#rospy.logerr(message)
+			#ah.set_failed(2, message)
+			#return ah
+		#service_ns_name = rospy.get_param(parameter_name)
+		action_full_name = "/" + component_name + "/" + action_name
+		action_client = actionlib.SimpleActionClient(action_full_name, TestAction)
+
+		if blocking:
+			# check if action is available
+			if not action_client.wait_for_server(rospy.Duration(1)):
+				message = "ActionServer %s is not running"%action_full_name
+				rospy.logerr(message)
+				ah.set_failed(4, message)
+				return ah
+
+		# call the action
+		if blocking:
+			rospy.loginfo("Wait for <<%s>> to <<%s>>...", component_name, action_name)
+			goal_state = action_client.send_goal_and_wait(TestGoal())
+			if not (action_client.get_state() == GoalStatus.SUCCEEDED):
+				message = "...state of <<" + action_name + ">> of <<" + component_name + ">> : " + GoalStatus.to_string(action_client.get_state())
+				rospy.logerr(message)
+				ah.set_failed(10, message)
+				return ah
+		else:
+			action_client.send_goal(TestGoal())
+
+		# full success
+		rospy.loginfo("...<<%s>> is <<%s>>", component_name, action_name)
+		ah.set_succeeded() # full success
+		return ah
+
 
 #------------------- Move section -------------------#
 	## Deals with all kind of movements for different components.
