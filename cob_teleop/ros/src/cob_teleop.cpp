@@ -476,7 +476,7 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
   if(init_button_>=0 && init_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[init_button_]==1)
   {
     ROS_INFO("Init and recover");
-    say("init and recover", true);
+    say("init and recover", false);
 
     for(std::map<std::string,XmlRpc::XmlRpcValue>::iterator p=components_.begin();p!=components_.end();++p)
     {
@@ -485,7 +485,7 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
       ROS_INFO("Init %s",comp_name.c_str());
       std::string saytext = comp_name;
       std::replace(saytext.begin(), saytext.end(), '_', ' ');
-      say(saytext, true);
+      say(saytext, false);
       script_goal_.component_name = comp_name.c_str();
       script_goal_.function_name="init";
       sss_client_->sendGoal(script_goal_);
@@ -494,7 +494,7 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
       {
         std::string saytext = "Init " + comp_name + " failed";
         std::replace(saytext.begin(), saytext.end(), '_', ' ');
-        say(saytext, true);
+        say(saytext, false);
       }
 
       ROS_INFO("Recover %s",comp_name.c_str());
@@ -505,7 +505,7 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
       {
         std::string saytext = "Recover " + comp_name + " failed";
         std::replace(saytext.begin(), saytext.end(), '_', ' ');
-        say(saytext, true);
+        say(saytext, false);
 
       }
     }
