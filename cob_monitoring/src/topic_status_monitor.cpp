@@ -20,7 +20,7 @@ public:
     min_freq_ = hz-hzerror;
     max_freq_ = hz+hzerror;
 
-    diagnostic_updater::FrequencyStatusParam freq_param(&min_freq_, &max_freq_, 0.1, 5); //min_freq, max_freq, tolerance (default: 0.1), window_size (default: 5)
+    diagnostic_updater::FrequencyStatusParam freq_param(&min_freq_, &max_freq_, 0.0, 100); //min_freq, max_freq, tolerance (default: 0.1), window_size (default: 5)
     diagnostic_updater::TimeStampStatusParam stamp_param(-1, 1); //min_acceptable (default: -1), max_acceptable (default: 5)
 
     topic_diagnostic_task_.reset(new diagnostic_updater::TopicDiagnostic(topic_name, diagnostic_updater, freq_param, stamp_param));
