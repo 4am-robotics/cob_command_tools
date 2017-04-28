@@ -6,6 +6,38 @@
 #include <boost/thread/mutex.hpp>
 
 
+class GenericTopicDiagnostic
+{
+public:
+  GenericTopicDiagnostic(std::string& topic_name, diagnostic_updater::Updater& diagnostic_updater)
+  {
+    ros::NodeHandle nh;
+    //ros::param::get("~min_freq", min_freq_);
+    //ros::param::get("~max_freq", max_freq_);
+    double hz, hzerror;
+    ros::param::get("~hz", hz);
+    ros::param::get("~hzerror", hzerror);
+    min_freq_ = hz-hzerror;
+    max_freq_ = hz+hzerror;
+
+    diagnostic_updater::FrequencyStatusParam freq_param(&min_freq_, &max_freq_, 0.0, 100); //min_freq, max_freq, tolerance (default: 0.1), window_size (default: 5)
+    diagnostic_updater::TimeStampStatusParam stamp_param(-1, 1); //min_acceptable (default: -1), max_acceptable (default: 5)
+
+    topic_diagnostic_task_.reset(new diagnostic_updater::TopicDiagnostic(topic_name, diagnostic_updater, freq_param, stamp_param));
+
+    generic_sub_ = nh.subscribe<topic_tools::ShapeShifter>(topic_name, 1, &GenericTopicDiagnostic::topicCallback, this);
+  }
+
+  void topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg)
+  {
+    topic_diagnostic_task_->tick(ros::Time::now());
+  }
+
+  double min_freq_, max_freq_;
+  ros::Subscriber generic_sub_;
+  boost::shared_ptr< diagnostic_updater::TopicDiagnostic > topic_diagnostic_task_;
+};
+
 
 class TopicStatusMonitor
 {
@@ -13,37 +45,16 @@ public:
   TopicStatusMonitor()
   {
     ros::NodeHandle nh;
-  
-    std::string hardware_id;
-    std::string topic_name;
-    //ros::param::get("~hardware_id", hardware_id);
-    //ros::param::get("~topic_name", topic_name);
-    //ros::param::get("~min_freq", min_freq_);
-    //ros::param::get("~max_freq", max_freq_);
+    ros::param::get("~topics", topics_);
+    ros::param::get("~diagnostic_name", hardware_id_);
+    diagnostic_updater_.setHardwareID(hardware_id_);
+    
+    for(size_t i=0; i<topics_.size(); i++)
+    {
+      tasks_.push_back(new GenericTopicDiagnostic (topics_[i], diagnostic_updater_));
+    }
 
-    std::vector<std::string> topics;
-    ros::param::get("~topics", topics);
-    topic_name = topics.front();
-    double hz, hzerror;
-    ros::param::get("~hz", hz);
-    ros::param::get("~hzerror", hzerror);
-    min_freq_ = hz-hzerror;
-    max_freq_ = hz+hzerror;
-    std::string diagnostic_name;
-    ros::param::get("~diagnostic_name", diagnostic_name);
-    hardware_id = diagnostic_name;
-
-    diagnostic_updater_.setHardwareID(hardware_id);
-
-    diagnostic_updater::FrequencyStatusParam freq_param(&min_freq_, &max_freq_, 0.1, 5); //min_freq, max_freq, tolerance (default: 0.1), window_size (default: 5)
-    diagnostic_updater::TimeStampStatusParam stamp_param(-1, 1); //min_acceptable (default: -1), max_acceptable (default: 5)
-    topic_diagnostic_task_.reset(new diagnostic_updater::TopicDiagnostic(topic_name, diagnostic_updater_, freq_param, stamp_param));
-
-    last_message_received_ = ros::Time(0);
-    timeout_ = ros::Duration(5.0);  //default stale timeout
-    generic_sub_ = nh.subscribe<topic_tools::ShapeShifter>(topic_name, 1, &TopicStatusMonitor::topicCallback, this);
     diagnostic_timer_ = nh.createTimer(ros::Duration(1.0), &TopicStatusMonitor::updateDiagnostics, this);
-
     diagnostic_timer_.start();
   }
 
@@ -53,28 +64,15 @@ public:
 
   void updateDiagnostics(const ros::TimerEvent& event)
   {
-    boost::mutex::scoped_lock lock(mutex_);
-    if(ros::Time::now() - last_message_received_ < timeout_)
-      diagnostic_updater_.update();
-  }
-
-  void topicCallback(const topic_tools::ShapeShifter::ConstPtr& msg)
-  {
-    boost::mutex::scoped_lock lock(mutex_);
-    last_message_received_ = ros::Time::now();
-    topic_diagnostic_task_->tick(last_message_received_);
+    diagnostic_updater_.update();
   }
 
 private:
+  std::string hardware_id_;
+  std::vector<std::string> topics_;
   diagnostic_updater::Updater diagnostic_updater_;
-  boost::shared_ptr< diagnostic_updater::TopicDiagnostic > topic_diagnostic_task_;
 
-  double min_freq_, max_freq_;
-
-  ros::Time last_message_received_;
-  ros::Duration timeout_;
-  boost::mutex mutex_;
-  ros::Subscriber generic_sub_;
+  std::vector< GenericTopicDiagnostic* > tasks_;
   ros::Timer diagnostic_timer_;
 };
 
