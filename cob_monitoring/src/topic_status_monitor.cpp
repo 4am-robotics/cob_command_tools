@@ -4,6 +4,7 @@
 #include <diagnostic_updater/update_functions.h>
 #include <diagnostic_updater/publisher.h>
 #include <boost/thread/mutex.hpp>
+#include <cmath>
 
 
 class GenericTopicDiagnostic
@@ -12,15 +13,16 @@ public:
   GenericTopicDiagnostic(std::string& topic_name, diagnostic_updater::Updater& diagnostic_updater)
   {
     ros::NodeHandle nh;
-    //ros::param::get("~min_freq", min_freq_);
-    //ros::param::get("~max_freq", max_freq_);
     double hz, hzerror;
+    int window_size;
     ros::param::get("~hz", hz);
     ros::param::get("~hzerror", hzerror);
+    ros::param::param<int>("~window_size", window_size, std::ceil(hz));
+
     min_freq_ = hz-hzerror;
     max_freq_ = hz+hzerror;
 
-    diagnostic_updater::FrequencyStatusParam freq_param(&min_freq_, &max_freq_, 0.0, 100); //min_freq, max_freq, tolerance (default: 0.1), window_size (default: 5)
+    diagnostic_updater::FrequencyStatusParam freq_param(&min_freq_, &max_freq_, 0.0, window_size); //min_freq, max_freq, tolerance (default: 0.1), window_size (default: 5)
     diagnostic_updater::TimeStampStatusParam stamp_param(-1, 1); //min_acceptable (default: -1), max_acceptable (default: 5)
 
     topic_diagnostic_task_.reset(new diagnostic_updater::TopicDiagnostic(topic_name, diagnostic_updater, freq_param, stamp_param));
