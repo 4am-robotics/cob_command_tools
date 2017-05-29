@@ -1190,6 +1190,8 @@ class action_handle:
 	def get_state(self):
 		if self.client_mode != "": # not processing an actionlib client
 			return self.client_state
+		elif self.client == None:
+			return None
 		else:
 			return self.client.get_state()
 
