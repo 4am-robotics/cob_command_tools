@@ -4,7 +4,6 @@ import rospy
 import tf
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
-from geometry_msgs.msg import Point
 
 class VisualizerNavigationGoals():
     def __init__(self):
@@ -80,4 +79,7 @@ if __name__ == "__main__":
     r = rospy.Rate(1)
     while not rospy.is_shutdown():
         p.pubMarker()
-        r.sleep()
+        try:
+            r.sleep()
+        except rospy.exceptions.ROSInterruptException as e:
+            pass
