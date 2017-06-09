@@ -14,5 +14,6 @@ install(PROGRAMS
   scripts/auto_recover.py
   scripts/fake_diagnostics.py
   scripts/fake_driver.py
+  scripts/visualize_navigation_goals.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
