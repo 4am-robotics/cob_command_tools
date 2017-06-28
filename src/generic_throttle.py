@@ -4,7 +4,7 @@ import rospy
 import roslib
 from std_msgs.msg import String
 
-    from functools import partial
+from functools import partial
 
 
 class GenericThrottle:
@@ -40,9 +40,8 @@ class GenericThrottle:
         self.populate_dictionary()
         rospy.spin()
 
-    def timer_callback(self,event,topic_id):
+    def timer_callback(self, event, topic_id):
         print topic_id
-
 
     def populate_dictionary(self):
         # Topic dictionary structure
@@ -53,7 +52,6 @@ class GenericThrottle:
 
         # Create Timer for each topic
         for key, element in self.topic_dictionary.iteritems():
-            personal_callback = partial(self.timer_callback,topic_id=key)
-            element[1] = rospy.Timer(
-                rospy.Duration(1./element[0]),
+            personal_callback = partial(self.timer_callback, topic_id=key)
+            element[1] = rospy.Timer(rospy.Duration(1. / element[0]),
                 personal_callback)
