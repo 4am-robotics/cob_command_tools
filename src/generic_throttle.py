@@ -4,6 +4,8 @@ import rospy
 import roslib
 from std_msgs.msg import String
 
+    from functools import partial
+
 
 class GenericThrottle:
     def __init__(self):
@@ -15,7 +17,7 @@ class GenericThrottle:
         if rospy.has_param('/generic_throttle/namespace'):
             self.namespace = rospy.get_param('/generic_throttle/namespace')
         else:
-            rospy.logerr('Parameter /generic_throttle/namespace '
+            rospy.logerr('Parameter /generic _throttle/namespace '
                          'is not available.')
             exit(-1)
         if rospy.has_param('/generic_throttle/framerate'):
@@ -34,9 +36,24 @@ class GenericThrottle:
                          'a list of size 2 lists')
             exit(-1)
 
-        self.populate_dictionary()
         rospy.init_node('generic_throttle')
+        self.populate_dictionary()
+        rospy.spin()
+
+    def timer_callback(self,event,topic_id):
+        print topic_id
+
 
     def populate_dictionary(self):
-        self.topic_dictionary = {key: [value] for (key, value)
-                                 in self.topic_framerate}
+        # Topic dictionary structure
+        # {topic_name: [max_framerate, timer, last_message,
+        # subscriber, publisher]
+        self.topic_dictionary = {key: [value, None, None, None, None]
+                                 for (key, value) in self.topic_framerate}
+
+        # Create Timer for each topic
+        for key, element in self.topic_dictionary.iteritems():
+            personal_callback = partial(self.timer_callback,topic_id=key)
+            element[1] = rospy.Timer(
+                rospy.Duration(1./element[0]),
+                personal_callback)
