@@ -12,6 +12,7 @@ class GenericThrottle:
         self.namespace = None
         self.topic_dictionary = None
         self.topic_framerate = None
+        self.delay = rospy.Duration(5)
         self._node_handle = rospy.init_node('generic_throttle')
 
         # Read /generic_throttle/* parameters from server
@@ -86,9 +87,18 @@ class GenericThrottle:
             self.topic_dictionary[topic_id]['lock'].release_lock()
             return
         else:
-            self.topic_dictionary[topic_id]['publisher'].publish(last_message)
-            self.topic_dictionary[topic_id]['lock'].release_lock()
-            return
+            last_timestamp = self.topic_dictionary[topic_id]['last_timestamp']
+            if rospy.Time.now() - last_timestamp > self.delay:
+                rospy.logwarn('Last message older than ' + str(self.delay.secs)
+                              +' s. Discard last message')
+                self.topic_dictionary[topic_id]['last_message'] = None
+                self.topic_dictionary[topic_id]['lock'].release_lock()
+                return
+            else:
+                self.topic_dictionary[topic_id]['publisher'].publish(
+                    last_message)
+                self.topic_dictionary[topic_id]['lock'].release_lock()
+                return
 
     def subscriber_callback(self, data, topic_id):
         locking = self.topic_dictionary[topic_id]['lock'].acquire_lock(False)
@@ -98,6 +108,13 @@ class GenericThrottle:
             rospy.logwarn('Cannot lock topic ' + topic_id)
             return
 
+        if data._has_header:
+            self.topic_dictionary[topic_id]['last_timestamp'] = \
+                data.header.stamp
+        else:
+            self.topic_dictionary[topic_id]['last_timestamp'] = \
+                rospy.Time.now()
+
         self.topic_dictionary[topic_id]['last_message'] = data
         self.topic_dictionary[topic_id]['lock'].release_lock()
 
@@ -106,7 +123,9 @@ class GenericThrottle:
         # {topic_name: {framerate, timer, last_message,
         # subscriber, publisher, lock}
         self.topic_dictionary = {key: {'framerate': value, 'timer': None,
-                                       'last_message': None, 'subscriber': None,
+                                       'last_message': None,
+                                       'last_timestamp': None,
+                                       'subscriber': None,
                                        'publisher': None, 'lock': None}
                                  for (key, value) in self.topic_framerate}
 
