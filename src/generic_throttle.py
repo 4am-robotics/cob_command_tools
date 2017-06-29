@@ -4,9 +4,7 @@ import rospy
 import roslib
 import rostopic
 from threading import Lock
-from std_msgs.msg import String
 from functools import partial
-
 
 
 class GenericThrottle:
@@ -75,7 +73,7 @@ class GenericThrottle:
                 subscriber_partial = partial(self.subscriber_callback,
                                              topic_id=topic_id)
                 self.topic_dictionary[topic_id]['subscriber'] = \
-                    rospy.Subscriber(topic_id,topic_info[0],
+                    rospy.Subscriber(topic_id, topic_info[0],
                                      subscriber_partial)
                 rospy.loginfo('Created subscriber for ' + topic_id)
 
@@ -105,8 +103,8 @@ class GenericThrottle:
 
     def _populate_dictionary(self):
         # Topic dictionary structure
-        # {topic_name: [framerate, timer, last_message,
-        # subscriber, publisher, lock]
+        # {topic_name: {framerate, timer, last_message,
+        # subscriber, publisher, lock}
         self.topic_dictionary = {key: {'framerate': value, 'timer': None,
                                        'last_message': None, 'subscriber': None,
                                        'publisher': None, 'lock': None}
@@ -116,7 +114,7 @@ class GenericThrottle:
             # Create Timer for each topic
             personal_callback = partial(self.timer_callback, topic_id=key)
             element['timer'] = rospy.Timer(
-                rospy.Duration(1./element['framerate']),
+                rospy.Duration(1. / element['framerate']),
                 personal_callback)
             # Create Lock for each topic
             element['lock'] = Lock()
