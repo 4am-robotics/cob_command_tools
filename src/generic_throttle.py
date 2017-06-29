@@ -14,7 +14,7 @@ class GenericThrottle:
         self.namespace = None
         self.topic_dictionary = None
         self.topic_framerate = None
-        self.node_handle = rospy.init_node('generic_throttle')
+        self._node_handle = rospy.init_node('generic_throttle')
 
         # Read /generic_throttle/* parameters from server
         if rospy.has_param('/generic_throttle/namespace'):
@@ -39,7 +39,7 @@ class GenericThrottle:
                          ' a list of size 2 lists')
             exit(10)
 
-        self.populate_dictionary()
+        self._populate_dictionary()
         rospy.spin()
 
     def timer_callback(self, event, topic_id):
@@ -67,7 +67,8 @@ class GenericThrottle:
             else:
                 # Create publisher
                 self.topic_dictionary[topic_id]['publisher'] = \
-                    rospy.Publisher(self.namespace + topic_id, topic_info[0])
+                    rospy.Publisher(self.namespace + topic_id, topic_info[0],
+                                    queue_size=10)
                 rospy.loginfo('Created publisher for ' + self.namespace +
                               topic_id)
                 # Create subscriber
@@ -83,7 +84,7 @@ class GenericThrottle:
 
         last_message = self.topic_dictionary[topic_id]['last_message']
         if last_message is None:
-            rospy.logwarn('No message available for ' + topic_id + 'yet')
+            rospy.logwarn('No message available for ' + topic_id + ' yet')
             self.topic_dictionary[topic_id]['lock'].release_lock()
             return
         else:
@@ -102,7 +103,7 @@ class GenericThrottle:
         self.topic_dictionary[topic_id]['last_message'] = data
         self.topic_dictionary[topic_id]['lock'].release_lock()
 
-    def populate_dictionary(self):
+    def _populate_dictionary(self):
         # Topic dictionary structure
         # {topic_name: [framerate, timer, last_message,
         # subscriber, publisher, lock]
@@ -114,7 +115,8 @@ class GenericThrottle:
         for key, element in self.topic_dictionary.iteritems():
             # Create Timer for each topic
             personal_callback = partial(self.timer_callback, topic_id=key)
-            element['timer'] = rospy.Timer(rospy.Duration(1./element[0]),
+            element['timer'] = rospy.Timer(
+                rospy.Duration(1./element['framerate']),
                 personal_callback)
             # Create Lock for each topic
             element['lock'] = Lock()
