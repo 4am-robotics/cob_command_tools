@@ -1,0 +1,8 @@
+generic_throttle:
+  namespace: debug # namespace for republished topics
+  framerate: #[topic_name, max_framerate]
+    - [/test1, 1]
+    - [/test2, 0.5]
+
+#  resolution: # can be implemented for sensor_msgs/Image, sensor_msgs/ PointCloud2, nav_msgs/OccupancyGrid
+#    - [/head_cam/image_raw, 2]
