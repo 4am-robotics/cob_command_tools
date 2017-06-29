@@ -44,35 +44,77 @@ class GenericThrottle:
 
     def timer_callback(self, event, topic_id):
 
-        # Lock into the dictionary entry
-            # You can't? Warning. exit
+        locking = self.topic_dictionary[topic_id]['lock'].acquire_lock(False)
+        # The False argument is for a non blocking call
 
-        # If relative publisher is None
-            # Test the topic
-                # it does not exit. Warning. exit
-            # Create publisher and subscriber
-            # exit
+        if not(locking):
+            rospy.logwarn('Cannot lock topic ' + topic_id)
+            return
 
-        # If last_message is None
-            # Warning. exit
+        publisher = self.topic_dictionary[topic_id]['publisher']
+        subscriber = self.topic_dictionary[topic_id]['subscriber']
 
-        # Everything seems fine --> publish last_message on publisher
+        # Check if pub and sub already exist, if not try to create them after
+        # checking the rostopic
 
-        # Unlock
-    def subscriber_callback(self, data):
-        print data
+        if None in(publisher, subscriber):
+            topic_info = rostopic.get_topic_class(topic_id)
+            if topic_info[0] is None:
+                rospy.logwarn('Cannot find topic ' + topic_id)
+
+                self.topic_dictionary[topic_id]['lock'].release_lock()
+                return
+            else:
+                # Create publisher
+                self.topic_dictionary[topic_id]['publisher'] = \
+                    rospy.Publisher(self.namespace + topic_id, topic_info[0])
+                rospy.loginfo('Created publisher for ' + self.namespace +
+                              topic_id)
+                # Create subscriber
+                subscriber_partial = partial(self.subscriber_callback,
+                                             topic_id=topic_id)
+                self.topic_dictionary[topic_id]['subscriber'] = \
+                    rospy.Subscriber(topic_id,topic_info[0],
+                                     subscriber_partial)
+                rospy.loginfo('Created subscriber for ' + topic_id)
+
+                self.topic_dictionary[topic_id]['lock'].release_lock()
+                return
+
+        last_message = self.topic_dictionary[topic_id]['last_message']
+        if last_message is None:
+            rospy.logwarn('No message available for ' + topic_id + 'yet')
+            self.topic_dictionary[topic_id]['lock'].release_lock()
+            return
+        else:
+            self.topic_dictionary[topic_id]['publisher'].publish(last_message)
+            self.topic_dictionary[topic_id]['lock'].release_lock()
+            return
+
+    def subscriber_callback(self, data, topic_id):
+        locking = self.topic_dictionary[topic_id]['lock'].acquire_lock(False)
+        # The False argument is for a non blocking call
+
+        if not (locking):
+            rospy.logwarn('Cannot lock topic ' + topic_id)
+            return
+
+        self.topic_dictionary[topic_id]['last_message'] = data
+        self.topic_dictionary[topic_id]['lock'].release_lock()
 
     def populate_dictionary(self):
         # Topic dictionary structure
-        # {topic_name: [max_framerate, timer, last_message,
+        # {topic_name: [framerate, timer, last_message,
         # subscriber, publisher, lock]
-        self.topic_dictionary = {key: [value, None, None, None, None, None]
+        self.topic_dictionary = {key: {'framerate': value, 'timer': None,
+                                       'last_message': None, 'subscriber': None,
+                                       'publisher': None, 'lock': None}
                                  for (key, value) in self.topic_framerate}
 
         for key, element in self.topic_dictionary.iteritems():
             # Create Timer for each topic
             personal_callback = partial(self.timer_callback, topic_id=key)
-            element[1] = rospy.Timer(rospy.Duration(1./element[0]),
+            element['timer'] = rospy.Timer(rospy.Duration(1./element[0]),
                 personal_callback)
             # Create Lock for each topic
-            element[5] = Lock()
+            element['lock'] = Lock()
