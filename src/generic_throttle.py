@@ -12,23 +12,19 @@ class GenericThrottle:
         self.namespace = None
         self.topic_dictionary = None
         self.topic_framerate = None
-        self.delay = rospy.Duration(5)
+        self.delay = None
         self._node_handle = rospy.init_node('generic_throttle')
 
         # Read /generic_throttle/* parameters from server
-        if rospy.has_param('/generic_throttle/namespace'):
-            self.namespace = rospy.get_param('/generic_throttle/namespace')
-        else:
-            rospy.logerr('Parameter /generic _throttle/namespace '
-                         'is not available.')
-            exit(5)
-        if rospy.has_param('/generic_throttle/framerate'):
-            self.topic_framerate = rospy.get_param(
-                '/generic_throttle/framerate')
-        else:
-            rospy.logerr('Parameter /generic_throttle/framerate '
-                         'is not available.')
-            exit(5)
+        parameter_list = ['namespace', 'topic_framerate', 'delay']
+        for parameter_name in parameter_list:
+            parameter_string = '/generic_throttle/' + parameter_name
+            if rospy.has_param(parameter_string):
+                parameter = rospy.get_param(parameter_string)
+                setattr(self,parameter_name, parameter)
+            else:
+                rospy.logerr('Parameter ' + parameter_string + ' not available')
+                exit(5)
 
         # Check if each entry of topic_framerate has 2 entries
         size_flag = all(len(item) == 2 for item in self.topic_framerate)
@@ -88,7 +84,7 @@ class GenericThrottle:
             return
         else:
             last_timestamp = self.topic_dictionary[topic_id]['last_timestamp']
-            if rospy.Time.now() - last_timestamp > self.delay:
+            if rospy.Time.now() - last_timestamp > rospy.Duration(self.delay):
                 rospy.logwarn('Last message older than ' + str(self.delay.secs)
                               +' s. Discard last message')
                 self.topic_dictionary[topic_id]['last_message'] = None
