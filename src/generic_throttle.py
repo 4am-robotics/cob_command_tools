@@ -14,7 +14,9 @@ class GenericThrottle:
         self.topic_dictionary = None
         self.topic_framerate = None
         self.delay = None
+
         rospy.init_node('generic_throttle')
+        rospy.on_shutdown(self._shutdown)
 
         # Read /generic_throttle/* parameters from server
         parameter_list = ['namespace', 'topic_framerate', 'delay']
@@ -22,7 +24,7 @@ class GenericThrottle:
             parameter_string = '/generic_throttle/' + parameter_name
             if rospy.has_param(parameter_string):
                 parameter = rospy.get_param(parameter_string)
-                setattr(self,parameter_name, parameter)
+                setattr(self, parameter_name, parameter)
             else:
                 rospy.logerr('Parameter ' + parameter_string + ' not available')
                 exit(5)
@@ -35,6 +37,7 @@ class GenericThrottle:
                          ' a list of size 2 lists')
             exit(10)
 
+        # Populate the dictionary for the ros topic throttling
         self._populate_dictionary()
         rospy.spin()
 
@@ -45,7 +48,7 @@ class GenericThrottle:
 
         if not(locking):
             current_t = currentThread()
-            rospy.logwarn(str(current_t._Thread__name) +': cannot lock topic '
+            rospy.logdebug(str(current_t._Thread__name) + ': cannot lock topic '
                           + topic_id)
             return
 
@@ -91,7 +94,7 @@ class GenericThrottle:
             last_timestamp = self.topic_dictionary[topic_id]['last_timestamp']
             if rospy.Time.now() - last_timestamp > rospy.Duration(self.delay):
                 rospy.logwarn('Last message older than ' + str(self.delay)
-                              +' seconds. Discard last message')
+                              + ' seconds. Discard last message')
                 self.topic_dictionary[topic_id]['last_message'] = None
                 # self.topic_dictionary[topic_id]['publisher'] = None
                 # self.topic_dictionary[topic_id]['subscriber'] = None
@@ -109,7 +112,7 @@ class GenericThrottle:
 
         if not (locking):
             current_t = currentThread()
-            rospy.logwarn(str(current_t._Thread__name) + ': cannot lock topic '
+            rospy.logdebug(str(current_t._Thread__name) + ': cannot lock topic '
                           + topic_id)
             return
 
@@ -119,6 +122,9 @@ class GenericThrottle:
         else:
             self.topic_dictionary[topic_id]['last_timestamp'] = \
                 rospy.Time.now()
+
+        if self.topic_dictionary[topic_id]['last_message'] is None:
+            rospy.loginfo('First message received for topic ' + topic_id)
 
         self.topic_dictionary[topic_id]['last_message'] = data
         self.topic_dictionary[topic_id]['lock'].release_lock()
@@ -131,14 +137,17 @@ class GenericThrottle:
                                        'last_message': None,
                                        'last_timestamp': None,
                                        'subscriber': None,
-                                       'publisher': None, 'lock': None}
+                                       'publisher': None, 'lock': Lock()}
                                  for (key, value) in self.topic_framerate}
 
         for key, element in self.topic_dictionary.iteritems():
+            element['lock'].acquire_lock()
             # Create Timer for each topic
             personal_callback = partial(self.timer_callback, topic_id=key)
             element['timer'] = rospy.Timer(
                 rospy.Duration(1. / element['framerate']),
                 personal_callback)
-            # Create Lock for each topic
-            element['lock'] = Lock()
+            element['lock'].release_lock()
+
+    def _shutdown(self):
+        rospy.loginfo('Stopping ' + str(rospy.get_name()))
