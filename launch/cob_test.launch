@@ -2,6 +2,6 @@
 <launch>
 
     <rosparam command="load" file="$(find cob_generic_throttle)/config/cob_config.yaml"/>
-    <node name="custom_trigger" pkg="cob_generic_throttle" type="test_pipeline.py" />
+    <node name="generic_throttle" pkg="cob_generic_throttle" type="test_pipeline.py" />
 
 </launch>

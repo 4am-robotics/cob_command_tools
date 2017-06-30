@@ -4,6 +4,6 @@
     <rosparam command="load" file="$(find cob_generic_throttle)/config/test_config.yaml"/>
     <node pkg="rostopic" type="rostopic" name="fast1" args="pub /test1 std_msgs/String 'message from test1' --rate 2"/>
     <node pkg="rostopic" type="rostopic" name="fast2" args="pub /test2 std_msgs/String 'message from test2' --rate 30"/>
-    <node name="custom_trigger" pkg="cob_generic_throttle" type="test_pipeline.py" />
+    <node name="generic_throttle" pkg="cob_generic_throttle" type="test_pipeline.py" />
 
 </launch>
