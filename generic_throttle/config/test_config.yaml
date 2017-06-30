@@ -1,0 +1,18 @@
+#generic_throttle:
+#  namespace: throttle # namespace for republished topics
+#  topic_framerate: #[topic_name, max_framerate]
+#    - [/topic1, max_framerate1]
+#    - [/topic2, max_framerate2]
+#  delay: max_delay - if last received message is older, throw warning
+
+generic_throttle:
+  namespace: debug
+  topic_framerate:
+    - [/test1, 1]
+    - [/test2, 0.5]
+  delay: 5
+
+# TODO
+#  resolution:  # can be implemented for sensor_msgs/Image,
+                # sensor_msgs/ PointCloud2, nav_msgs/OccupancyGrid
+#    - [/head_cam/image_raw, 2]

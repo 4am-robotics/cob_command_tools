@@ -1,0 +1,6 @@
+generic_throttle:
+  namespace: debug
+  topic_framerate:
+    - [/torso_cam3d_left/rgb/image_raw, 5]
+    - [/base/joint_states, 1]
+  delay: 5
