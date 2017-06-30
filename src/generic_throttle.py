@@ -4,6 +4,7 @@ import rospy
 import roslib
 import rostopic
 from threading import Lock
+from threading import currentThread
 from functools import partial
 
 
@@ -13,7 +14,7 @@ class GenericThrottle:
         self.topic_dictionary = None
         self.topic_framerate = None
         self.delay = None
-        self._node_handle = rospy.init_node('generic_throttle')
+        rospy.init_node('generic_throttle')
 
         # Read /generic_throttle/* parameters from server
         parameter_list = ['namespace', 'topic_framerate', 'delay']
@@ -43,7 +44,9 @@ class GenericThrottle:
         # The False argument is for a non blocking call
 
         if not(locking):
-            rospy.logwarn('Cannot lock topic ' + topic_id)
+            current_t = currentThread()
+            rospy.logwarn(str(current_t._Thread__name) +': cannot lock topic '
+                          + topic_id)
             return
 
         publisher = self.topic_dictionary[topic_id]['publisher']
@@ -63,7 +66,7 @@ class GenericThrottle:
                 # Create publisher
                 self.topic_dictionary[topic_id]['publisher'] = \
                     rospy.Publisher(self.namespace + topic_id, topic_info[0],
-                                    queue_size=10)
+                                    queue_size=1)
                 rospy.loginfo('Created publisher for ' + self.namespace +
                               topic_id)
                 # Create subscriber
@@ -79,15 +82,19 @@ class GenericThrottle:
 
         last_message = self.topic_dictionary[topic_id]['last_message']
         if last_message is None:
-            rospy.logwarn('No message available for ' + topic_id + ' yet')
+            rospy.logwarn('No message available for ' + topic_id + ' yet. ' +
+                          'Sleep for ' + str(self.delay) + ' seconds.')
             self.topic_dictionary[topic_id]['lock'].release_lock()
+            rospy.sleep(self.delay)
             return
         else:
             last_timestamp = self.topic_dictionary[topic_id]['last_timestamp']
             if rospy.Time.now() - last_timestamp > rospy.Duration(self.delay):
-                rospy.logwarn('Last message older than ' + str(self.delay.secs)
-                              +' s. Discard last message')
+                rospy.logwarn('Last message older than ' + str(self.delay)
+                              +' seconds. Discard last message')
                 self.topic_dictionary[topic_id]['last_message'] = None
+                # self.topic_dictionary[topic_id]['publisher'] = None
+                # self.topic_dictionary[topic_id]['subscriber'] = None
                 self.topic_dictionary[topic_id]['lock'].release_lock()
                 return
             else:
@@ -101,7 +108,9 @@ class GenericThrottle:
         # The False argument is for a non blocking call
 
         if not (locking):
-            rospy.logwarn('Cannot lock topic ' + topic_id)
+            current_t = currentThread()
+            rospy.logwarn(str(current_t._Thread__name) + ': cannot lock topic '
+                          + topic_id)
             return
 
         if data._has_header:
