@@ -1,12 +1,19 @@
-# cob_generic_throttle
-> Tested on ROS Indigo - Ubuntu 14.04 - Python 2.7
+# generic_throttle
 
-cob_generic_throttle is a ROS package offering a Python implementation of a throttle for topics.
-Despite the "cob_" in the name, the package is a general ROS tool.
+generic_throttle is package offering a Python implementation of a throttle for topics.
 
-Class GenericThrottle runs a ROS node which subcribes to a list of topics and published them again at a desired rate. List of topics and desired rate are specified through ROS parameters.
+Class GenericThrottle runs a ROS node which subscribes to a list of topics and
+publishes them again at a desired rate. List of topics and desired rate are
+specified through ROS parameters.
 
-Why should I use this? well, if you remotely control a robot (e.g. via Wifi), you want some topic to be streamed from the robot to you, e.g. to your rviz for simulation purpose. Now, let's say you stream several Pointcloud topics over Wifi at 30 hz. This is going to flood your network with (heavy) messages and you will only get unreliable/delayed data. With a GenericThrottle node running on the robot, you could reduce the rate of the topics your are interested in and read the "throttled" topics from remote without flooding your network.
+By default, the throttle operates in a latched mode: if no new message are available
+from the input topics, it will continue to publish the last available message.
+However, after a certain time (to be defined in parameter /generic_throttle/delay
+in seconds) it will throw a warning and stop publishing the old message. As soon as
+new messages become available, the throttle will start to publish again.
+
+Each throttled topic is treated as independent (if one stops, the other are not
+influenced by that).
 
 # TODO
 - for sensor_msgs/Image enable reduction of the resolution of the throttled topic
