@@ -15,9 +15,6 @@ class GenericThrottle:
                            'latched': False,
                            'lazy': False}
 
-        rospy.init_node('generic_throttle')
-        rospy.on_shutdown(self._shutdown)
-
         # Read mandatory /generic_throttle/* parameters from server
         parameter_list = ['namespace', 'topic_framerate']
         for parameter_name in parameter_list:
@@ -48,7 +45,6 @@ class GenericThrottle:
 
         # Populate the dictionary for the ros topic throttling
         self._populate_dictionary()
-        rospy.spin()
 
     def timer_callback(self, event, topic_id):
         # The False argument is for a non blocking call
