@@ -9,38 +9,25 @@ from functools import partial
 
 class GenericThrottle:
     def __init__(self):
-        self.topic_dictionary = None
-        self.parameters = {'namespace': None,
-                           'topic_framerate': None,
-                           'latched': False,
-                           'lazy': False}
+        self.topics = None
 
-        # Read mandatory /generic_throttle/* parameters from server
-        parameter_list = ['namespace', 'topic_framerate']
-        for parameter_name in parameter_list:
-            parameter_string = '/generic_throttle/' + parameter_name
-            if rospy.has_param(parameter_string):
-                self.parameters[parameter_name] = \
-                    rospy.get_param(parameter_string)
-            else:
-                rospy.logerr('Parameter ' + parameter_string + ' not available')
-                exit(5)
+        topics_param_name = str(rospy.get_namespace()) + '/topics'
 
-        # Read optional /generic_throttle/* parameters from server
-        parameter_list = ['latched', 'lazy']
-        for parameter_name in parameter_list:
-            parameter_string = '/generic_throttle/' + parameter_name
-            if rospy.has_param(parameter_string):
-                self.parameters[parameter_name] = \
-                    rospy.get_param(parameter_string)
+        if rospy.has_param(topics_param_name):
+            topics_list = rospy.get_param(topics_param_name)
+        else:
+            rospy.logerr('Parameter ' + topics_param_name + ' not available')
+            exit(5)
 
-        # Check if each entry of topic_framerate has 2 entries
-        size_flag = all(len(item) == 2 for item in
-                        self.parameters['topic_framerate'])
+        # create dictionary out of the topic list
+        self.topics = {item.keys()[0]: item.values()[0] for item in topics_list}
+
+        # Check if each entry of topics has 3 parameters (
+        size_flag = all(len(item) == 3 for item in self.topics.values())
 
         if(not(size_flag)):
-            rospy.logerr('Parameter /generic_throttle/framerate must be'
-                         ' a list of size 2 lists')
+            rospy.logerr('Each throttled topic needs 3 parameters ' +
+                         '[latched, lazy, topic_rate]')
             exit(10)
 
         # Populate the dictionary for the ros topic throttling
@@ -48,8 +35,7 @@ class GenericThrottle:
 
     def timer_callback(self, event, topic_id):
         # The False argument is for a non blocking call
-        locking = self.topic_dictionary[topic_id]['lock'].acquire_lock(False)
-
+        locking = self.topics[topic_id]['lock'].acquire_lock(False)
 
         if not(locking):
             current_t = currentThread()
@@ -57,8 +43,8 @@ class GenericThrottle:
                           + topic_id)
             return
 
-        publisher = self.topic_dictionary[topic_id]['publisher']
-        subscriber = self.topic_dictionary[topic_id]['subscriber']
+        publisher = self.topics[topic_id]['publisher']
+        subscriber = self.topics[topic_id]['subscriber']
 
         # Check if pub and sub already exist, if not try to create them after
         # checking the ros topic
@@ -68,50 +54,49 @@ class GenericThrottle:
             if topic_info[0] is None:
                 rospy.logwarn('Cannot find topic ' + topic_id)
 
-                self.topic_dictionary[topic_id]['lock'].release_lock()
+                self.topics[topic_id]['lock'].release_lock()
                 return
             else:
                 # Create publisher
-                self.topic_dictionary[topic_id]['publisher'] = \
-                    rospy.Publisher(self.parameters['namespace'] + topic_id,
+                self.topics[topic_id]['publisher'] = \
+                    rospy.Publisher(topic_id + '_throttled',
                                     topic_info[0], queue_size=1)
-                rospy.loginfo('Created publisher for ' +
-                              self.parameters['namespace'] + topic_id)
+                rospy.loginfo('Created publisher for ' + topic_id)
                 # Create subscriber
                 subscriber_partial = partial(self.subscriber_callback,
                                              topic_id=topic_id)
-                self.topic_dictionary[topic_id]['subscriber'] = \
+                self.topics[topic_id]['subscriber'] = \
                     rospy.Subscriber(topic_id, topic_info[0],
                                      subscriber_partial)
                 rospy.loginfo('Created subscriber for ' + topic_id)
 
-                self.topic_dictionary[topic_id]['lock'].release_lock()
+                self.topics[topic_id]['lock'].release_lock()
                 return
 
-        last_message = self.topic_dictionary[topic_id]['last_message']
+        last_message = self.topics[topic_id]['last_message']
 
         if last_message is not None:
-            if self.parameters['lazy']:
+            if self.topics[topic_id]['lazy']:
                 # Lazy behavior: if nobody is listening don't publish
-                if self.topic_dictionary[topic_id]['publisher']\
+                if self.topics[topic_id]['publisher']\
                         .get_num_connections() > 0:
-                    self.topic_dictionary[topic_id]['publisher'].publish(
+                    self.topics[topic_id]['publisher'].publish(
                         last_message)
             else:
-                self.topic_dictionary[topic_id]['publisher'].publish(
+                self.topics[topic_id]['publisher'].publish(
                     last_message)
 
-            if not(self.parameters['latched']):
+            if not(self.topics[topic_id]['latched']):
                 # Not latched behavior: delete last message that was just sent
-                self.topic_dictionary[topic_id]['last_message'] = None
-            self.topic_dictionary[topic_id]['lock'].release_lock()
+                self.topics[topic_id]['last_message'] = None
+            self.topics[topic_id]['lock'].release_lock()
             return
 
-        self.topic_dictionary[topic_id]['lock'].release_lock()
+        self.topics[topic_id]['lock'].release_lock()
         return
 
     def subscriber_callback(self, data, topic_id):
-        locking = self.topic_dictionary[topic_id]['lock'].acquire_lock(False)
+        locking = self.topics[topic_id]['lock'].acquire_lock(False)
         # The False argument is for a non blocking call
 
         if not (locking):
@@ -120,27 +105,24 @@ class GenericThrottle:
                           + topic_id)
             return
 
-        self.topic_dictionary[topic_id]['last_message'] = data
-        self.topic_dictionary[topic_id]['lock'].release_lock()
+        self.topics[topic_id]['last_message'] = data
+        self.topics[topic_id]['lock'].release_lock()
 
     def _populate_dictionary(self):
         # Topic dictionary structure
-        # {topic_name: {framerate, timer, last_message,
-        # subscriber, publisher, lock}
-        self.topic_dictionary = {key: {'framerate': value, 'timer': None,
-                                       'last_message': None,
-                                       'subscriber': None,
-                                       'publisher': None, 'lock': Lock()}
-                                 for (key, value) in
-                                 self.parameters['topic_framerate']}
+        # {topic_id: {topic_rate, lazy, latched, subscriber,
+        # publisher, lock, timer, last_message}
 
-        for key, element in self.topic_dictionary.iteritems():
+        for key, element in self.topics.iteritems():
+            element['lock'] = Lock()
             element['lock'].acquire_lock()
+            element['publisher'] = None
+            element['subscriber'] = None
             # Create Timer for each topic
             personal_callback = partial(self.timer_callback, topic_id=key)
             element['timer'] = rospy.Timer(
-                rospy.Duration(1. / element['framerate']),
-                personal_callback)
+                rospy.Duration(1.0 / element['topic_rate']), personal_callback)
+            element['last_message'] = None
             element['lock'].release_lock()
 
     def _shutdown(self):
