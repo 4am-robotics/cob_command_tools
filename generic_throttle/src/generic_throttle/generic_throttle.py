@@ -22,7 +22,7 @@ class GenericThrottle:
         # create dictionary out of the topic list
         self.topics = {item.keys()[0]: item.values()[0] for item in topics_list}
 
-        # Check if each entry of topics has 3 parameters (
+        # Check if each entry of topics has 3 parameters
         size_flag = all(len(item) == 3 for item in self.topics.values())
 
         if(not(size_flag)):
@@ -57,11 +57,14 @@ class GenericThrottle:
                 self.topics[topic_id]['lock'].release_lock()
                 return
             else:
-                # Create publisher
+                # Create a (latched if needed) publisher
                 self.topics[topic_id]['publisher'] = \
-                    rospy.Publisher(topic_id + '_throttled',
-                                    topic_info[0], queue_size=1)
+                    rospy.Publisher(topic_id + '_throttled', topic_info[0],
+                                    queue_size = 1,
+                                    latch = self.topics[topic_id]['latched'])
+
                 rospy.loginfo('Created publisher for ' + topic_id)
+
                 # Create subscriber
                 subscriber_partial = partial(self.subscriber_callback,
                                              topic_id=topic_id)
@@ -76,19 +79,12 @@ class GenericThrottle:
         last_message = self.topics[topic_id]['last_message']
 
         if last_message is not None:
-            if self.topics[topic_id]['lazy']:
-                # Lazy behavior: if nobody is listening don't publish
-                if self.topics[topic_id]['publisher']\
-                        .get_num_connections() > 0:
-                    self.topics[topic_id]['publisher'].publish(
-                        last_message)
-            else:
-                self.topics[topic_id]['publisher'].publish(
-                    last_message)
-
-            if not(self.topics[topic_id]['latched']):
-                # Not latched behavior: delete last message that was just sent
-                self.topics[topic_id]['last_message'] = None
+            lazy_behavior = \
+                self.topics[topic_id]['publisher'].get_num_connections() == 0 \
+                and self.topics[topic_id]['lazy']
+            if not lazy_behavior:
+                self.topics[topic_id]['publisher'].publish(last_message)
+            self.topics[topic_id]['last_message'] = None
             self.topics[topic_id]['lock'].release_lock()
             return
 
