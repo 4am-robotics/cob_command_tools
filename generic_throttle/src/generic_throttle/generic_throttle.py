@@ -12,7 +12,7 @@ class GenericThrottle:
         self.topic_dictionary = None
         self.parameters = {'namespace': None,
                            'topic_framerate': None,
-                           'latched': True,
+                           'latched': False,
                            'lazy': False}
 
         rospy.init_node('generic_throttle')
@@ -95,9 +95,18 @@ class GenericThrottle:
         last_message = self.topic_dictionary[topic_id]['last_message']
 
         if last_message is not None:
-            self.topic_dictionary[topic_id]['publisher'].publish(
-                last_message)
+            if self.parameters['lazy']:
+                # Lazy behavior: if nobody is listening don't publish
+                if self.topic_dictionary[topic_id]['publisher']\
+                        .get_num_connections() > 0:
+                    self.topic_dictionary[topic_id]['publisher'].publish(
+                        last_message)
+            else:
+                self.topic_dictionary[topic_id]['publisher'].publish(
+                    last_message)
+
             if not(self.parameters['latched']):
+                # Not latched behavior: delete last message that was just sent
                 self.topic_dictionary[topic_id]['last_message'] = None
             self.topic_dictionary[topic_id]['lock'].release_lock()
             return
@@ -115,13 +124,6 @@ class GenericThrottle:
                           + topic_id)
             return
 
-        if data._has_header:
-            self.topic_dictionary[topic_id]['last_timestamp'] = \
-                data.header.stamp
-        else:
-            self.topic_dictionary[topic_id]['last_timestamp'] = \
-                rospy.Time.now()
-
         self.topic_dictionary[topic_id]['last_message'] = data
         self.topic_dictionary[topic_id]['lock'].release_lock()
 
@@ -131,7 +133,6 @@ class GenericThrottle:
         # subscriber, publisher, lock}
         self.topic_dictionary = {key: {'framerate': value, 'timer': None,
                                        'last_message': None,
-                                       'last_timestamp': None,
                                        'subscriber': None,
                                        'publisher': None, 'lock': Lock()}
                                  for (key, value) in
