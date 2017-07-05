@@ -2,14 +2,19 @@
 
 import rospy
 import rostopic
+import cv2
 from threading import Lock
 from threading import currentThread
 from functools import partial
+from cv_bridge import CvBridge, CvBridgeError
 
 
 class GenericThrottle:
     def __init__(self):
         self.topics = None
+        self.bridge = CvBridge()
+
+        mandatory_parameters = ['topic_rate','latched', 'lazy']
 
         topics_param_name = str(rospy.get_namespace()) + '/topics'
 
@@ -22,12 +27,14 @@ class GenericThrottle:
         # create dictionary out of the topic list
         self.topics = {item.keys()[0]: item.values()[0] for item in topics_list}
 
-        # Check if each entry of topics has 3 parameters
-        size_flag = all(len(item) == 3 for item in self.topics.values())
+        # Check if each entry of topics has the mandatory parameters
+        mandatory_flag = all(set(mandatory_parameters) <=
+                             set(element) for key, element in
+                             self.topics.iteritems())
 
-        if(not(size_flag)):
+        if(not(mandatory_flag)):
             rospy.logerr('Each throttled topic needs 3 parameters ' +
-                         '[latched, lazy, topic_rate]')
+                         str(mandatory_parameters))
             exit(10)
 
         # Populate the dictionary for the ros topic throttling
@@ -83,7 +90,17 @@ class GenericThrottle:
                 self.topics[topic_id]['publisher'].get_num_connections() == 0 \
                 and self.topics[topic_id]['lazy']
             if not lazy_behavior:
+                # if requested and possible, apply the resolution change
+                try:
+                    resolution = self.topics[topic_id]['resolution']
+                except KeyError:
+                    resolution = None
+
+                if resolution is not None:
+                    last_message = self._resize_image(last_message, resolution)
+                # publish the throttled message
                 self.topics[topic_id]['publisher'].publish(last_message)
+
             self.topics[topic_id]['last_message'] = None
             self.topics[topic_id]['lock'].release_lock()
             return
@@ -100,6 +117,19 @@ class GenericThrottle:
             rospy.logdebug(str(current_t._Thread__name) + ': cannot lock topic '
                           + topic_id)
             return
+
+        try:
+            resolution = self.topics[topic_id]['resolution']
+        except KeyError:
+            resolution = None
+
+        if resolution is not None:
+            if data._type != 'sensor_msgs/Image':
+                rospy.logwarn('Resolution option is not available for ' +
+                                data._type + '. Topic ' + topic_id +
+                                ' will not be resolution throttled.')
+                self.topics[topic_id]['resolution'] = None
+
 
         self.topics[topic_id]['last_message'] = data
         self.topics[topic_id]['lock'].release_lock()
@@ -123,3 +153,32 @@ class GenericThrottle:
 
     def _shutdown(self):
         rospy.loginfo('Stopping ' + str(rospy.get_name()))
+
+    def _resize_image(self, data, resolution):
+        old_image = None
+
+        try:
+            old_image = self.bridge.imgmsg_to_cv2(data)
+        except CvBridgeError as e:
+            print(e)
+            exit(20)
+
+        factor = 1.0 / resolution
+        if factor < 1:
+            # shrinking
+            new_image = cv2.resize(old_image, (0, 0), fx=factor, fy=factor,
+                                   interpolation=cv2.INTER_AREA)
+        elif factor > 1:
+            # enlarging
+            new_image = cv2.resize(old_image, (0, 0), fx=factor, fy=factor)
+        else:
+            # factor == 1 --> Don't resize at all...
+            new_image = old_image
+
+        try:
+            new_message = self.bridge.cv2_to_imgmsg(new_image,
+                                                    encoding=data.encoding)
+            return new_message
+        except CvBridgeError as e:
+            print(e)
+            exit(20)
