@@ -12,5 +12,5 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <exec_depend>rospy</exec_depend>
-
+  <exec_depend>cv_bridge</exec_depend>
 </package>
