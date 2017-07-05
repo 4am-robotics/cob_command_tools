@@ -4,7 +4,7 @@ generic_throttle is package offering a Python implementation of a throttle for t
 
 The package is composed of
 - `GenericThrottle`: class implementing the throttle
-- `generic_throttle_node`: ROS node wrapping around an istance of `GenericThrottle`
+- `generic_throttle_node`: ROS node wrapping around an instance of `GenericThrottle`
 
 The parameters are set with ROS parameters. An example of .yaml file:
 ```
@@ -18,7 +18,7 @@ For each topic, 3 parameters must be specified:
 - `lazy`: if `True`, the publisher of the throttled topics will check if the number of subscribers and if there are no, it will not publish the message
 - `topic_rate`: desired rate (in Hz) for the throttled topic.
 
-The throttle will publish on topics with name `/topic1_throttled` (it appends `_throttled` to the original name).
+The throttle will publish on topics with name `/topic_throttled` (it appends `_throttled` to the original name).
 When running an instance of `generic_throttle_node`, you must define the throttle namespace to let the node discover the required parameters. An example from .launch file:
 ```
 <node pkg="generic_throttle" type="generic_throttle_node.py" name="throttle" ns="test_throttle" />
