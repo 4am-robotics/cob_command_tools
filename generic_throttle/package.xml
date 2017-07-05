@@ -5,8 +5,9 @@
 
   <license>LGPL</license>
   
-  <maintainer email="mattia.racca@aalto.fi">Mattia Racca</maintainer>
-  <author email="mattia.racca@aalto.fi">Mattia Racca</author>
+  <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer> 
+  <maintainer email="mattia.rh@gmail.com">Mattia Racca</maintainer>
+  <author email="mattia.rh@gmail.com">Mattia Racca</author>
 
   <buildtool_depend>catkin</buildtool_depend>
 
