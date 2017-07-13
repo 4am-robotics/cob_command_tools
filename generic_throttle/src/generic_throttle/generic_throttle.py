@@ -92,7 +92,7 @@ class GenericThrottle:
             if not lazy_behavior:
                 # if requested and possible, apply the resolution change
                 try:
-                    resolution = self.topics[topic_id]['resolution']
+                    resolution = self.topics[topic_id]['resolution_factor']
                 except KeyError:
                     resolution = None
 
@@ -119,16 +119,16 @@ class GenericThrottle:
             return
 
         try:
-            resolution = self.topics[topic_id]['resolution']
+            resolution = self.topics[topic_id]['resolution_factor']
         except KeyError:
             resolution = None
 
         if resolution is not None:
             if data._type != 'sensor_msgs/Image':
-                rospy.logwarn('Resolution option is not available for ' +
+                rospy.logwarn('resolution_factor option is not available for ' +
                                 data._type + '. Topic ' + topic_id +
                                 ' will not be resolution throttled.')
-                self.topics[topic_id]['resolution'] = None
+                self.topics[topic_id]['resolution_factor'] = None
 
 
         self.topics[topic_id]['last_message'] = data
