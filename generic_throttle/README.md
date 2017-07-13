@@ -12,7 +12,7 @@ test_throttle:          # Throttle namespace
   topics:               # List of topics to be throttled
     - /topic1: {latched: False, lazy: True, topic_rate: 1.0}
     - /topic2: {latched: True, lazy: False, topic_rate: 20.0}
-    - /image_topic: {latched: False, lazy: True, topic_rate: 20.0, resolution_factor: 2}
+    - /image_topic: {latched: False, lazy: True, topic_rate: 20.0, resolution_factor: 0.5}
 ```
 For each topic, 3 parameters must be specified:
 - `latched`: if `True`, the publisher of the throttled topic acts as latched (see  http://docs.ros.org/api/rospy/html/rospy.topics.Publisher-class.html)
@@ -20,7 +20,7 @@ For each topic, 3 parameters must be specified:
 - `topic_rate`: desired rate (in Hz) for the throttled topic.
 
 Optional parameter:
-- `resolution_factor`: it is meant for topics of type sensor_msgs/Image. If available, the throttle will reduce the resolution of the image by the specified factor. For example, if `resolution_factor: 2`, width and height will be halved.
+- `resolution_factor`: it is meant for topics of type sensor_msgs/Image. If available, the throttle will reduce the resolution of the image by the specified factor. For example, if `resolution_factor: 0.5`, width and height will be halved.
 
 The throttle will publish on topics with name `/topic_throttled` (it appends `_throttled` to the original name).
 When running an instance of `generic_throttle_node`, you must define the throttle namespace to let the node discover the required parameters. An example from .launch file:

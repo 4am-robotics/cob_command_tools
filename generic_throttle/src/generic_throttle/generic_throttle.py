@@ -163,17 +163,22 @@ class GenericThrottle:
             print(e)
             exit(20)
 
-        factor = 1.0 / resolution
-        if factor < 1:
-            # shrinking
-            new_image = cv2.resize(old_image, (0, 0), fx=factor, fy=factor,
-                                   interpolation=cv2.INTER_AREA)
-        elif factor > 1:
-            # enlarging
-            new_image = cv2.resize(old_image, (0, 0), fx=factor, fy=factor)
-        else:
-            # factor == 1 --> Don't resize at all...
-            new_image = old_image
+        try:
+            if resolution < 1:
+                # shrinking
+                new_image = cv2.resize(old_image, (0, 0), fx=resolution,
+                                       fy=resolution,
+                                       interpolation=cv2.INTER_AREA)
+            elif resolution > 1:
+                # enlarging
+                new_image = cv2.resize(old_image, (0, 0), fx=resolution,
+                                       fy=resolution)
+            else:
+                # resolution == 1 --> Don't resize at all...
+                new_image = old_image
+        except cv2.error as e:
+            print(e)
+            exit(20)
 
         try:
             new_message = self.bridge.cv2_to_imgmsg(new_image,
