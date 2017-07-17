@@ -48,7 +48,7 @@ public:
   {
     ros::NodeHandle nh;
     ros::param::get("~topics", topics_);
-    ros::param::get("~diagnostic_name", hardware_id_);
+    ros::param::get("~diagnostics_name", hardware_id_);
     diagnostic_updater_.setHardwareID(hardware_id_);
     
     for(size_t i=0; i<topics_.size(); i++)
