@@ -2,8 +2,8 @@
 Changelog for package generic_throttle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.6 (2017-07-17)
+------------------
 * Change resolution factor to be a multiplicative factor and not a division.
   Handle resize to factor 0 as OpenCV error.
 * Change misleading resolution with resolution_factor

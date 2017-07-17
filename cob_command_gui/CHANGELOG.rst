@@ -2,8 +2,8 @@
 Changelog for package cob_command_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.6 (2017-07-17)
+------------------
 * 'trigger_action' is blocking
 * add buttons for 'trigger_action'
 * fix python import

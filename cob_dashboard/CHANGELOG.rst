@@ -2,8 +2,8 @@
 Changelog for package cob_dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.6 (2017-07-17)
+------------------
 * dual distro compatibility for qt
 * rospy.sleep exception handling
 * manually fix changelog
