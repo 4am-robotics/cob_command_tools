@@ -3,7 +3,7 @@
   <version>0.6.5</version>
   <description>cob_dashboard is a modified version of [[pr2_dashboard]].</description>
 
-  <license>LGPL</license>
+  <license>Apache 2.0</license>
 
   <url type="website">http://ros.org/wiki/cob_dashboard</url>
   <!-- <url type="bugtracker"></url> -->

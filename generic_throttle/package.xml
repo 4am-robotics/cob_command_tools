@@ -3,7 +3,7 @@
   <version>0.1.5</version>
   <description>This package provides a throttle for ROS topics</description>
 
-  <license>LGPL</license>
+  <license>Apache 2.0</license>
   
   <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer> 
   <maintainer email="mattia.rh@gmail.com">Mattia Racca</maintainer>
