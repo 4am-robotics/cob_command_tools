@@ -35,7 +35,6 @@ NAME = 'ntp_monitor'
 
 def ntp_monitor(ntp_hostname, offset=500, self_offset=500, diag_hostname = None, error_offset = 5000000):
     pub = rospy.Publisher("/diagnostics", DiagnosticArray,queue_size=50 )
-    rospy.init_node(NAME, anonymous=True)
 
     hostname = socket.gethostname()
     if diag_hostname is None:
@@ -118,7 +117,8 @@ def ntp_monitor_main(argv=sys.argv):
 
     if (len(args) != 2):
         parser.error("Invalid arguments. Must have HOSTNAME [args]. %s" % args)
-
+        print('Invalid arguments.', file=sys.stderr)
+        sys.exit(0)
 
     try:
         offset = int(options.offset_tol)
@@ -126,6 +126,22 @@ def ntp_monitor_main(argv=sys.argv):
         error_offset = int(options.error_offset_tol)
     except:
         parser.error("Offsets must be numbers")
+        print('Offsets must be numbers', file=sys.stderr)
+        sys.exit(0)
+
+    try:
+        rospy.init_node(NAME, anonymous=True)
+    except rospy.exceptions.ROSInitException:
+        print('NTP monitor is unable to initialize node. Master may not be running.', file=sys.stderr)
+        sys.exit(0)
+
+    offset = rospy.get_param('~offset_tolerance', offset)
+    error_offset_tol = rospy.get_param('~error_offset_tolerance', error_offset_tol)
+    self_offset_tol = rospy.get_param('~self_offset_tolerance', self_offset_tol)
+    print("NTP parameters:")
+    print offset
+    print error_offset_tol
+    print self_offset_tol
 
     ntp_monitor(args[1], offset, self_offset, options.diag_hostname, error_offset)
 
