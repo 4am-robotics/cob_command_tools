@@ -3,8 +3,7 @@
   <version>0.6.5</version>
   <description>COB teleop interactive marker for RViz provided by dcgm-robotics@FIT group.</description>
 
-  <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>
-  <maintainer email="spanel@fit.vutbr.cz">Michal Spanel</maintainer>
+  <maintainer email="richard.bormann@ipa.fraunhofer.de">Richard Bormann</maintainer>
   <author email="spanel@fit.vutbr.cz">Michal Spanel</author>
 
   <license>LGPL</license>
