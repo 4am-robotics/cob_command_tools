@@ -3,7 +3,7 @@
   <version>0.6.5</version>
   <description>The cob_command_tools stack provides tools, for operating Care-O-bot.</description>
 
-  <license>LGPL</license>
+  <license>Apache 2.0</license>
 
   <url type="website">http://ros.org/wiki/cob_command_tools</url>
   <!-- <url type="bugtracker"></url> -->
