@@ -8,9 +8,9 @@
   <url type="website">http://ros.org/wiki/cob_monitoring</url>
   <!-- <url type="bugtracker"></url> -->
 
-  <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>
-  <maintainer email="nhg@ipa.fhg.de">Nadia Hammoudeh</maintainer>
+  <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
   <author email="fmw@ipa.fhg.de">Florian Weisshardt</author>
+  <author email="fxm@ipa.fhg.de">Felix Messmer</author>
 
   <buildtool_depend>catkin</buildtool_depend>
 

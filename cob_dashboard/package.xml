@@ -8,7 +8,7 @@
   <url type="website">http://ros.org/wiki/cob_dashboard</url>
   <!-- <url type="bugtracker"></url> -->
 
-  <maintainer email="nhg@ipa.fhg.de">Nadia Hammoudeh Garcia</maintainer>
+  <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer>
   <author email="aub@ipa.fhg.de">Alexander Bubeck</author>
 
   <buildtool_depend>catkin</buildtool_depend>
