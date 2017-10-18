@@ -57,6 +57,7 @@ class emergency_stop_monitor():
 			self.sound_components = rospy.get_param("~sound_components")
 
 		self.sound_em_released = rospy.get_param("~sound_em_released", "emergency stop released")
+		self.sound_em_laser_released = rospy.get_param("~sound_em_laser_released", "emergency stop released")
 		self.sound_em_acknowledged = rospy.get_param("~sound_em_acknowledged", "emergency stop acknowledged")
 		self.sound_em_laser_issued = rospy.get_param("~sound_em_laser_issued", "laser emergency stop issued")
 		self.sound_em_button_issued = rospy.get_param("~sound_em_button_issued", "emergency stop button pressed")
@@ -67,6 +68,7 @@ class emergency_stop_monitor():
 		rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.emergency_callback, queue_size=1)
 		self.em_status = -1
 		self.first_time = True
+		self.is_laser_stop = False
 
 		if(self.diagnostics_based):
 			rospy.Subscriber("/diagnostics_toplevel_state", DiagnosticStatus, self.diagnostics_callback, queue_size=1)
@@ -93,22 +95,31 @@ class emergency_stop_monitor():
 
 			if msg.emergency_state == 0: # ready
 				self.stop_light()
-				self.say(self.sound_em_released)
+				if self.is_laser_stop:
+					self.say(self.sound_em_laser_released)
+				else:
+					self.say(self.sound_em_released)
 				self.diag_status = -1
 				self.motion_status = -1
+				self.is_laser_stop = False
 			elif msg.emergency_state == 1: # em stop
 				self.set_light(self.color_error)
 				if msg.scanner_stop and not msg.emergency_button_stop:
+					self.is_laser_stop = True
 					self.say(self.sound_em_laser_issued)
 				elif not msg.scanner_stop and msg.emergency_button_stop:
+					self.is_laser_stop = False
 					self.say(self.sound_em_button_issued)
 				else:
+					self.is_laser_stop = False
 					self.say(self.sound_em_stop_issued)
 			elif msg.emergency_state == 2: # release
+				self.is_laser_stop = False
 				self.set_light(self.color_warn)
 				self.say(self.sound_em_acknowledged)
 			else:
 				rospy.logerr("Unknown emergency status issued: %s",str(msg.emergency_state))
+				self.is_laser_stop = False
 				self.set_light(self.color_error)
 				self.say(self.sound_em_unknown_issued)
 
