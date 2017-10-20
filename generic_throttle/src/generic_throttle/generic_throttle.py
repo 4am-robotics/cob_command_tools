@@ -31,13 +31,10 @@ class GenericThrottle:
 
         mandatory_parameters = ['topic_rate','latched', 'lazy']
 
-        topics_param_name = str(rospy.get_namespace()) + '/topics'
-
-        if rospy.has_param(topics_param_name):
-            topics_list = rospy.get_param(topics_param_name)
-        else:
+        topics_param_name = '~topics'
+        if not rospy.has_param(topics_param_name):
             rospy.logerr('Parameter ' + topics_param_name + ' not available')
-            exit(5)
+        topics_list = rospy.get_param(topics_param_name, [])
 
         # create dictionary out of the topic list
         self.topics = {item.keys()[0]: item.values()[0] for item in topics_list}
