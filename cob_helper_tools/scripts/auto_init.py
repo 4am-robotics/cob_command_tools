@@ -26,12 +26,12 @@ sss = simple_script_server()
 class AutoInit():
 
   def __init__(self):
-    self.components = rospy.get_param('~components', [])
+    self.components = rospy.get_param('~components', {})
     self.em_state = 1  # assume EMSTOP
-    rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.em_cb)
+    rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.em_cb, queue_size=1)
 
     # wait for all components to start
-    for component in self.components:
+    for component in self.components.keys():
       rospy.loginfo("[auto_init]: Waiting for %s to start...", component)
       rospy.wait_for_service("/" + component + "/driver/init")
 
@@ -46,7 +46,7 @@ class AutoInit():
       else: # EMFREE or EMCONFIRMED
         # call init for all components
         rospy.loginfo("[auto_init]: Initializing components")
-        for component in self.components:
+        for component in self.components.keys():
           while not rospy.is_shutdown():
             handle = sss.init(component)
             if not (handle.get_error_code() == 0):
