@@ -16,6 +16,7 @@
 
 
 import sys
+import copy
 
 import rospy
 from sensor_msgs.msg import JointState
@@ -56,19 +57,20 @@ class emergency_stop_monitor():
 				sys.exit(1)
 			self.sound_components = rospy.get_param("~sound_components")
 
-		self.sound_em_released = rospy.get_param("~sound_em_released", "emergency stop released")
-		self.sound_em_laser_released = rospy.get_param("~sound_em_laser_released", "emergency stop released")
+		self.sound_em_ready_laser_released = rospy.get_param("~sound_em_ready_laser_released", "emergency stop released")
+		self.sound_em_ready_button_released = rospy.get_param("~sound_em_ready_button_released", "emergency stop released")
 		self.sound_em_acknowledged = rospy.get_param("~sound_em_acknowledged", "emergency stop acknowledged")
-		self.sound_em_laser_issued = rospy.get_param("~sound_em_laser_issued", "laser emergency stop issued")
-		self.sound_em_button_issued = rospy.get_param("~sound_em_button_issued", "emergency stop button pressed")
+		self.sound_em_stop_laser_released = rospy.get_param("~sound_em_stop_laser_released", "laser emergency stop released, but button still active")
+		self.sound_em_stop_button_released = rospy.get_param("~sound_em_stop_button_released", "emergency stop button released, but laser still active")
+		self.sound_em_stop_laser_issued = rospy.get_param("~sound_em_stop_laser_issued", "laser emergency stop issued")
+		self.sound_em_stop_button_issued = rospy.get_param("~sound_em_stop_button_issued", "emergency stop button pressed")
 		self.sound_em_stop_issued = rospy.get_param("~sound_em_stop_issued", "emergency stop issued")
 		self.sound_em_unknown_issued = rospy.get_param("~sound_em_unknown_issued", "unknown emergency status issued")
 
 		#emergency_stop_monitoring always enabled
 		rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.emergency_callback, queue_size=1)
-		self.em_status = -1
-		self.first_time = True
-		self.is_laser_stop = False
+		self.em_status = EmergencyStopState()
+		self.em_status.emergency_state = -1
 
 		if(self.diagnostics_based):
 			rospy.Subscriber("/diagnostics_toplevel_state", DiagnosticStatus, self.diagnostics_callback, queue_size=1)
@@ -84,49 +86,43 @@ class emergency_stop_monitor():
 	## EmergencyStop monitoring
 	def emergency_callback(self, msg):
 		# skip first message to avoid speach output on startup
-		if self.first_time:
-			self.first_time = False
-			self.em_status = msg.emergency_state
+		if self.em_status.emergency_state == -1:
+			self.em_status = copy.deepcopy(msg)
 			return
 
-		if self.em_status != msg.emergency_state:
-			self.em_status = msg.emergency_state
-			rospy.loginfo("Emergency change to "+ str(self.em_status))
+		if self.em_status != msg:
+			rospy.loginfo("Emergency change to "+ str(msg.emergency_state))
 
-			if msg.emergency_state == 0: # ready
+			if msg.emergency_state == 0: # became ready
 				self.stop_light()
-				if self.is_laser_stop:
-					self.say(self.sound_em_laser_released)
-				else:
-					self.say(self.sound_em_released)
+				if not msg.scanner_stop and self.em_status.scanner_stop:
+					self.say(self.sound_em_ready_laser_released)
+				if not msg.emergency_button_stop and self.em_status.emergency_button_stop:
+					self.say(self.sound_em_ready_button_released)
 				self.diag_status = -1
 				self.motion_status = -1
-				self.is_laser_stop = False
 			elif msg.emergency_state == 1: # em stop
 				self.set_light(self.color_error)
-				if msg.scanner_stop and not msg.emergency_button_stop:
-					self.is_laser_stop = True
-					self.say(self.sound_em_laser_issued)
-				elif not msg.scanner_stop and msg.emergency_button_stop:
-					self.is_laser_stop = False
-					self.say(self.sound_em_button_issued)
-				else:
-					self.is_laser_stop = False
-					self.say(self.sound_em_stop_issued)
+				if not msg.scanner_stop and self.em_status.scanner_stop:
+					self.say(self.sound_em_stop_laser_released)
+				if not msg.emergency_button_stop and self.em_status.emergency_button_stop:
+					self.say(self.sound_em_stop_button_released)
+				if msg.scanner_stop and not self.em_status.scanner_stop:
+					self.say(self.sound_em_stop_laser_issued)
+				if msg.emergency_button_stop and not self.em_status.emergency_button_stop:
+					self.say(self.sound_em_stop_button_issued)
 			elif msg.emergency_state == 2: # release
-				self.is_laser_stop = False
 				self.set_light(self.color_warn)
 				self.say(self.sound_em_acknowledged)
 			else:
 				rospy.logerr("Unknown emergency status issued: %s",str(msg.emergency_state))
-				self.is_laser_stop = False
 				self.set_light(self.color_error)
 				self.say(self.sound_em_unknown_issued)
-
+		self.em_status = copy.deepcopy(msg)
 
 	## Diagnostics monitoring
 	def diagnostics_callback(self, msg):
-		if self.em_status != 0:
+		if self.em_status.emergency_state != 0:
 			#emergency_stop_monitoring has higher priority
 			return
 
@@ -143,7 +139,7 @@ class emergency_stop_monitor():
 
 	## Motion Monitoring
 	def jointstate_callback(self, msg):
-		if self.em_status != 0:
+		if self.em_status.emergency_state != 0:
 			#emergency_stop_monitoring has higher priority
 			return
 		if self.diag_status != 0:
