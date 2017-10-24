@@ -56,7 +56,7 @@ class AutoRecover():
   def diagnostics_cb(self, msg):
     for status in msg.status:
       for component in self.components.keys():
-        if status.name.startswith(self.components[component]) and status.level > 0 and (rospy.Time.now() - self.components_recover_time[component] > rospy.Duration(10)):
+        if status.name.startswith(self.components[component]) and status.level > 0 and self.em_state == 0 and (rospy.Time.now() - self.components_recover_time[component] > rospy.Duration(10)):
           rospy.loginfo("auto_recover from diagnostic failure")
           self.recover([component])
 
