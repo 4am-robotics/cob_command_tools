@@ -214,7 +214,7 @@ class emergency_stop_monitor():
 						rospy.logerr("%s service failed: %s",srv_server_name, e)
 
 	def say(self, text):
-		if self.enable_sound:
+		if self.enable_sound and text:
 			for component in self.sound_components:
 				sss.say(component, [text])
 
