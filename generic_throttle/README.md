@@ -6,13 +6,12 @@ The package is composed of
 - `GenericThrottle`: class implementing the throttle
 - `generic_throttle_node`: ROS node wrapping around an instance of `GenericThrottle`
 
-The parameters are set with ROS parameters. An example of .yaml file:
+The parameters are set as privat parameters of the node. An example .yaml file could look like this:
 ```
-test_throttle:          # Throttle namespace
-  topics:               # List of topics to be throttled
-    - /topic1: {latched: False, lazy: True, topic_rate: 1.0}
-    - /topic2: {latched: True, lazy: False, topic_rate: 20.0}
-    - /image_topic: {latched: False, lazy: True, topic_rate: 20.0, resolution_factor: 0.5}
+topics:               # List of topics to be throttled
+  - /topic1: {latched: False, lazy: True, topic_rate: 1.0}
+  - /topic2: {latched: True, lazy: False, topic_rate: 20.0}
+  - /image_topic: {latched: False, lazy: True, topic_rate: 20.0, resolution_factor: 0.5}
 ```
 For each topic, 3 parameters must be specified:
 - `latched`: if `True`, the publisher of the throttled topic acts as latched (see  http://docs.ros.org/api/rospy/html/rospy.topics.Publisher-class.html)

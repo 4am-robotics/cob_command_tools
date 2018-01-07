@@ -1,30 +1,19 @@
-#!/usr/bin/python
-#################################################################
-##\file
+#!/usr/bin/env python
 #
-# \note
-#   Copyright (c) Felix Messmer \n
-#   Fraunhofer Institute for Manufacturing Engineering
-#   and Automation (IPA) \n
+# Copyright 2017 Fraunhofer Institute for Manufacturing Engineering and Automation (IPA)
 #
-#   All rights reserved. \n\n
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-#################################################################
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
-# \note
-#   Repository name: cob_command_tools
-# \note
-#   ROS package name: cob_helper_tools
-#
-# \author
-#   Author: Felix Messmer
-#
-# \date Date of creation: January 2017
-#
-# \brief
-#   A script to automatically initialize hardware on startup
-#
-#################################################################
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 import rospy
 import tf
@@ -37,12 +26,12 @@ sss = simple_script_server()
 class AutoInit():
 
   def __init__(self):
-    self.components = rospy.get_param('~components', [])
+    self.components = rospy.get_param('~components', {})
     self.em_state = 1  # assume EMSTOP
-    rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.em_cb)
+    rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.em_cb, queue_size=1)
 
     # wait for all components to start
-    for component in self.components:
+    for component in self.components.keys():
       rospy.loginfo("[auto_init]: Waiting for %s to start...", component)
       rospy.wait_for_service("/" + component + "/driver/init")
 
@@ -57,7 +46,7 @@ class AutoInit():
       else: # EMFREE or EMCONFIRMED
         # call init for all components
         rospy.loginfo("[auto_init]: Initializing components")
-        for component in self.components:
+        for component in self.components.keys():
           while not rospy.is_shutdown():
             handle = sss.init(component)
             if not (handle.get_error_code() == 0):

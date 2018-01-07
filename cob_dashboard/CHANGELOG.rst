@@ -2,6 +2,17 @@
 Changelog for package cob_dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.7 (2018-01-07)
+------------------
+* Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev
+* Merge pull request `#202 <https://github.com/ipa320/cob_command_tools/issues/202>`_ from ipa-fxm/update_maintainer
+  update maintainer
+* update maintainer
+* Merge pull request `#197 <https://github.com/ipa320/cob_command_tools/issues/197>`_ from ipa-fxm/APACHE_license
+  use license apache 2.0
+* use license apache 2.0
+* Contributors: Felix Messmer, Richard Bormann, ipa-fxm, ipa-uhr-mk
+
 0.6.6 (2017-07-17)
 ------------------
 * dual distro compatibility for qt

@@ -2,6 +2,17 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.7 (2018-01-07)
+------------------
+* Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev
+* Merge pull request `#206 <https://github.com/ipa320/cob_command_tools/issues/206>`_ from ipa-fmw/hotfix_cob_console
+  [cob_console] hotfix for ipython shebang
+* hotfix for cob_console ipython shebang
+* Merge pull request `#197 <https://github.com/ipa320/cob_command_tools/issues/197>`_ from ipa-fxm/APACHE_license
+  use license apache 2.0
+* use license apache 2.0
+* Contributors: Felix Messmer, Florian Weisshardt, ipa-fxm, ipa-uhr-mk
+
 0.6.6 (2017-07-17)
 ------------------
 * move visualize navigation goals to cob_helper_tools

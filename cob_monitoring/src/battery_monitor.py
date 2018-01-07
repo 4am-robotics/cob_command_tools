@@ -1,61 +1,19 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #
-# \file
+# Copyright 2017 Fraunhofer Institute for Manufacturing Engineering and Automation (IPA)
 #
-# \note
-#   Copyright (c) 2016 \n
-#   Fraunhofer Institute for Manufacturing Engineering
-#   and Automation (IPA) \n\n
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
-#
-# \note
-#   Project name: care-o-bot
-# \note
-#   ROS stack name: cob_command_tools
-# \note
-#   ROS package name: cob_monitoring
-#
-# \author
-#   Author: Benjamin Maidel
-# \author
-#   Supervised by:
-#
-# \date Date of creation: JAN 2015
-#
-# \brief
-#   Monitors the battery level and announces warnings and reminders to recharge.
-#
-#
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#
-#     - Redistributions of source code must retain the above copyright
-#       notice, this list of conditions and the following disclaimer. \n
-#     - Redistributions in binary form must reproduce the above copyright
-#       notice, this list of conditions and the following disclaimer in the
-#       documentation and/or other materials provided with the distribution. \n
-#     - Neither the name of the Fraunhofer Institute for Manufacturing
-#       Engineering and Automation (IPA) nor the names of its
-#       contributors may be used to endorse or promote products derived from
-#       this software without specific prior written permission. \n
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License LGPL as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License LGPL for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License LGPL along with this program.
-# If not, see <http://www.gnu.org/licenses/>.
-#
-#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 import rospy
 import colorsys
@@ -105,6 +63,9 @@ class battery_monitor():
                 rospy.logwarn("parameter sound_components does not exist on ROS Parameter Server")
                 return
             self.sound_components = rospy.get_param("~sound_components")
+
+        self.sound_critical = rospy.get_param("~sound_critical", "My battery is empty, please recharge now.")
+        self.sound_warning = rospy.get_param("~sound_warning", "My battery is nearly empty, please consider recharging.")
 
         self.last_time_warned = rospy.get_time()
         self.last_time_power_received = rospy.get_time()
@@ -173,7 +134,7 @@ class battery_monitor():
                 mode.pulses = 4
                 self.set_light(mode)
 
-                self.say("My battery is empty, please recharge now.")
+                self.say(self.sound_critical)
 
             # 10%
             elif self.power_state.relative_remaining_capacity <= self.threshold_error and (rospy.get_time() - self.last_time_warned) > 15:
@@ -198,7 +159,7 @@ class battery_monitor():
                 mode.pulses = 2
                 self.set_light(mode)
 
-                self.say("My battery is nearly empty, please consider recharging.")
+                self.say(self.sound_warning)
 
         if self.is_charging == False and self.power_state.charging == True:
             self.is_charging = True

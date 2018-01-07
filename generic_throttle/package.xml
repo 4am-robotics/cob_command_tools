@@ -1,9 +1,9 @@
 <package format="2">
   <name>generic_throttle</name>
-  <version>0.6.6</version>
+  <version>0.6.7</version>
   <description>This package provides a throttle for ROS topics</description>
 
-  <license>LGPL</license>
+  <license>Apache 2.0</license>
   
   <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer> 
   <maintainer email="mattia.rh@gmail.com">Mattia Racca</maintainer>
