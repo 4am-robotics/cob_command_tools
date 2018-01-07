@@ -2,6 +2,20 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.6 (2017-07-17)
+------------------
+* move visualize navigation goals to cob_helper_tools
+* add node for visualization of script server navigation goals
+* handle uninitielized action clients
+* add trigger_action function to sss
+* fix Trigger unittests
+* increased min point time
+* minimal trajectory point_time
+* catch ValueError during point time calculation when using mimic joints
+* manually fix changelog
+* fixed cob_console script
+* Contributors: Benjamin Maidel, Florian Weisshardt, Mathias Lüdtke, ipa-fxm
+
 0.6.5 (2016-10-10)
 ------------------
 * use joint_states instead of controller_state

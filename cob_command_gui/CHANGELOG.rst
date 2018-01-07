@@ -2,6 +2,16 @@
 Changelog for package cob_command_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.6 (2017-07-17)
+------------------
+* 'trigger_action' is blocking
+* add buttons for 'trigger_action'
+* fix python import
+* add proper print_functions import
+* some python3 print fixes
+* manually fix changelog
+* Contributors: ipa-fxm, robot
+
 0.6.5 (2016-10-10)
 ------------------
 

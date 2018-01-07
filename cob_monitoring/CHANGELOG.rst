@@ -2,6 +2,26 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.6 (2017-07-17)
+------------------
+* fix parameter name
+* use desired frequency as default windows size for the topic freq monitor
+* adjust tolerance, window_size
+* allow to monitor multiple topics
+* adjust to hz_monitor yaml layout
+* generic topic status monitor based on diagnostic updater
+* [hotfix] python syntax
+* remove useless code (`#173 <https://github.com/ipa320/cob_command_tools/issues/173>`_)
+* update psutil api
+* add fake_diagnostics
+* get num_cores from psutils
+* add proper print_functions import
+* some python3 print fixes
+* rospy.sleep exception handling
+* manually fix changelog
+* make smapling rate configurable and add warning
+* Contributors: Benjamin Maidel, Felix Messmer, Sourav Senapati, ipa-fxm, msh
+
 0.6.5 (2016-10-10)
 ------------------
 * fix diagnostics output
