@@ -2,8 +2,8 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.7 (2018-01-07)
+------------------
 * Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev
 * Merge pull request `#213 <https://github.com/ipa320/cob_command_tools/issues/213>`_ from ipa-fxm/no_recover_em_stop
   do not recover on em_stop

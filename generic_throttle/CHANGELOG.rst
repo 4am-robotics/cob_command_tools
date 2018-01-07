@@ -2,8 +2,8 @@
 Changelog for package generic_throttle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.7 (2018-01-07)
+------------------
 * Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev
 * Merge pull request `#209 <https://github.com/ipa320/cob_command_tools/issues/209>`_ from ipa-fxm/generic_throttle_private_param
   use private parameters for generic_throttle
