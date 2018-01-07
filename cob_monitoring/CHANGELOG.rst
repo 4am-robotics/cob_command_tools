@@ -2,6 +2,34 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.7 (2018-01-07)
+------------------
+* Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev
+* Merge pull request `#214 <https://github.com/ipa320/cob_command_tools/issues/214>`_ from ipa-fmw/fix/emstop_monitor
+  [EM stop monitor] prevent emstop monitor from saying empty strings
+* prevent emstop monitor from saying empty strings
+* Merge pull request `#211 <https://github.com/ipa320/cob_command_tools/issues/211>`_ from ipa-fxm/enhance_em_sound_logic
+  enhance emergency sound output
+* enhance emergency sound output
+* Merge pull request `#208 <https://github.com/ipa320/cob_command_tools/issues/208>`_ from ipa-fxm/allow_distinct_say_on_release
+  allow distinct say on released
+* allow distinct say on released
+* Merge pull request `#207 <https://github.com/ipa320/cob_command_tools/issues/207>`_ from ipa-fxm/sound_emergency_stop_monitor
+  Sound emergency stop monitor
+* allow to configure battery monitor notifications
+* allow to configure emergency stop notifications
+* Merge pull request `#200 <https://github.com/ipa320/cob_command_tools/issues/200>`_ from ipa-fxm/configurable_ntp_monitor
+  enhance ntp_monitor
+* Merge pull request `#202 <https://github.com/ipa320/cob_command_tools/issues/202>`_ from ipa-fxm/update_maintainer
+  update maintainer
+* update maintainer
+* refactor ntp_monitor
+* made ntp_monitor configurable via yaml
+* Merge pull request `#197 <https://github.com/ipa320/cob_command_tools/issues/197>`_ from ipa-fxm/APACHE_license
+  use license apache 2.0
+* use license apache 2.0
+* Contributors: Felix Messmer, Florian Weisshardt, Richard Bormann, ipa-fxm, ipa-uhr-mk, robot@cob4-2
+
 0.6.6 (2017-07-17)
 ------------------
 * fix parameter name

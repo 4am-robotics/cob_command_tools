@@ -2,6 +2,17 @@
 Changelog for package generic_throttle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev
+* Merge pull request `#209 <https://github.com/ipa320/cob_command_tools/issues/209>`_ from ipa-fxm/generic_throttle_private_param
+  use private parameters for generic_throttle
+* use private parameters for generic_throttle
+* Merge pull request `#197 <https://github.com/ipa320/cob_command_tools/issues/197>`_ from ipa-fxm/APACHE_license
+  use license apache 2.0
+* use license apache 2.0
+* Contributors: Benjamin Maidel, Felix Messmer, ipa-fxm, ipa-uhr-mk
+
 0.6.6 (2017-07-17)
 ------------------
 * Change resolution factor to be a multiplicative factor and not a division.
