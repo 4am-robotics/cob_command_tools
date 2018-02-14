@@ -18,12 +18,16 @@
 import sys
 import rospy
 import tf
+import os
+from optparse import OptionParser
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 
+
 class VisualizerNavigationGoals():
-    def __init__(self):
+    def __init__(self, textsize):
         self.pubGoals = rospy.Publisher('visualize_navigation_goals', MarkerArray, queue_size=1, latch=True)
+        self.textsize = textsize
 
     def pubMarker(self):
         navigation_goals = rospy.get_param("/script_server/base", {})
@@ -69,7 +73,7 @@ class VisualizerNavigationGoals():
             marker_text.id = i + 1000000
             marker_text.type = Marker.TEXT_VIEW_FACING
             marker_text.action = Marker.ADD
-            marker_text.scale.z = 0.5
+            marker_text.scale.z = self.textsize
             marker_text.color.r = 0.0
             marker_text.color.g = 0.0
             marker_text.color.b = 1.0
@@ -91,7 +95,17 @@ class VisualizerNavigationGoals():
 
 if __name__ == "__main__":
     rospy.init_node('navigation_goal_visualizer')
-    p = VisualizerNavigationGoals()
+
+    _usage = """%prog [options]
+    type %prog -h for more info."""
+    
+    parser = OptionParser(usage=_usage, prog=os.path.basename(sys.argv[0]))
+    parser.add_option(
+        '-t', '--textsize', dest='textsize', default=0.5, 
+        help="Text size for navigation goals")
+    (options, args) = parser.parse_args()
+
+    p = VisualizerNavigationGoals(float(options.textsize))
     r = rospy.Rate(1)
     while not rospy.is_shutdown():
         p.pubMarker()
