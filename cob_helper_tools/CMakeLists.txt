@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_helper_tools)
 
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED dynamic_reconfigure)
+
+generate_dynamic_reconfigure_options(
+  cfg/HelperTools.cfg
+)
 
 catkin_package()
 

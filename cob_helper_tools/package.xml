@@ -11,6 +11,10 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>dynamic_reconfigure</depend>
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+
   <exec_depend>cob_msgs</exec_depend>
   <exec_depend>cob_script_server</exec_depend>
   <exec_depend>diagnostic_msgs</exec_depend>
