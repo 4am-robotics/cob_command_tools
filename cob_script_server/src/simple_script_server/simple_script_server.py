@@ -452,7 +452,7 @@ class simple_script_server:
 	## Parse and compose trajectory message
 	def compose_trajectory(self, component_name, parameter_name):
 		# get joint_names from parameter server
-		param_string = "/" + component_name + "/joint_names"
+		param_string = self.ns_global_prefix + "/" + component_name + "/joint_names"
 		if not rospy.has_param(param_string):
 			rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...",param_string)
 			return (JointTrajectory(), 2)
