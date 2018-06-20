@@ -24,6 +24,7 @@
   <exec_depend>cob_script_server</exec_depend>
   <exec_depend>diagnostic_msgs</exec_depend>
   <exec_depend>ipmitool</exec_depend>
+  <exec_depend>ntpdate</exec_depend>
   <exec_depend>python-mechanize</exec_depend>
   <exec_depend>python-psutil</exec_depend>
   <exec_depend>rospy</exec_depend>
