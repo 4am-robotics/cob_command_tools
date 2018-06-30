@@ -19,9 +19,7 @@ from __future__ import with_statement, print_function
 
 import traceback
 import threading
-from threading import Timer
 import sys, os, time
-from time import sleep
 import subprocess
 import string
 import socket
@@ -29,13 +27,6 @@ import psutil
 
 import rospy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
-
-##### monkey-patch to suppress threading error message in python 2.7.3
-##### See http://stackoverflow.com/questions/13193278/understand-python-threading-bug
-if sys.version_info[:3] == (2, 7, 3):
-    import threading
-    threading._DummyThread._Thread__stop = lambda x: 42
-#####
 
 stat_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'Warning', DiagnosticStatus.ERROR: 'Error', DiagnosticStatus.STALE: 'Stale' }
 
@@ -378,9 +369,6 @@ def check_memory():
 
 
 ##\brief Use mpstat to find CPU usage
-usage_old = 0
-has_warned_mpstat = False
-has_error_core_count = False
 def check_mpstat(core_count = -1):
     diag_vals = []
     diag_msg = ''
@@ -432,13 +420,8 @@ def check_mpstat(core_count = -1):
             nice = lst[4].replace(',', '.')
             system = lst[5].replace(',', '.')
 
-            core_level = 0
+            core_level = DiagnosticStatus.OK
             usage = float(user) + float(nice)
-            if usage > 1000: # wrong reading, use old reading instead
-                rospy.logwarn('Read cpu usage of %f percent. Reverting to previous reading of %f percent'%(usage, usage_old))
-                usage = usage_old
-            usage_old = usage
-
             if usage > 90.0:
                 cores_loaded += 1
                 core_level = DiagnosticStatus.WARN
@@ -460,12 +443,7 @@ def check_mpstat(core_count = -1):
         # Check the number of cores if core_count > 0, #4850
         if core_count > 0 and core_count != num_cores:
             diag_level = DiagnosticStatus.ERROR
-            diag_msg = 'Incorrect number of CPU cores'
-            global has_error_core_count
-            if not has_error_core_count:
-                rospy.logerr('Error checking number of cores. Expected %d, got %d. Computer may have not booted properly.',
-                              core_count, num_cores)
-                has_error_core_count = True
+            diag_msg = 'Incorrect number of CPU cores: Expected %d, got %d. Computer may have not booted properly.' % core_count, num_cores
             return diag_vals, diag_msg, diag_level
 
         diag_msg = load_dict[diag_level]
@@ -529,37 +507,8 @@ def get_core_temp_names():
         return []
 
 
-def update_status_stale(stat, last_update_time):
-    time_since_update = rospy.get_time() - last_update_time
-
-    stale_status = 'OK'
-    if time_since_update > 20 and time_since_update <= 35:
-        stale_status = 'Lagging'
-        if stat.level == DiagnosticStatus.OK:
-            stat.message = stale_status
-        elif stat.message.find(stale_status) < 0:
-            stat.message = ', '.join([stat.message, stale_status])
-        stat.level = max(stat.level, DiagnosticStatus.WARN)
-    if time_since_update > 35:
-        stale_status = 'Stale'
-        if stat.level == DiagnosticStatus.OK:
-            stat.message = stale_status
-        elif stat.message.find(stale_status) < 0:
-            stat.message = ', '.join([stat.message, stale_status])
-        stat.level = max(stat.level, DiagnosticStatus.ERROR)
-
-    stat.values.pop(0)
-    stat.values.pop(0)
-    stat.values.insert(0, KeyValue(key = 'Update Status', value = stale_status))
-    stat.values.insert(1, KeyValue(key = 'Time Since Update', value = str(time_since_update)))
-
-
 class CPUMonitor():
     def __init__(self, hostname, diag_hostname):
-        self._diag_pub = rospy.Publisher('/diagnostics', DiagnosticArray, queue_size=50)
-
-        self._mutex = threading.Lock()
-
         self._check_ipmi = rospy.get_param('~check_ipmi_tool', False)
         self._check_core_temps = rospy.get_param('~check_core_temps', False)
         self._check_nfs = rospy.get_param('~check_nfs', False)
@@ -574,10 +523,6 @@ class CPUMonitor():
         else:
             self._num_cores = rospy.get_param('~num_cores', psutil.cpu_count())
 
-        self._info_timer = None
-        self._usage_timer = None
-        self._nfs_timer = None
-
         # Get temp_input files
         self._temp_vals = get_core_temp_names()
 
@@ -587,55 +532,31 @@ class CPUMonitor():
         self._info_stat.level = DiagnosticStatus.WARN
         self._info_stat.hardware_id = hostname
         self._info_stat.message = 'No Data'
-        self._info_stat.values = [ KeyValue(key = 'Update Status', value = 'No Data' ),
-                                   KeyValue(key = 'Time Since Last Update', value = 'N/A') ]
+        self._info_stat.values = []
 
         self._usage_stat = DiagnosticStatus()
         self._usage_stat.name = '%s CPU Usage' % diag_hostname
         self._usage_stat.level = DiagnosticStatus.WARN
         self._usage_stat.hardware_id = hostname
         self._usage_stat.message = 'No Data'
-        self._usage_stat.values = [ KeyValue(key = 'Update Status', value = 'No Data' ),
-                                    KeyValue(key = 'Time Since Last Update', value = 'N/A') ]
+        self._usage_stat.values = []
 
         self._nfs_stat = DiagnosticStatus()
         self._nfs_stat.name = '%s NFS IO' % diag_hostname
         self._nfs_stat.level = DiagnosticStatus.WARN
         self._nfs_stat.hardware_id = hostname
         self._nfs_stat.message = 'No Data'
-        self._nfs_stat.values = [ KeyValue(key = 'Update Status', value = 'No Data' ),
-                                  KeyValue(key = 'Time Since Last Update', value = 'N/A') ]
+        self._nfs_stat.values = []
 
-        self._last_info_time = 0
-        self._last_usage_time = 0
-        self._last_nfs_time = 0
-        self._last_publish_time = 0
-
-        # Start checking everything
-        self.check_info()
-        self.check_usage()
+        self._diag_pub = rospy.Publisher('/diagnostics', DiagnosticArray, queue_size=1)
+        self._publish_timer = rospy.Timer(rospy.Duration(1.0), self.publish_stats)
+        self._info_timer = rospy.Timer(rospy.Duration(5.0), self.check_info)
+        self._usage_timer = rospy.Timer(rospy.Duration(5.0), self.check_usage)
         if self._check_nfs:
-            self.check_nfs_stat()
+            self._usage_timer = rospy.Timer(rospy.Duration(5.0), self.check_nfs_stat)
 
-    ## Must have the lock to cancel everything
-    def cancel_timers(self):
-        if self._info_timer:
-            self._info_timer.cancel()
-
-        if self._usage_timer:
-            self._usage_timer.cancel()
-
-        if self._nfs_timer:
-            self._nfs_timer.cancel()
-
-    def check_info(self):
-        if rospy.is_shutdown():
-            with self._mutex:
-                self.cancel_timers()
-            return
-
-        diag_vals = [ KeyValue(key = 'Update Status', value = 'OK' ),
-                      KeyValue(key = 'Time Since Last Update', value = str(0) ) ]
+    def check_info(self, event):
+        diag_vals = []
         diag_msgs = []
         diag_level = DiagnosticStatus.OK
 
@@ -662,27 +583,12 @@ class CPUMonitor():
         else:
             message = stat_dict[diag_level]
 
-        with self._mutex:
-            self._info_stat.values = diag_vals
-            self._info_stat.message = message
-            self._info_stat.level = diag_level
+        self._info_stat.values = diag_vals
+        self._info_stat.message = message
+        self._info_stat.level = diag_level
 
-            self._last_info_time = rospy.get_time()
-
-            if not rospy.is_shutdown():
-                self._info_timer = threading.Timer(5.0, self.check_info)
-                self._info_timer.start()
-            else:
-                self.cancel_timers()
-
-    def check_usage(self):
-        if rospy.is_shutdown():
-            with self._mutex:
-                self.cancel_timers()
-            return
-
-        diag_vals = [ KeyValue(key = 'Update Status', value = 'OK' ),
-                      KeyValue(key = 'Time Since Last Update', value = 0 )]
+    def check_usage(self, event):
+        diag_vals = []
         diag_msgs = []
         diag_level = DiagnosticStatus.OK
 
@@ -712,28 +618,12 @@ class CPUMonitor():
         else:
             usage_msg = stat_dict[diag_level]
 
-        # Update status
-        with self._mutex:
-            self._usage_stat.values = diag_vals
-            self._usage_stat.message = usage_msg
-            self._usage_stat.level = diag_level
+        self._usage_stat.values = diag_vals
+        self._usage_stat.message = usage_msg
+        self._usage_stat.level = diag_level
 
-            self._last_usage_time = rospy.get_time()
-
-            if not rospy.is_shutdown():
-                self._usage_timer = threading.Timer(5.0, self.check_usage)
-                self._usage_timer.start()
-            else:
-                self.cancel_timers()
-
-    def check_nfs_stat(self):
-        if rospy.is_shutdown():
-            with self._mutex:
-                self.cancel_timers()
-                return
-
-        diag_vals = [ KeyValue(key = 'Update Status', value = 'OK' ),
-                      KeyValue(key = 'Time Since Last Update', value = str(0) )]
+    def check_nfs_stat(self, event):
+        diag_vals = []
         diag_msg = 'OK'
         diag_level = DiagnosticStatus.OK
 
@@ -785,37 +675,18 @@ class CPUMonitor():
             diag_msg = 'NFS Stat Exception'
             diag_vals = [ KeyValue(key = 'Exception', value = traceback.format_exc()) ]
 
-        with self._mutex:
-            self._nfs_stat.values = diag_vals
-            self._nfs_stat.message = diag_msg
-            self._nfs_stat.level = diag_level
+        self._nfs_stat.values = diag_vals
+        self._nfs_stat.message = diag_msg
+        self._nfs_stat.level = diag_level
 
-            self._last_nfs_time = rospy.get_time()
-
-            if not rospy.is_shutdown():
-                self._nfs_timer = threading.Timer(5.0, self.check_nfs_stat)
-                self._nfs_timer.start()
-            else:
-                self.cancel_timers()
-
-    def publish_stats(self):
-        with self._mutex:
-            # Update everything with last update times
-            update_status_stale(self._info_stat, self._last_info_time)
-            update_status_stale(self._usage_stat, self._last_usage_time)
-            if self._check_nfs:
-                update_status_stale(self._nfs_stat, self._last_nfs_time)
-
-            msg = DiagnosticArray()
-            msg.header.stamp = rospy.get_rostime()
-            msg.status.append(self._info_stat)
-            msg.status.append(self._usage_stat)
-            if self._check_nfs:
-                msg.status.append(self._nfs_stat)
-
-            if rospy.get_time() - self._last_publish_time > 0.5:
-                self._diag_pub.publish(msg)
-                self._last_publish_time = rospy.get_time()
+    def publish_stats(self, event):
+        msg = DiagnosticArray()
+        msg.header.stamp = rospy.get_rostime()
+        msg.status.append(self._info_stat)
+        msg.status.append(self._usage_stat)
+        if self._check_nfs:
+            msg.status.append(self._nfs_stat)
+        self._diag_pub.publish(msg)
 
 
 if __name__ == '__main__':
@@ -836,17 +707,4 @@ if __name__ == '__main__':
         sys.exit(0)
 
     cpu_node = CPUMonitor(hostname, options.diag_hostname)
-
-    rate = rospy.Rate(1.0)
-    try:
-        while not rospy.is_shutdown():
-            rate.sleep()
-            cpu_node.publish_stats()
-    except KeyboardInterrupt:
-        pass
-    except Exception, e:
-        traceback.print_exc()
-        rospy.logerr(traceback.format_exc())
-
-    cpu_node.cancel_timers()
-    sys.exit(0)
+    rospy.spin()
