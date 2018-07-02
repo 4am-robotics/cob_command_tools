@@ -44,9 +44,69 @@ class hd_monitor():
         self._usage_stat.message = 'No Data'
         self._usage_stat.values = []
 
+        self._io_stat = DiagnosticStatus()
+        self._io_stat.name = '%s HD IO' % diag_hostname
+        self._io_stat.level = DiagnosticStatus.WARN
+        self._io_stat.hardware_id = hostname
+        self._io_stat.message = 'No Data'
+        self._io_stat.values = []
+
         self._diag_pub = rospy.Publisher('/diagnostics', DiagnosticArray, queue_size=1)
         self._publish_timer = rospy.Timer(rospy.Duration(1.0), self.publish_stats)
         self._usage_timer = rospy.Timer(rospy.Duration(5.0), self.check_disk_usage)
+        self._io_timer = rospy.Timer(rospy.Duration(5.0), self.check_io_stat)
+
+    def check_io_stat(self, event):
+        diag_vals = []
+        diag_msg = 'OK'
+        diag_level = DiagnosticStatus.OK
+
+        try:
+            p = subprocess.Popen('iostat -d',
+                                 stdout = subprocess.PIPE,
+                                 stderr = subprocess.PIPE, shell = True)
+            stdout, stderr = p.communicate()
+            retcode = p.returncode
+
+            if retcode != 0:
+                diag_level = DiagnosticStatus.ERROR
+                diag_msg = 'HD IO Error'
+                diag_vals = [ KeyValue(key = 'HD IO Error', value = stderr),
+                              KeyValue(key = 'Output', value = stdout) ]
+                return (diag_vals, diag_msg, diag_level)
+
+            for index, row in enumerate(stdout.split('\n')):
+                if index < 3:
+                    continue
+
+                lst = row.split()
+                #Device:            tps    kB_read/s    kB_wrtn/s    kB_read    kB_wrtn
+                device = lst[0]
+                tps = lst[1]
+                kB_read_s = lst[2]
+                kB_wrtn_s = lst[3]
+                kB_read = lst[4]
+                kB_wrtn = lst[5]
+
+                diag_vals.append(KeyValue(
+                        key = '%s tps' % device, value=tps))
+                diag_vals.append(KeyValue(
+                        key = '%s kB_read/s' % device, value=kB_read_s))
+                diag_vals.append(KeyValue(
+                        key = '%s kB_wrtn/s' % device, value=kB_wrtn_s))
+                diag_vals.append(KeyValue(
+                        key = '%s kB_read' % device, value=kB_read))
+                diag_vals.append(KeyValue(
+                        key = '%s kB_wrtn' % device, value=kB_wrtn))
+
+        except Exception, e:
+            diag_level = DiagnosticStatus.ERROR
+            diag_msg = 'HD IO Exception'
+            diag_vals = [ KeyValue(key = 'Exception', value = traceback.format_exc()) ]
+
+        self._io_stat.values = diag_vals
+        self._io_stat.message = diag_msg
+        self._io_stat.level = diag_level
 
     def check_disk_usage(self, event):
         diag_vals = []
@@ -116,7 +176,6 @@ class hd_monitor():
         self._usage_stat.values = diag_vals
         self._usage_stat.message = diag_message
         self._usage_stat.level = diag_level
-
 
     def publish_stats(self, event):
         msg = DiagnosticArray()
