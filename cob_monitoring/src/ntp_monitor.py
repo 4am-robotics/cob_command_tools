@@ -54,10 +54,9 @@ class NtpMonitor():
         
         try:
             for st,host,off in [(stat, self.ntp_server, self.offset)]:
-                p = Popen(["ntpdate", "-q", host], stdout = PIPE,
-                                                   stderr = PIPE, shell = True)
+                p = Popen(["ntpdate", "-q", host], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+                retcode = p.wait()
                 stdout, stderr = p.communicate()
-                retcode = p.returncode
 
                 if retcode != 0:
                     st.level = DiagnosticStatus.ERROR

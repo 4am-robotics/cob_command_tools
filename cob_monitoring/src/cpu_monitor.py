@@ -175,18 +175,21 @@ def check_core_temps(sys_temp_devs):
                     return diag_vals, diag_msgs, diag_level
 
                 tmp = stdout.strip()
-                if unicode(tmp).isnumeric():
-                    temp = float(tmp) / 1000
-                    diag_vals.append(KeyValue(key = 'Temp '+dev[0], value = str(temp)))
+                if device_type == 'platform':
+                    if unicode(tmp).isnumeric():
+                        temp = float(tmp) / 1000
+                        diag_vals.append(KeyValue(key = 'Temp '+dev[0], value = str(temp)))
 
-                    if temp >= 85 and temp < 90:
-                        diag_level = max(diag_level, DiagnosticStatus.WARN) if device_type == 'platform' else diag_level
-                        diag_msgs.append('Warm')
-                    if temp >= 90:
-                        diag_level = max(diag_level, DiagnosticStatus.ERROR) if device_type == 'platform' else diag_level
-                        diag_msgs.append('Hot')
-                else:
-                    diag_level = max(diag_level, DiagnosticStatus.ERROR) # Error if not numeric value
+                        if temp >= 85 and temp < 90:
+                            diag_level = max(diag_level, DiagnosticStatus.WARN)
+                            diag_msgs.append('Warm')
+                        if temp >= 90:
+                            diag_level = max(diag_level, DiagnosticStatus.ERROR)
+                            diag_msgs.append('Hot')
+                    else:
+                        diag_level = max(diag_level, DiagnosticStatus.ERROR) # Error if not numeric value
+                        diag_vals.append(KeyValue(key = 'Temp '+dev[0], value = tmp))
+                else: # device_type == `virtual`
                     diag_vals.append(KeyValue(key = 'Temp '+dev[0], value = tmp))
 
     except Exception, e:
