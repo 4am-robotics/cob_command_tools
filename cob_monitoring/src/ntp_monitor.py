@@ -40,11 +40,13 @@ class NtpMonitor():
         self.msg.header.stamp = rospy.get_rostime()
         self.msg.status = [stat]
 
+        self.update_diagnostics()
+
         self.diag_pub = rospy.Publisher("/diagnostics", DiagnosticArray, queue_size=1)
         self.diag_timer = rospy.Timer(rospy.Duration(1.0), self.publish_diagnostics)
         self.monitor_timer = rospy.Timer(rospy.Duration(60.0), self.update_diagnostics)
 
-    def update_diagnostics(self, event):
+    def update_diagnostics(self, event=None):
         stat = DiagnosticStatus()
         stat.level = DiagnosticStatus.WARN
         stat.name = '%s NTP Offset' % self.diag_hostname
