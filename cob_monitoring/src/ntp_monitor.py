@@ -31,39 +31,43 @@ class NtpMonitor():
         self.parse_args(argv)
 
         stat = DiagnosticStatus()
-        stat.level = 0
+        stat.level = DiagnosticStatus.WARN
         stat.name = '%s NTP Offset' % self.diag_hostname
-        stat.message = "OK"
+        stat.message = 'No Data'
         stat.hardware_id = self.diag_hostname
         stat.values = []
         self.msg = DiagnosticArray()
         self.msg.header.stamp = rospy.get_rostime()
         self.msg.status = [stat]
 
+        self.update_diagnostics()
+
         self.diag_pub = rospy.Publisher("/diagnostics", DiagnosticArray, queue_size=1)
         self.diag_timer = rospy.Timer(rospy.Duration(1.0), self.publish_diagnostics)
         self.monitor_timer = rospy.Timer(rospy.Duration(60.0), self.update_diagnostics)
 
-    def update_diagnostics(self, event):
+    def update_diagnostics(self, event=None):
         stat = DiagnosticStatus()
-        stat.level = 0
+        stat.level = DiagnosticStatus.WARN
         stat.name = '%s NTP Offset' % self.diag_hostname
-        stat.message = "OK"
+        stat.message = 'No Data'
         stat.hardware_id = self.diag_hostname
         stat.values = []
-
-        for st,host,off in [(stat, self.ntp_server, self.offset)]:
-            try:
+        
+        try:
+            for st,host,off in [(stat, self.ntp_server, self.offset)]:
                 p = Popen(["ntpdate", "-q", host], stdout=PIPE, stdin=PIPE, stderr=PIPE)
-                res = p.wait()
-                (o,e) = p.communicate()
-            except OSError, (errno, msg):
-                if errno == 4:
-                    break #ctrl-c interrupt
-                else:
-                    raise
-            if (res == 0):
-                measured_offset = float(re.search("offset (.*),", o).group(1))*1000000
+                retcode = p.wait()
+                stdout, stderr = p.communicate()
+
+                if retcode != 0:
+                    st.level = DiagnosticStatus.ERROR
+                    st.message = 'ntpdate Error'
+                    st.values = [ KeyValue(key = 'ntpdate Error', value = stderr),
+                                  KeyValue(key = 'Output', value = stdout) ]
+                    continue
+
+                measured_offset = float(re.search("offset (.*),", stdout).group(1))*1000000
 
                 st.level = DiagnosticStatus.OK
                 st.message = "OK"
@@ -79,15 +83,10 @@ class NtpMonitor():
                     st.level = DiagnosticStatus.ERROR
                     st.message = "NTP Offset Too High"
 
-            else:
-                st.level = DiagnosticStatus.ERROR
-                st.message = "Error Running ntpdate. Returned %d" % res
-                st.values = [ KeyValue("NTP Server" , self.ntp_server),
-                              KeyValue("Offset (us)", "N/A"),
-                              KeyValue("Offset tolerance (us)", str(off)),
-                              KeyValue("Offset tolerance (us) for Error", str(self.error_offset)),
-                              KeyValue("Output", o),
-                              KeyValue("Errors", e) ]
+        except Exception, e:
+            stat = DiagnosticStatus.ERROR
+            stat.message = 'ntpdate Exception'
+            stat.values = [ KeyValue(key = 'Exception', value = traceback.format_exc()) ]
 
         self.msg = DiagnosticArray()
         self.msg.header.stamp = rospy.get_rostime()
