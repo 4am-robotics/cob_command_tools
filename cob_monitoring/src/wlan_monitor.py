@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import sys
-import traceback
 from subprocess import Popen, PIPE
 import re
 import paramiko
@@ -140,7 +139,7 @@ class IwConfigParser():
             rospy.logerr("Parsing Error: %s" %e)
             self.stat.level = DiagnosticStatus.ERROR
             self.stat.message = 'iwconfig Exception'
-            self.stat.values = [ KeyValue(key = 'Exception', value = traceback.format_exc()) ]
+            self.stat.values = [ KeyValue(key = 'Exception', value = str(e)) ]
 
 class IwConfigLocal(IwConfigParser):
     def __init__(self, interface):
@@ -162,7 +161,7 @@ class IwConfigLocal(IwConfigParser):
         except Exception, e:
             self.stat.level = DiagnosticStatus.ERROR
             self.stat.message = 'iwconfig Exception'
-            self.stat.values = [ KeyValue(key = 'Exception', value = traceback.format_exc()) ]
+            self.stat.values = [ KeyValue(key = 'Exception', value = str(e)) ]
 
 class IwConfigSSH(IwConfigParser):
     def __init__(self, interface, hostname, user, password):
@@ -180,7 +179,7 @@ class IwConfigSSH(IwConfigParser):
         except Exception, e:
             self.stat.level = DiagnosticStatus.ERROR
             self.stat.message = 'iwconfig Exception'
-            self.stat.values = [ KeyValue(key = 'Exception', value = traceback.format_exc()) ]
+            self.stat.values = [ KeyValue(key = 'Exception', value = str(e)) ]
 
 class WlanMonitor():
     def __init__(self):
@@ -209,7 +208,7 @@ class WlanMonitor():
                 rospy.logerr("Error connecting ssh to host: %s",e.message)
                 self._wlan_stat.level = DiagnosticStatus.ERROR
                 self._wlan_stat.message = 'iwconfig Exception'
-                self._wlan_stat.values = [ KeyValue(key = 'Exception', value = traceback.format_exc()) ]
+                self._wlan_stat.values = [ KeyValue(key = 'Exception', value = str(e)) ]
                 self.msg.status = [self._wlan_stat]
                 return
 
