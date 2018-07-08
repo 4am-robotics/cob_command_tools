@@ -27,7 +27,7 @@ class AutoInit():
 
   def __init__(self):
     self.components = rospy.get_param('~components', {})
-    self.em_state = 1  # assume EMSTOP
+    self.em_state = EmergencyStopState.EMSTOP
     rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.em_cb, queue_size=1)
 
     # wait for all components to start
@@ -37,7 +37,7 @@ class AutoInit():
 
     # wait for emergency_stop to be released
     while not rospy.is_shutdown():
-      if self.em_state == 1: # EMSTOP
+      if self.em_state == EmergencyStopState.EMSTOP:
         rospy.loginfo("[auto_init]: Waiting for emergency stop to be released...")
         try:
           rospy.sleep(1)
