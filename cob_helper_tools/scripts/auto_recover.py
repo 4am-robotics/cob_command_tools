@@ -44,13 +44,18 @@ class AutoRecover():
     self.em_state = copy.deepcopy(msg.emergency_state)
 
   def recover(self, components):
+    handles = {}
     for component in components:
-      handle = sss.recover(component)
-      if not (handle.get_error_code() == 0):
-        rospy.logerr("[auto_recover]: Could not recover %s", component)
-      else:
-        rospy.loginfo("[auto_recover]: Component %s recovered successfully", component)
-        self.components_recover_time[component] = rospy.Time.now()
+      handles[component] = sss.recover(component,False)
+    while not rospy.is_shutdown() and handles:
+      for component, handle in handles.items():
+        if not (handle.get_error_code() == 0):
+          rospy.logerr("[auto_recover]: Could not recover %s", component)
+        else:
+          rospy.loginfo("[auto_recover]: Component %s recovered successfully", component)
+          del handles[component]
+          self.components_recover_time[component] = rospy.Time.now()
+      rospy.sleep(1)
 
   # auto recover based on diagnostics
   def diagnostics_cb(self, msg):
