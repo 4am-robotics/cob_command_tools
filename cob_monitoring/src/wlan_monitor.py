@@ -14,9 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+import os
 import sys
 from subprocess import Popen, PIPE
-import re
 import paramiko
 
 import rospy
@@ -168,7 +169,10 @@ class IwConfigSSH(IwConfigParser):
         IwConfigParser.__init__(self, interface)
         self.ssh = paramiko.SSHClient()
         self.ssh.load_system_host_keys()
-        self.ssh.connect(str(hostname), username=user, password=password)
+        ssh_key_file   = os.getenv("HOME")+'/.ssh/id_rsa.pub'
+        self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())# no known_hosts error
+        self.ssh.connect(str(hostname), username=user, key_filename=ssh_key_file) # no passwd needed
+        #self.ssh.connect(str(hostname), username=user, password=password)
 
     def update(self):
         try:
