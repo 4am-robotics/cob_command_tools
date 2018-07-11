@@ -235,25 +235,23 @@ class simple_script_server:
 		service_ns_name = rospy.get_param(parameter_name)
 		service_full_name = service_ns_name + "/" + service_name
 
-		if blocking:
-			# check if service is available
-			try:
-				rospy.wait_for_service(service_full_name,1)
-			except rospy.ROSException, e:
-				error_message = "%s"%e
-				message = "...service <<" + service_name + ">> of <<" + component_name + ">> not available,\n error: " + error_message
-				rospy.logerr(message)
-				ah.set_failed(4, message)
-				return ah
-
 		# check if service is callable
 		try:
 			trigger = rospy.ServiceProxy(service_full_name,Trigger)
 			if blocking:
+				# check if service is available
+				try:
+					rospy.wait_for_service(service_full_name,1)
+				except rospy.ROSException, e:
+					error_message = "%s"%e
+					message = "...service <<" + service_name + ">> of <<" + component_name + ">> not available,\n error: " + error_message
+					rospy.logerr(message)
+					ah.set_failed(4, message)
+					return ah
 				rospy.loginfo("Wait for <<%s>> to <<%s>>...", component_name, service_name)
 				resp = trigger()
 			else:
-				thread.start_new_thread(trigger,())
+				thread.start_new_thread(self.trigger_thread,(trigger, ah))
 		except rospy.ServiceException, e:
 			error_message = "%s"%e
 			message = "...calling <<" + service_name + ">> of <<" + component_name + ">> not successfull,\n error: " + error_message
@@ -273,6 +271,33 @@ class simple_script_server:
 			rospy.loginfo("...<<%s>> is <<%s>>", component_name, service_name)
 			ah.set_succeeded() # full success
 		return ah
+
+	def trigger_thread(self, client, action_handle):
+		# check if service is callable
+		try:
+			# check if service is available
+			try:
+				client.wait_for_service(1)
+			except rospy.ROSException, e:
+				message = "%s"%e
+				rospy.logerr(message)
+				action_handle.set_failed(4, message)
+				return action_handle
+			resp = client()
+		except rospy.ServiceException, e:
+			message = "%s"%e
+			rospy.logerr(message)
+			action_handle.set_failed(10, message)
+			return action_handle
+
+		# evaluate sevice response
+		if not resp.success:
+			action_handle.set_failed(10, "")
+			return action_handle
+
+		# full success
+		action_handle.set_succeeded()
+		return action_handle
 
 	## Allows to trigger actions of the type actionlib/TestAction
 	#
