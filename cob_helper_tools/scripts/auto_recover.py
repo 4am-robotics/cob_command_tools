@@ -19,7 +19,7 @@ import copy
 import rospy
 
 from cob_msgs.msg import EmergencyStopState
-from diagnostic_msgs.msg import DiagnosticArray
+from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 
 from simple_script_server import *
 sss = simple_script_server()
@@ -39,7 +39,7 @@ class AutoRecover():
   # auto recover based on diagnostics
   def em_cb(self, msg):
     if msg.emergency_state == EmergencyStopState.EMFREE and self.em_state != EmergencyStopState.EMFREE:
-      rospy.loginfo("auto_recover from emergency state")
+      rospy.loginfo("[auto_recover]: recover from emergency state")
       self.recover(self.components.keys())
     self.em_state = copy.deepcopy(msg.emergency_state)
 
@@ -47,9 +47,13 @@ class AutoRecover():
     handles = {}
     for component in components:
       handles[component] = sss.recover(component,False)
+    print components
+    print handles
     while not rospy.is_shutdown() and handles:
+      rospy.loginfo("[auto_recover]: still handles")
       for component, handle in handles.items():
-        if not (handle.get_error_code() == 0):
+        rospy.loginfo("[auto_recover]: Component %s, ErrorCode %s", component, str(handles[component].get_error_code()))
+        if not (handles[component].get_error_code() == 0):
           rospy.logerr("[auto_recover]: Could not recover %s", component)
         else:
           rospy.loginfo("[auto_recover]: Component %s recovered successfully", component)
@@ -62,7 +66,7 @@ class AutoRecover():
     for status in msg.status:
       for component in self.components.keys():
         if status.name.startswith(self.components[component]) and status.level > DiagnosticStatus.OK and self.em_state == EmergencyStopState.EMFREE and (rospy.Time.now() - self.components_recover_time[component] > rospy.Duration(10)):
-          rospy.loginfo("auto_recover from diagnostic failure")
+          rospy.loginfo("[auto_recover]: recover from diagnostic failure")
           self.recover([component])
 
 if __name__ == "__main__":
