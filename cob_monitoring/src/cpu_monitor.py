@@ -222,10 +222,10 @@ class CPUMonitor():
                             diag_vals.append(KeyValue(key = 'Temp '+dev[0], value = str(temp)))
 
                             if temp >= self._core_temp_error:
-                                diag_level = max(diag_level, DiagnosticStatus.ERROR)
+                                diag_level = max(diag_level, DiagnosticStatus.OK) #do not set ERROR
                                 diag_msgs.append('CPU Hot')
                             elif temp >= self._core_temp_warn:
-                                diag_level = max(diag_level, DiagnosticStatus.WARN)
+                                diag_level = max(diag_level, DiagnosticStatus.OK) #do not set WARN
                                 diag_msgs.append('CPU Warm')
 
                         else:
