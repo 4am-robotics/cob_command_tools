@@ -17,7 +17,6 @@
 
 from __future__ import with_statement, print_function
 
-import traceback
 import sys, os, time
 import subprocess
 import string
@@ -188,7 +187,7 @@ class CPUMonitor():
         except Exception, e:
             diag_level = DiagnosticStatus.ERROR
             diag_msgs = [ 'IPMI Exception' ]
-            diag_vals = [ KeyValue(key = 'Exception', value = traceback.format_exc()) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)()) ]
 
         return diag_vals, diag_msgs, diag_level
 
@@ -223,10 +222,10 @@ class CPUMonitor():
                             diag_vals.append(KeyValue(key = 'Temp '+dev[0], value = str(temp)))
 
                             if temp >= self._core_temp_error:
-                                diag_level = max(diag_level, DiagnosticStatus.ERROR)
+                                diag_level = max(diag_level, DiagnosticStatus.OK) #do not set ERROR
                                 diag_msgs.append('CPU Hot')
                             elif temp >= self._core_temp_warn:
-                                diag_level = max(diag_level, DiagnosticStatus.WARN)
+                                diag_level = max(diag_level, DiagnosticStatus.OK) #do not set WARN
                                 diag_msgs.append('CPU Warm')
 
                         else:
@@ -238,7 +237,7 @@ class CPUMonitor():
         except Exception, e:
             diag_level = DiagnosticStatus.ERROR
             diag_msgs = [ 'Core Temp Exception' ]
-            diag_vals = [ KeyValue(key = 'Exception', value = traceback.format_exc()) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)()) ]
 
         return diag_vals, diag_msgs, diag_level
 
@@ -310,7 +309,7 @@ class CPUMonitor():
         except Exception, e:
             diag_level = DiagnosticStatus.ERROR
             diag_msgs = [ 'Clock Speed Exception' ]
-            diag_vals = [ KeyValue(key = 'Exception', value = traceback.format_exc()) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)()) ]
 
         return diag_vals, diag_msgs, diag_level
 
@@ -358,7 +357,7 @@ class CPUMonitor():
         except Exception, e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'Uptime Exception'
-            diag_vals = [ KeyValue(key = 'Exception', value = traceback.format_exc()) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)()) ]
 
         return diag_vals, diag_msg, diag_level
 
@@ -424,7 +423,7 @@ class CPUMonitor():
         except Exception, e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'Memory Usage Exception'
-            diag_vals = [ KeyValue(key = 'Exception', value = traceback.format_exc()) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)()) ]
 
         return diag_vals, diag_msg, diag_level
 
@@ -511,7 +510,7 @@ class CPUMonitor():
         except Exception, e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'CPU Usage Exception'
-            diag_vals = [ KeyValue(key = 'Exception', value = traceback.format_exc()) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)()) ]
 
         return diag_vals, diag_msg, diag_level
 
@@ -562,7 +561,7 @@ class CPUMonitor():
             devices['virtual'] = virtual_vals
             return devices
         except:
-            rospy.logerr('Exception finding temp vals: %s' % traceback.format_exc())
+            rospy.logerr('Exception finding temp vals: %s' % str(e)())
             return []
 
 
