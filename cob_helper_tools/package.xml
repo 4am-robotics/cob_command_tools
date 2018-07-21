@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>cob_helper_tools</name>
-  <version>0.6.8</version>
+  <version>0.6.9</version>
   <description>Helper scripts for Care-O-bot</description>
 
-  <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
+  <maintainer email="felixmessmer@gmail.com">Felix Messmer</maintainer>
   <author email="fxm@ipa.fhg.de">Felix Messmer</author>
 
   <license>Apache 2.0</license>

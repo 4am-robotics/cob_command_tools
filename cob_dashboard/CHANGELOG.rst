@@ -2,6 +2,11 @@
 Changelog for package cob_dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.9 (2018-07-21)
+------------------
+* update maintainer
+* Contributors: ipa-fxm
+
 0.6.8 (2018-07-21)
 ------------------
 

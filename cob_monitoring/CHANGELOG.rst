@@ -2,6 +2,11 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.9 (2018-07-21)
+------------------
+* update maintainer
+* Contributors: ipa-fxm
+
 0.6.8 (2018-07-21)
 ------------------
 * Merge pull request `#205 <https://github.com/ipa320/cob_command_tools/issues/205>`_ from fmessmer/wlan_monitor

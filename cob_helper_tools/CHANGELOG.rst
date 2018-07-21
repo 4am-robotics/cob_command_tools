@@ -2,6 +2,11 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.9 (2018-07-21)
+------------------
+* update maintainer
+* Contributors: ipa-fxm
+
 0.6.8 (2018-07-21)
 ------------------
 * Merge pull request `#217 <https://github.com/ipa320/cob_command_tools/issues/217>`_ from HannesBachter/feature/textsize_navgoal
