@@ -2,6 +2,28 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#205 <https://github.com/ipa320/cob_command_tools/issues/205>`_ from fmessmer/wlan_monitor
+  adding wlan_monitor
+* fix syntax
+* do not set diagnostic level on high core temperature
+* allow ssh connection without passwd via ssh-key
+* humanreadable exceptions
+* adding wlan_monitor
+* Merge pull request `#223 <https://github.com/ipa320/cob_command_tools/issues/223>`_ from fmessmer/fix_monitor_virtual_temp
+  refactor monitors
+* call update once at startup to prevent No Data diagnostics
+* more monitoring info
+* fix nodes on robot
+* cleanup, consistency and proper timer
+* more info, more robust, more consistent
+* only get temperatures of platform devices - no virtual
+* Merge pull request `#221 <https://github.com/ipa320/cob_command_tools/issues/221>`_ from fmessmer/missing_dependency_ntpdate
+  add missing dependency ntpdate
+* add missing dependency ntpdate
+* Contributors: Felix Messmer, ipa-fxm, robot@cob4-15
+
 0.6.7 (2018-01-07)
 ------------------
 * Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev

@@ -2,6 +2,16 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#220 <https://github.com/ipa320/cob_command_tools/issues/220>`_ from ipa320/revert-219-restructure_sss_params
+  Revert "use joint_names from component ns"
+* Revert "use joint_names from component ns"
+* Merge pull request `#219 <https://github.com/ipa320/cob_command_tools/issues/219>`_ from ipa-fxm/restructure_sss_params
+  use joint_names from component ns
+* use joint_names from component ns
+* Contributors: Felix Messmer, ipa-fxm
+
 0.6.7 (2018-01-07)
 ------------------
 * Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev
