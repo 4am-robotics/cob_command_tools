@@ -2,8 +2,8 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.8 (2018-07-21)
+------------------
 * Merge pull request `#205 <https://github.com/ipa320/cob_command_tools/issues/205>`_ from fmessmer/wlan_monitor
   adding wlan_monitor
 * fix syntax

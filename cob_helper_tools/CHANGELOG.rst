@@ -2,8 +2,8 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.8 (2018-07-21)
+------------------
 * Merge pull request `#217 <https://github.com/ipa320/cob_command_tools/issues/217>`_ from HannesBachter/feature/textsize_navgoal
   enable setting textsize for visualization of navigation goals
 * use dynamic reconfigure for text size

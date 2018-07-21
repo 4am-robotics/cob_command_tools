@@ -2,8 +2,8 @@
 Changelog for package cob_command_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.8 (2018-07-21)
+------------------
 * Merge pull request `#216 <https://github.com/ipa320/cob_command_tools/issues/216>`_ from ipa-fxm/missing_dependency_python-gtk2
   add missing dependency python-gtk2
 * add missing dependency python-gtk2
