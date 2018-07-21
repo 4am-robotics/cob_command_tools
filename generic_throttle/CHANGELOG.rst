@@ -2,6 +2,11 @@
 Changelog for package generic_throttle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* update maintainer
+* Contributors: ipa-fxm
+
 0.6.8 (2018-07-21)
 ------------------
 

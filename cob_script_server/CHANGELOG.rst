@@ -2,6 +2,11 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* update maintainer
+* Contributors: ipa-fxm
+
 0.6.8 (2018-07-21)
 ------------------
 * Merge pull request `#220 <https://github.com/ipa320/cob_command_tools/issues/220>`_ from ipa320/revert-219-restructure_sss_params
