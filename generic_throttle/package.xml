@@ -4,7 +4,8 @@
   <description>This package provides a throttle for ROS topics</description>
 
   <license>Apache 2.0</license>
-  
+
+  <maintainer email="felixmessmer@gmail.com">Felix Messmer</maintainer>
   <maintainer email="fmw@ipa.fhg.de">Florian Weisshardt</maintainer> 
   <maintainer email="mattia.rh@gmail.com">Mattia Racca</maintainer>
   <author email="mattia.rh@gmail.com">Mattia Racca</author>

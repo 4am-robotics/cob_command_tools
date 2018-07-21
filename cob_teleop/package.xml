@@ -3,7 +3,7 @@
   <description>Teleop node</description>
   <version>0.6.8</version>
 
-  <maintainer email="fxm@ipa.fhg.de">Felix Messmer</maintainer>
+  <maintainer email="felixmessmer@gmail.com">Felix Messmer</maintainer>
   <author email="fmw@ipa.fhg.de">Florian Weisshardt, Maximilian Sieber</author>
 
   <license>Apache 2.0</license>
