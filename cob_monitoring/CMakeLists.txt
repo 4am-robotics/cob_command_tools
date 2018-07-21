@@ -20,6 +20,7 @@ install(PROGRAMS
           src/hz_monitor.py
           src/ntp_monitor.py
           src/wifi_monitor.py
+          src/wlan_monitor.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

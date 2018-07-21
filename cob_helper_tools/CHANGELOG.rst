@@ -2,6 +2,14 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.8 (2018-07-21)
+------------------
+* Merge pull request `#217 <https://github.com/ipa320/cob_command_tools/issues/217>`_ from HannesBachter/feature/textsize_navgoal
+  enable setting textsize for visualization of navigation goals
+* use dynamic reconfigure for text size
+* enable setting textsize of navigation goals
+* Contributors: Richard Bormann, hyb, ipa-fxm
+
 0.6.7 (2018-01-07)
 ------------------
 * Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev

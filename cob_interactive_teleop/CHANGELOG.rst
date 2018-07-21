@@ -2,6 +2,9 @@
 Changelog for package cob_interactive_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.8 (2018-07-21)
+------------------
+
 0.6.7 (2018-01-07)
 ------------------
 * Merge remote-tracking branch 'origin/indigo_release_candidate' into indigo_dev

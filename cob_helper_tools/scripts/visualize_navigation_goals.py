@@ -20,10 +20,18 @@ import rospy
 import tf
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
+from dynamic_reconfigure.server import Server
+from cob_helper_tools.cfg import HelperToolsConfig
 
 class VisualizerNavigationGoals():
     def __init__(self):
+        self.text_size = 0.5
+        self.srv = Server(HelperToolsConfig, self.reconfigure_callback)
         self.pubGoals = rospy.Publisher('visualize_navigation_goals', MarkerArray, queue_size=1, latch=True)
+
+    def reconfigure_callback(self, config, level):
+        self.text_size = config.text_size
+        return config
 
     def pubMarker(self):
         navigation_goals = rospy.get_param("/script_server/base", {})
@@ -69,7 +77,7 @@ class VisualizerNavigationGoals():
             marker_text.id = i + 1000000
             marker_text.type = Marker.TEXT_VIEW_FACING
             marker_text.action = Marker.ADD
-            marker_text.scale.z = 0.5
+            marker_text.scale.z = self.text_size
             marker_text.color.r = 0.0
             marker_text.color.g = 0.0
             marker_text.color.b = 1.0
