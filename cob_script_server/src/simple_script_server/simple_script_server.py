@@ -581,7 +581,7 @@ class simple_script_server:
 			traj_msg.points.append(point_msg)
 		return (traj_msg, 0)
 
-	def calculate_point_time(elf, component_name, start_pos, end_pos, default_vel, default_acc):
+	def calculate_point_time(self, component_name, start_pos, end_pos, default_vel, default_acc=1.0):
 		try:
 			d_max = max(list(abs(numpy.array(start_pos) - numpy.array(end_pos))))
 			t1 = default_vel / default_acc
