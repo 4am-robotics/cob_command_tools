@@ -84,9 +84,9 @@ class NtpMonitor():
                     st.message = "NTP Offset Too High"
 
         except Exception, e:
-            stat = DiagnosticStatus.ERROR
+            stat.level = DiagnosticStatus.ERROR
             stat.message = 'ntpdate Exception'
-            stat.values = [ KeyValue(key = 'Exception', value = traceback.format_exc()) ]
+            stat.values = [ KeyValue(key = 'Exception', value = str(e)) ]
 
         self.msg = DiagnosticArray()
         self.msg.header.stamp = rospy.get_rostime()
