@@ -549,6 +549,13 @@ class simple_script_server:
 		else:
 			default_vel = rospy.get_param(param_string)
 
+		param_string = self.ns_global_prefix + "/" + component_name + "/default_acc"
+		if not rospy.has_param(param_string):
+			rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default of 0.1 [rad^2/sec].",param_string)
+			default_acc = 1.0 # rad^2/s
+		else:
+			default_acc = rospy.get_param(param_string)
+
 		for point in traj:
 			point_nr = point_nr + 1
 			point_msg = JointTrajectoryPoint()
@@ -564,7 +571,7 @@ class simple_script_server:
 
 			# use hardcoded point_time if no start_pos available
 			if start_pos != []:
-				point_time = self.calculate_point_time(component_name, start_pos, point, default_vel)
+				point_time = self.calculate_point_time(component_name, start_pos, point, default_vel, default_acc)
 			else:
 				point_time = 8*point_nr
 
@@ -574,10 +581,26 @@ class simple_script_server:
 			traj_msg.points.append(point_msg)
 		return (traj_msg, 0)
 
-	def calculate_point_time(self, component_name, start_pos, end_pos, default_vel):
+	def calculate_point_time(self, component_name, start_pos, end_pos, default_vel, default_acc):
 		try:
 			d_max = max(list(abs(numpy.array(start_pos) - numpy.array(end_pos))))
-			point_time = max(d_max / default_vel, 0.4)	# use minimal point_time
+			t1 = default_vel / default_acc
+			s1 = default_acc / 2 * t1**2
+			if (2 * s1 < d_max):
+				# with constant velocity phase (acc, const vel, dec)
+				# 1st phase: accelerate from v=0 to v=default_vel with a=default_acc in t=t1
+				# 2nd phase: constante velocity with v=default_vel and t=t2
+				# 3rd phase: decceleration (analog to 1st phase)
+				s2 = d_max - 2 * s1
+				t2 = s2 / default_vel
+				t = 2 * t1 + t2
+			else:
+				# without constant velocity phase (only acc and dec)
+				# 1st phase: accelerate from v=0 to v=default_vel with a=default_acc in t=t1
+				# 2nd phase: missing because distance is to short (we already reached the distance with the acc and dec phase)
+				# 3rd phase: decceleration (analog to 1st phase)
+				t = math.sqrt(d_max / default_acc)
+			point_time = max(t, 0.4)	# use minimal point_time
 		except ValueError as e:
 			print "Value Error", e
 			print "Likely due to mimic joints. Using default point_time: 3.0 [sec]"
