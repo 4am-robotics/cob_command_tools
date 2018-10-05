@@ -29,6 +29,8 @@ class AutoRecover():
   def __init__(self):
     now = rospy.Time.now()
     self.em_state = 0
+    self.recover_emergency = rospy.get_parm('~recover_emergency', True)
+    self.recover_diagnostics = rospy.get_parm('~recover_diagnostics', True)
     self.components = rospy.get_param('~components', {})
     self.components_recover_time = {}
     for component in self.components.keys():
@@ -38,6 +40,8 @@ class AutoRecover():
 
   # auto recover based on emergency stop
   def em_cb(self, msg):
+    if not self.recover_emergency:
+      return
     if msg.emergency_state == 0 and self.em_state != 0:
       rospy.loginfo("auto_recover from emergency state")
       self.recover(self.components.keys())
@@ -45,6 +49,8 @@ class AutoRecover():
 
   # auto recover based on diagnostics
   def diagnostics_cb(self, msg):
+    if not self.recover_diagnostics:
+      return
     for status in msg.status:
       for component in self.components.keys():
         if status.name.lower().startswith(self.components[component].lower()) and status.level > 0 and self.em_state == 0 and (rospy.Time.now() - self.components_recover_time[component] > rospy.Duration(10)):
