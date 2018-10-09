@@ -29,8 +29,8 @@ class AutoRecover():
   def __init__(self):
     now = rospy.Time.now()
     self.em_state = 0
-    self.recover_emergency = rospy.get_parm('~recover_emergency', True)
-    self.recover_diagnostics = rospy.get_parm('~recover_diagnostics', True)
+    self.recover_emergency = rospy.get_param('~recover_emergency', True)
+    self.recover_diagnostics = rospy.get_param('~recover_diagnostics', True)
     self.components = rospy.get_param('~components', {})
     self.components_recover_time = {}
     for component in self.components.keys():
