@@ -22,6 +22,9 @@ import subprocess
 import string
 import socket
 import psutil
+import requests
+import numpy as np
+import math
 
 import rospy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
@@ -41,6 +44,14 @@ class CPUMonitor():
         self._core_temp_error = rospy.get_param('~core_temp_error', 95)
         self._mem_warn = rospy.get_param('~mem_warn', 25)
         self._mem_error = rospy.get_param('~mem_error', 1)
+
+        self._check_thermal_throttling_events = rospy.get_param('~check_thermal_throttling_events', False)
+        self._thermal_throttling_threshold = rospy.get_param('~thermal_throttling_threshold', 1000)
+
+        self._check_idlejitter = rospy.get_param('~check_idlejitter', False)
+        self._idlejitter_min_threshold = rospy.get_param('~idlejitter_min_threshold', 50000)
+        self._idlejitter_max_threshold = rospy.get_param('~idlejitter_max_threshold', 2000000)
+        self._idlejitter_average_threshold = rospy.get_param('~idlejitter_average_threshold', 200000)
 
         if psutil.__version__ < '2.0.0':
             self._num_cores = rospy.get_param('~num_cores', psutil.NUM_CPUS)
@@ -514,6 +525,105 @@ class CPUMonitor():
 
         return diag_vals, diag_msg, diag_level
 
+
+    def query_netdata(self, chart, after):
+        NETDATA_URI = 'http://127.0.0.1:19999/api/v1/data?chart=%s&format=json&after=-%d'
+        url = NETDATA_URI % (chart, int(after))
+
+        try:
+            r = requests.get(url)
+        except requests.ConnectionError as ex:
+            rospy.logerr("NetData ConnectionError %r", ex)
+            return None
+
+        if r.status_code != 200:
+            rospy.logerr("NetData request not successful with status_code %d", r.status_code)
+            return None
+
+        rdata = r.json()
+
+        sdata = zip(*rdata['data'])
+        d = dict()
+
+        for idx, label in enumerate(rdata['labels']):
+            np_array = np.array(sdata[idx])
+            if np_array.dtype == np.object:
+                rospy.logwarn("Data from NetData malformed")
+                return None
+            d[label] = np_array
+
+        return d
+
+
+    def check_core_throttling(self, interval=1):
+        throt_dict = {DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'High Thermal Throttling Events',
+                      DiagnosticStatus.ERROR: 'No valid Data from NetData'}
+
+        throt_level = DiagnosticStatus.OK
+
+        vals = []
+
+        netdata = self.query_netdata('cpu.core_throttling', interval)
+
+        for i in range(self._num_cores):
+            lbl = 'CPU %d Thermal Throttling Events' % i
+            netdata_key = 'cpu%d' % i
+
+            core_mean = 'N/A'
+            if netdata is not None and netdata_key in netdata:
+                core_data = netdata[netdata_key]
+                if core_data is not None:
+                    core_mean = np.mean(core_data)
+
+                    if core_mean > self._thermal_throttling_threshold:
+                        throt_level = DiagnosticStatus.WARN
+            else:
+                throt_level = DiagnosticStatus.ERROR
+
+            vals.append(KeyValue(key=lbl, value='%r' % core_mean))
+
+        vals.insert(0, KeyValue(key='Thermal Throttling Status', value=throt_dict[throt_level]))
+        vals.append(KeyValue(key='Thermal Throttling Threshold', value=str(self._thermal_throttling_threshold)))
+
+        return throt_level, throt_dict[throt_level], vals
+
+
+    def check_idlejitter(self, interval=1):
+        jitter_dict = {DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'High IDLE Jitter',
+                       DiagnosticStatus.ERROR: 'No valid Data from NetData'}
+
+        jitter_level = DiagnosticStatus.OK
+
+        vals = []
+
+        netdata = self.query_netdata('system.idlejitter', interval)
+
+        metric_list = [
+            ('IDLE Jitter Min', 'min', self._idlejitter_min_threshold, np.min),
+            ('IDLE Jitter Max', 'max', self._idlejitter_max_threshold, np.max),
+            ('IDLE Jitter Average', 'average', self._idlejitter_average_threshold, np.mean),
+        ]
+
+        for metric_label, metric_key, metric_threshold, aggregate_fnc in metric_list:
+            metric_aggreagte = 'N/A'
+            if netdata is not None and metric_key in netdata:
+                metric_data = netdata[metric_key]
+                if metric_data is not None:
+                    metric_aggreagte = aggregate_fnc(metric_data)
+
+                    if metric_aggreagte > metric_threshold:
+                        jitter_level = DiagnosticStatus.WARN
+            else:
+                jitter_level = DiagnosticStatus.ERROR
+
+            vals.append(KeyValue(key=metric_label, value=str(metric_aggreagte)))
+            vals.append(KeyValue(key=metric_label + ' Threshold', value=str(metric_threshold)))
+
+        vals.insert(0, KeyValue(key='IDLE Jitter Status', value=jitter_dict[jitter_level]))
+
+        return jitter_level, jitter_dict[jitter_level], vals
+
+
     ##\brief Returns names for core temperature files
     def get_core_temp_names(self):
         devices = {}
@@ -608,6 +718,24 @@ class CPUMonitor():
         if mp_level > DiagnosticStatus.OK:
             diag_msgs.append(mp_msg)
         diag_level = max(diag_level, mp_level)
+
+        # Check NetData cpu.core_throttling
+        if self._check_thermal_throttling_events:
+            interval = math.ceil(self._usage_timer._period.to_sec())
+            throt_level, throt_msg, throt_vals = self.check_core_throttling(interval=interval)
+            diag_vals.extend(throt_vals)
+            if throt_level > 0:
+                diag_msgs.append(throt_msg)
+            diag_level = max(diag_level, throt_level)
+
+        # Check NetData system.idlejitter
+        if self._check_idlejitter:
+            interval = math.ceil(self._usage_timer._period.to_sec())
+            jitter_level, jitter_msg, jitter_vals = self.check_idlejitter(interval=interval)
+            diag_vals.extend(jitter_vals)
+            if jitter_level > 0:
+                diag_msgs.append(jitter_msg)
+            diag_level = max(diag_level, jitter_level)
 
         # Check uptime
         up_vals, up_msg, up_level = self.check_uptime()
