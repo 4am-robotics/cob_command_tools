@@ -45,10 +45,10 @@ class CPUMonitor():
         self._mem_warn = rospy.get_param('~mem_warn', 25)
         self._mem_error = rospy.get_param('~mem_error', 1)
 
-        self._check_thermal_throttling_events = rospy.get_param('~check_thermal_throttling_events', True)
+        self._check_thermal_throttling_events = rospy.get_param('~check_thermal_throttling_events', False)
         self._thermal_throttling_threshold = rospy.get_param('~thermal_throttling_threshold', 1000)
 
-        self._check_idlejitter = rospy.get_param('~check_idlejitter', True)
+        self._check_idlejitter = rospy.get_param('~check_idlejitter', False)
         self._idlejitter_min_threshold = rospy.get_param('~idlejitter_min_threshold', 50000)
         self._idlejitter_max_threshold = rospy.get_param('~idlejitter_max_threshold', 2000000)
         self._idlejitter_average_threshold = rospy.get_param('~idlejitter_average_threshold', 200000)
