@@ -22,6 +22,7 @@ catkin_install_python(PROGRAMS
           src/hz_monitor.py
           src/net_monitor.py
           src/ntp_monitor.py
+          src/ping_computers.py
           src/wifi_monitor.py
           src/wlan_monitor.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
