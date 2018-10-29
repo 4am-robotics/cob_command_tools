@@ -38,34 +38,35 @@ class ping_computers:
             self.diagnostics_publisher = rospy.Publisher('/diagnostics', DiagnosticStatus,queue_size=1)
             self.diagnostics_frequency = rospy.get_param('~diagostics_frequency', None)
             rospy.Timer(rospy.Duration(self.diagnostics_frequency), self.publish_diagnostics)
-
             # use all but last digits from local IP address
             ip_prefix = ".".join(subprocess.check_output(['hostname', '-I']).split(".")[:-1])
             rospy.logdebug("Ping Computers: computer IP: %s, IP prefix: %s",subprocess.check_output(['hostname', '-I']), ip_prefix)
             for host in self.hosts:
                 host_ip = ip_prefix+"."+str(host)
                 self.hosts_pingable.update({host_ip:False})
+
         elif self.host_pc == "ROBOWATCH":
-            # publish directly to slack when running on robowatch pc
-            self.slack_publisher = rospy.Publisher('/from_ros_to_slack', String, queue_size=1)
+            # publish directly to topic when running on robowatch pc
+            publish_topic = rospy.get_param('~publish_topic', None)
+            self.slack_publisher = rospy.Publisher(publish_topic, String, queue_size=1)
             self.diagnostics_frequency = rospy.get_param('~diagostics_frequency', None)
             rospy.Timer(rospy.Duration(self.diagnostics_frequency), self.publish_slack)
-
             # use IP from subnets param
             subnets = rospy.get_param('~subnets', None)
             for ip_prefix in subnets:
-                print "ip_prefix:", ip_prefix
                 for host in self.hosts:
                     host_ip = ip_prefix+"."+str(host)
                     self.hosts_pingable.update({host_ip:False})
+
         else:
             rospy.logerr("Ping Computers: specified host pc not available: got %s, but available are ROBOT and ROBOWATCH", str(self.host_pc))
             exit
 
-        # ping initially to cover the case diagostics_frequency > ping_frequency
+        # ping initially to avoid publishing an error when diagostics_frequency > ping_frequency
         self.ping_hosts(None)
 
     def ping_hosts(self, event):
+        rospy.logdebug("Ping Computers:  hosts to be pinged:\n%s", self.hosts_pingable.keys())
         for host_ip, pingable in self.hosts_pingable.iteritems():
             pingable = self.ping(host_ip)
             rospy.logdebug("Ping Computers: host: %s, pingable %s", str(host_ip), str(pingable))
