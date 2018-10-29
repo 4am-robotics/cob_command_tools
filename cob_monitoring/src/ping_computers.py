@@ -17,14 +17,11 @@
 import rospy
 import subprocess
 
+from std_msgs.msg import String
 from diagnostic_msgs.msg import DiagnosticStatus, KeyValue
 
 class ping_computers:
     def __init__(self):
-        self.diagnostics_publisher = rospy.Publisher('/diagnostics', DiagnosticStatus,queue_size=1)
-        self.diagnostics_frequency = rospy.get_param('~diagostics_frequency', None)
-        rospy.Timer(rospy.Duration(self.diagnostics_frequency), self.publish_diagnostics)
-
         self.ping_frequency = rospy.get_param('~ping_frequency', None)
         rospy.Timer(rospy.Duration(self.ping_frequency), self.ping_hosts)
         self.ping_number_packages = rospy.get_param('~ping_number_packages', None)
@@ -33,13 +30,38 @@ class ping_computers:
         if not type(self.hosts) == list:
             rospy.logerr("Ping Computers: hosts are not a list: %s", str(self.hosts))
             exit
-        # use all but last digits from IP address
-        self.ip_prefix = ".".join(subprocess.check_output(['hostname', '-I']).split(".")[:-1])
-        rospy.logdebug("Ping Computers: computer IP: %s, IP prefix: %s",subprocess.check_output(['hostname', '-I']), self.ip_prefix)
+
+        self.host_pc = rospy.get_param('~host_pc', None)
         self.hosts_pingable = {}
-        for host in self.hosts:
-            host_ip = self.ip_prefix+"."+str(host)
-            self.hosts_pingable.update({host_ip:False})
+        if self.host_pc == "ROBOT":
+            # on robot, publish diagnostics
+            self.diagnostics_publisher = rospy.Publisher('/diagnostics', DiagnosticStatus,queue_size=1)
+            self.diagnostics_frequency = rospy.get_param('~diagostics_frequency', None)
+            rospy.Timer(rospy.Duration(self.diagnostics_frequency), self.publish_diagnostics)
+
+            # use all but last digits from local IP address
+            ip_prefix = ".".join(subprocess.check_output(['hostname', '-I']).split(".")[:-1])
+            rospy.logdebug("Ping Computers: computer IP: %s, IP prefix: %s",subprocess.check_output(['hostname', '-I']), ip_prefix)
+            for host in self.hosts:
+                host_ip = ip_prefix+"."+str(host)
+                self.hosts_pingable.update({host_ip:False})
+        elif self.host_pc == "ROBOWATCH":
+            # publish directly to slack when running on robowatch pc
+            self.slack_publisher = rospy.Publisher('/from_ros_to_slack', String, queue_size=1)
+            self.diagnostics_frequency = rospy.get_param('~diagostics_frequency', None)
+            rospy.Timer(rospy.Duration(self.diagnostics_frequency), self.publish_slack)
+
+            # use IP from subnets param
+            subnets = rospy.get_param('~subnets', None)
+            for ip_prefix in subnets:
+                print "ip_prefix:", ip_prefix
+                for host in self.hosts:
+                    host_ip = ip_prefix+"."+str(host)
+                    self.hosts_pingable.update({host_ip:False})
+        else:
+            rospy.logerr("Ping Computers: specified host pc not available: got %s, but available are ROBOT and ROBOWATCH", str(self.host_pc))
+            exit
+
         # ping initially to cover the case diagostics_frequency > ping_frequency
         self.ping_hosts(None)
 
@@ -79,6 +101,21 @@ class ping_computers:
             stat.message = "Ping Computers: not all computers pingable"
         rospy.logdebug("Ping Computers: DiagnosticStatus:\n%s", str(stat))
         self.diagnostics_publisher.publish(stat)
+
+    def publish_slack(self, event):
+        all_pingable = True
+        message = String()
+        message.data = "ERROR: Ping Computers\n"
+        message.data += '----------- unreachable hosts -----------\n'
+        for host_ip, pingable in self.hosts_pingable.iteritems():
+            if not pingable:
+                message.data += host_ip + "cannot be pinged\n"
+                all_pingable = False
+        if not all_pingable:
+            rospy.logdebug("Ping Computers: not all computers pingable, slacking:\n%s", message.data)
+            self.slack_publisher.publish(message)
+        else:
+            rospy.logdebug("Ping Computers: all computers pingable")
 
 if __name__ == '__main__':
     rospy.init_node('ping_computers')
