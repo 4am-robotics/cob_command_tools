@@ -22,8 +22,6 @@ from diagnostic_msgs.msg import DiagnosticStatus, KeyValue
 
 class ping_computers:
     def __init__(self):
-        self.ping_frequency = rospy.get_param('~ping_frequency', None)
-        rospy.Timer(rospy.Duration(self.ping_frequency), self.ping_hosts)
         self.ping_number_packages = rospy.get_param('~ping_number_packages', None)
 
         self.hosts = rospy.get_param('~host_ips', None)
@@ -33,37 +31,44 @@ class ping_computers:
 
         self.host_pc = rospy.get_param('~host_pc', None)
         self.hosts_pingable = {}
+        diagnostics_frequency = rospy.get_param('~diagostics_frequency', None)
+        if diagnostics_frequency < 0:
+            rospy.logerr("Ping Computers: invalid frequency: %f", diagnostics_frequency)
+            exit            
         if self.host_pc == "ROBOT":
             # on robot, publish diagnostics
             self.diagnostics_publisher = rospy.Publisher('/diagnostics', DiagnosticStatus,queue_size=1)
-            self.diagnostics_frequency = rospy.get_param('~diagostics_frequency', None)
-            rospy.Timer(rospy.Duration(self.diagnostics_frequency), self.publish_diagnostics)
+            rospy.Timer(rospy.Duration(1.0/diagnostics_frequency), self.publish_diagnostics)
             # use all but last digits from local IP address
             ip_prefix = ".".join(subprocess.check_output(['hostname', '-I']).split(".")[:-1])
             rospy.logdebug("Ping Computers: computer IP: %s, IP prefix: %s",subprocess.check_output(['hostname', '-I']), ip_prefix)
             for host in self.hosts:
                 host_ip = ip_prefix+"."+str(host)
                 self.hosts_pingable.update({host_ip:False})
-
         elif self.host_pc == "ROBOWATCH":
             # publish directly to topic when running on robowatch pc
             publish_topic = rospy.get_param('~publish_topic', None)
             self.slack_publisher = rospy.Publisher(publish_topic, String, queue_size=1)
-            self.diagnostics_frequency = rospy.get_param('~diagostics_frequency', None)
-            rospy.Timer(rospy.Duration(self.diagnostics_frequency), self.publish_slack)
+            rospy.Timer(rospy.Duration(1.0/diagnostics_frequency), self.publish_slack)
             # use IP from subnets param
             subnets = rospy.get_param('~subnets', None)
             for ip_prefix in subnets:
                 for host in self.hosts:
                     host_ip = ip_prefix+"."+str(host)
                     self.hosts_pingable.update({host_ip:False})
-
         else:
             rospy.logerr("Ping Computers: specified host pc not available: got %s, but available are ROBOT and ROBOWATCH", str(self.host_pc))
             exit
 
-        # ping initially to avoid publishing an error when diagostics_frequency > ping_frequency
+        # ping initially to avoid publishing an error when diagostics_frequency < ping_frequency
         self.ping_hosts(None)
+        # start timer after all variables have been initialized
+        ping_frequency = rospy.get_param('~ping_frequency', None)
+        if ping_frequency > 0:
+            rospy.Timer(rospy.Duration(1.0/ping_frequency), self.ping_hosts)
+        else:
+            rospy.logerr("Ping Computers: invalid frequency: %f", ping_frequency)
+            exit
 
     def ping_hosts(self, event):
         rospy.logdebug("Ping Computers:  hosts to be pinged:\n%s", self.hosts_pingable.keys())
@@ -123,4 +128,3 @@ if __name__ == '__main__':
     print "\nPing Computers node is running ..."
     ping = ping_computers()     
     rospy.spin()
- 
