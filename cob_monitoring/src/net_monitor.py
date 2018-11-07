@@ -57,33 +57,7 @@ import socket
 
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
-net_level_warn = 0.95
-net_capacity = 128
-
 stat_dict = {0: 'OK', 1: 'Warning', 2: 'Error'}
-
-def update_status_stale(stat, last_update_time):
-  time_since_update = rospy.get_time() - last_update_time
-  stale_status = 'OK'
-  if time_since_update > 20 and time_since_update <= 35:
-    stale_status = 'Lagging'
-    if stat.level == DiagnosticStatus.OK:
-      stat.message = stale_status
-    elif stat.message.find(stale_status) < 0:
-      stat.message = ', '.join([stat.message, stale_status])
-    stat.level = max(stat.level, DiagnosticStatus.WARN)
-  if time_since_update > 35:
-    stale_status = 'Stale'
-    if stat.level == DiagnosticStatus.OK:
-      stat.message = stale_status
-    elif stat.message.find(stale_status) < 0:
-      stat.message = ', '.join([stat.message, stale_status])
-    stat.level = max(stat.level, DiagnosticStatus.ERROR)
-  stat.values.pop(0)
-  stat.values.pop(0)
-  stat.values.insert(0, KeyValue(key = 'Update Status', value = stale_status))
-  stat.values.insert(1, KeyValue(key = 'Time Since Update',
-    value = str(time_since_update)))
 
 def get_sys_net_stat(iface, sys):
   cmd = 'cat /sys/class/net/%s/statistics/%s' %(iface, sys)
@@ -102,28 +76,21 @@ def get_sys_net(iface, sys):
   return (p.returncode, stdout.strip())
 
 class NetMonitor():
-  def __init__(self, hostname, diag_hostname):
-    self._diag_pub = rospy.Publisher('/diagnostics', DiagnosticArray, queue_size = 100)
+  def __init__(self):
+    rospy.init_node("net_monitor")
     self._mutex = threading.Lock()
-    self._net_level_warn = rospy.get_param('~net_level_warn', net_level_warn)
-    self._net_capacity = rospy.get_param('~net_capacity', net_capacity)
-    self._usage_timer = None
+    self._diag_hostname = rospy.get_param('~diag_hostname', "localhost")
+    self._net_level_warn = rospy.get_param('~net_level_warn', 0.95)
+    self._net_capacity = rospy.get_param('~net_capacity', 128)
     self._usage_stat = DiagnosticStatus()
-    self._usage_stat.name = 'Network Usage (%s)' % diag_hostname
-    self._usage_stat.level = 1
-    self._usage_stat.hardware_id = hostname
+    self._usage_stat.name = '%s Network Usage' % self._diag_hostname
+    self._usage_stat.hardware_id = self._diag_hostname
+    self._usage_stat.level = DiagnosticStatus.OK
     self._usage_stat.message = 'No Data'
-    self._usage_stat.values = [KeyValue(key = 'Update Status',
-                               value = 'No Data' ),
-                               KeyValue(key = 'Time Since Last Update',
-                               value = 'N/A') ]
-    self._last_usage_time = 0
-    self._last_publish_time = 0
-    self.check_usage()
 
-  def cancel_timers(self):
-    if self._usage_timer:
-      self._usage_timer.cancel()
+    self._diag_pub = rospy.Publisher('/diagnostics', DiagnosticArray, queue_size = 1)
+    self._usage_timer = rospy.Timer(rospy.Duration(1.0), self.check_usage)
+    self._diag_timer = rospy.Timer(rospy.Duration(1.0), self.publish_stats)
 
   def check_network(self):
     values = []
@@ -195,74 +162,31 @@ class NetMonitor():
       level = DiagnosticStatus.ERROR
     return level, net_dict[level], values
 
-  def check_usage(self):
-    if rospy.is_shutdown():
-      with self._mutex:
-        self.cancel_timers()
-      return
-    diag_level = 0
-    diag_vals = [KeyValue(key = 'Update Status', value = 'OK'),
-                 KeyValue(key = 'Time Since Last Update', value = 0)]
+  def check_usage(self, event):
+    diag_level = DiagnosticStatus.OK
+    diag_vals = []
     diag_msgs = []
     net_level, net_msg, net_vals = self.check_network()
     diag_vals.extend(net_vals)
-    if net_level > 0:
+    if net_level > DiagnosticStatus.OK:
       diag_msgs.append(net_msg)
     diag_level = max(diag_level, net_level)
-    if diag_msgs and diag_level > 0:
+    if diag_msgs and diag_level > DiagnosticStatus.OK:
       usage_msg = ', '.join(set(diag_msgs))
     else:
       usage_msg = stat_dict[diag_level]
     with self._mutex:
-      self._last_usage_time = rospy.get_time()
       self._usage_stat.level = diag_level
       self._usage_stat.values = diag_vals
       self._usage_stat.message = usage_msg
-      if not rospy.is_shutdown():
-        self._usage_timer = threading.Timer(5.0, self.check_usage)
-        self._usage_timer.start()
-      else:
-        self.cancel_timers()
 
-  def publish_stats(self):
+  def publish_stats(self, event):
     with self._mutex:
-      update_status_stale(self._usage_stat, self._last_usage_time)
       msg = DiagnosticArray()
       msg.header.stamp = rospy.get_rostime()
       msg.status.append(self._usage_stat)
-      if rospy.get_time() - self._last_publish_time > 0.5:
-        self._diag_pub.publish(msg)
-        self._last_publish_time = rospy.get_time()
+      self._diag_pub.publish(msg)
 
 if __name__ == '__main__':
-  hostname = socket.gethostname()
-  hostname = hostname.replace('-', '_')
-
-  import optparse
-  parser =\
-    optparse.OptionParser(
-    usage="usage: net_monitor.py [--diag-hostname=cX]")
-  parser.add_option("--diag-hostname", dest="diag_hostname",
-                    help="Computer name in diagnostics output (ex: 'c1')",
-                    metavar="DIAG_HOSTNAME",
-                    action="store", default = hostname)
-  options, args = parser.parse_args(rospy.myargv())
-  try:
-    rospy.init_node('net_monitor_%s' % hostname)
-  except rospy.exceptions.ROSInitException:
-    print >> sys.stderr,\
-      'Network monitor is unable to initialize node. Master may not be running.'
-    sys.exit(0)
-  net_node = NetMonitor(hostname, options.diag_hostname)
-  rate = rospy.Rate(1.0)
-  try:
-    while not rospy.is_shutdown():
-      rate.sleep()
-      net_node.publish_stats()
-  except KeyboardInterrupt:
-    pass
-  except Exception, e:
-    traceback.print_exc()
-    rospy.logerr(traceback.format_exc())
-  net_node.cancel_timers()
-  sys.exit(0)
+  net_node = NetMonitor()
+  rospy.spin()
