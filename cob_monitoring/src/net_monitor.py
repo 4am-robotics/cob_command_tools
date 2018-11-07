@@ -118,12 +118,13 @@ class NetMonitor():
         kb_out.append(data[i + 1])
       level = DiagnosticStatus.OK
       for i in range(0, len(ifaces)):
+        values.append(KeyValue(key = str(i), value = "======================="))
         values.append(KeyValue(key = 'Interface Name',
           value = ifaces[i]))
         (retcode, cmd_out) = get_sys_net(ifaces[i], 'operstate')
         if retcode == 0:
           values.append(KeyValue(key = 'State', value = cmd_out))
-          ifacematch = re.match('eth[0-9]+', ifaces[i])
+          ifacematch = re.match('eth[0-9]+', ifaces[i]) or re.match('eno[0-9]+', ifaces[i])
           if ifacematch and (cmd_out == 'down' or cmd_out == 'dormant'):
             level = DiagnosticStatus.ERROR
         values.append(KeyValue(key = 'Input Traffic',
@@ -138,6 +139,7 @@ class NetMonitor():
         (retcode, cmd_out) = get_sys_net(ifaces[i], 'mtu')
         if retcode == 0:
           values.append(KeyValue(key = 'MTU', value = cmd_out))
+        #additional keys (https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-class-net-statistics)
         (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'rx_bytes')
         if retcode == 0:
           values.append(KeyValue(key = 'Total received MB',
@@ -148,13 +150,91 @@ class NetMonitor():
             value = str(float(cmd_out) / 1024 / 1024)))
         (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'collisions')
         if retcode == 0:
-          values.append(KeyValue(key = 'Collisions', value = cmd_out))
+          values.append(KeyValue(key = 'collisions', value = cmd_out))
         (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'rx_errors')
         if retcode == 0:
-          values.append(KeyValue(key = 'Rx Errors', value = cmd_out))
+          values.append(KeyValue(key = 'rx_errors', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'rx_crc_errors')
+        if retcode == 0:
+          values.append(KeyValue(key = 'rx_crc_errors', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'rx_dropped')
+        if retcode == 0:
+          values.append(KeyValue(key = 'rx_dropped', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'rx_fifo_errors')
+        if retcode == 0:
+          values.append(KeyValue(key = 'rx_fifo_errors', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'rx_frame_errors')
+        if retcode == 0:
+          values.append(KeyValue(key = 'rx_frame_errors', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'rx_length_errors')
+        if retcode == 0:
+          values.append(KeyValue(key = 'rx_length_errors', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'rx_missed_errors')
+        if retcode == 0:
+          values.append(KeyValue(key = 'rx_missed_errors', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'rx_over_errors')
+        if retcode == 0:
+          values.append(KeyValue(key = 'rx_over_errors', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'rx_packets')
+        if retcode == 0:
+          values.append(KeyValue(key = 'rx_packets', value = cmd_out))
         (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'tx_errors')
         if retcode == 0:
-          values.append(KeyValue(key = 'Tx Errors', value = cmd_out))
+          values.append(KeyValue(key = 'tx_errors', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'tx_aborted_errors')
+        if retcode == 0:
+          values.append(KeyValue(key = 'tx_aborted_errors', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'tx_carrier_errors')
+        if retcode == 0:
+          values.append(KeyValue(key = 'tx_carrier_errors', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'tx_fifo_errors')
+        if retcode == 0:
+          values.append(KeyValue(key = 'tx_fifo_errors', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'tx_heartbeat_errors')
+        if retcode == 0:
+          values.append(KeyValue(key = 'tx_heartbeat_errors', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'tx_window_errors')
+        if retcode == 0:
+          values.append(KeyValue(key = 'tx_window_errors', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'tx_dropped')
+        if retcode == 0:
+          values.append(KeyValue(key = 'tx_dropped', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net_stat(ifaces[i], 'tx_packets')
+        if retcode == 0:
+          values.append(KeyValue(key = 'tx_packets', value = cmd_out))
+        #additional keys (https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-class-net)
+        (retcode, cmd_out) = get_sys_net(ifaces[i], 'addr_assign_type')
+        if retcode == 0:
+          try:
+            tmp_dict = {'0': 'permanent address', '1': 'randomly generated', '2': 'stolen from another device', '3': 'set using dev_set_mac_address'}
+            values.append(KeyValue(key = 'addr_assign_type', value = tmp_dict[cmd_out]))
+          except KeyError, e:
+            values.append(KeyValue(key = 'addr_assign_type', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net(ifaces[i], 'address')
+        if retcode == 0:
+          values.append(KeyValue(key = 'address', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net(ifaces[i], 'carrier')
+        if retcode == 0:
+          try:
+            tmp_dict = {'0': 'physical link is down', '1': 'physical link is up'}
+            values.append(KeyValue(key = 'carrier', value = tmp_dict[cmd_out]))
+          except KeyError, e:
+            values.append(KeyValue(key = 'carrier', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net(ifaces[i], 'carrier_changes')
+        if retcode == 0:
+          values.append(KeyValue(key = 'carrier_changes', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net(ifaces[i], 'carrier_up_count')
+        if retcode == 0:
+          values.append(KeyValue(key = 'carrier_up_count', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net(ifaces[i], 'carrier_down_count')
+        if retcode == 0:
+          values.append(KeyValue(key = 'carrier_down_count', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net(ifaces[i], 'speed')
+        if retcode == 0:
+          values.append(KeyValue(key = 'speed', value = cmd_out))
+        (retcode, cmd_out) = get_sys_net(ifaces[i], 'tx_queue_len')
+        if retcode == 0:
+          values.append(KeyValue(key = 'tx_queue_len', value = cmd_out))
     except Exception, e:
       rospy.logerr(traceback.format_exc())
       msg = 'Network Usage Check Error'
