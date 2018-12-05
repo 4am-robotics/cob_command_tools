@@ -544,15 +544,15 @@ class simple_script_server:
 
 		param_string = self.ns_global_prefix + "/" + component_name + "/default_vel"
 		if not rospy.has_param(param_string):
-			rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default of 0.1 [rad/sec].",param_string)
 			default_vel = 0.1 # rad/s
+			rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default of %f [rad/sec].",param_string,default_vel)
 		else:
 			default_vel = rospy.get_param(param_string)
 
 		param_string = self.ns_global_prefix + "/" + component_name + "/default_acc"
 		if not rospy.has_param(param_string):
-			rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default of 0.1 [rad^2/sec].",param_string)
 			default_acc = 1.0 # rad^2/s
+			rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default of %f [rad^2/sec].",param_string,default_acc)
 		else:
 			default_acc = rospy.get_param(param_string)
 
