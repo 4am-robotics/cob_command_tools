@@ -658,6 +658,39 @@ class simple_script_server:
 		ah.wait_inside()
 		return ah
 
+	def set_recommendation(self,component_name, parameter_name, blocking):
+		ah = action_handle("set_recommendation", component_name, parameter_name, blocking, self.parse)
+		if(self.parse):
+			return ah
+		else:
+			ah.set_active()
+
+		rospy.loginfo("Set recommendation of <<%s>> to <<%s>>",component_name,parameter_name)
+
+		# call action server
+		action_server_name = "/woz/set_recommendation"
+		rospy.logdebug("calling %s action server",action_server_name)
+		client = actionlib.SimpleActionClient(action_server_name, FollowJointTrajectoryAction)
+		# trying to connect to server
+		rospy.logdebug("waiting for %s action server to start",action_server_name)
+		if not client.wait_for_server(rospy.Duration(1)):
+			# error: server did not respond
+			message = "ActionServer " + action_server_name + " not ready within timeout, aborting..."
+			rospy.logerr(message)
+			ah.set_failed(4, message)
+			return ah
+		else:
+			rospy.logdebug("%s action server ready",action_server_name)
+
+		# sending goal
+		client_goal = FollowJointTrajectoryGoal()
+		client_goal.trajectory.header.frame_id = parameter_name
+		#print client_goal
+		client.send_goal(client_goal)
+		ah.set_client(client)
+		ah.wait_inside()
+		return ah
+
 	## Relative movement of the base
 	#
 	# \param component_name Name of component; here always "base".
