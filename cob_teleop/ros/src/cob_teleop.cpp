@@ -30,8 +30,6 @@
 #include <std_srvs/Trigger.h>
 #include <XmlRpcValue.h>
 
-const int PUBLISH_FREQ = 30.0;
-
 class CobTeleop
 {
 public:
@@ -73,6 +71,7 @@ public:
   int init_button_;
   bool joy_active_;
   bool safe_mode_;
+  double publish_freq_;
   double run_factor_, run_factor_param_;
   int joy_num_modes_;
   int mode_switch_button_;
@@ -297,7 +296,7 @@ void CobTeleop::updateBase()
   {
     if(mode_==1)
     {
-      double dt = 1.0/double(PUBLISH_FREQ);
+      double dt = 1.0/double(publish_freq_);
       geometry_msgs::Twist base_cmd;
       if(!joy_active_)
       {
@@ -675,6 +674,7 @@ void CobTeleop::init()
     exit(0);
   }
   // common
+  n_.param("publish_freq",publish_freq_, 30.0);
   n_.param("run_factor",run_factor_param_,1.5);
   n_.param("apply_ramp",apply_ramp_,true);
 
@@ -734,7 +734,7 @@ int main(int argc, char** argv)
   CobTeleop  cob_teleop;
   cob_teleop.init();
   cob_teleop.getConfigurationFromParameters();
-  ros::Rate loop_rate(PUBLISH_FREQ); //Hz
+  ros::Rate loop_rate(cob_teleop.publish_freq_); //Hz
   while(cob_teleop.n_.ok())
   {
     cob_teleop.updateBase();
