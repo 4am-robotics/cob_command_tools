@@ -42,6 +42,7 @@ from control_msgs.msg import *
 from tf.transformations import *
 
 # care-o-bot includes
+from cob_actions.msg import SetStringAction, SetStringGoal
 from cob_sound.msg import *
 from cob_script_server.msg import *
 from cob_light.msg import LightMode, LightModes, SetLightModeGoal, SetLightModeAction
@@ -318,6 +319,53 @@ class simple_script_server:
 				return ah
 		else:
 			action_client.send_goal(TestGoal())
+
+		# full success
+		rospy.loginfo("...<<%s>> is <<%s>>", component_name, action_name)
+		ah.set_succeeded() # full success
+		return ah
+
+
+	## Allows to trigger actions of the type cob_actions/SetString
+	#
+	# Based on the component and action name, the corresponding ActionServer will be called.
+	#
+	# \param component_name Name of the component (namespace of the action).
+	# \param data The data to be send in the ActionGoal.
+	# \param blocking Whether to wait for the Action to return.
+	def string_action(self,component_name, data, blocking):
+		action_name = "set_string"
+		ah = action_handle(action_name, component_name, "", blocking, self.parse)
+		if(self.parse):
+			return ah
+		else:
+			ah.set_active(mode="action")
+
+		rospy.loginfo("<<%s>> <<%s>>", action_name, component_name)
+		action_full_name = "/" + component_name + "/" + action_name
+		action_client = actionlib.SimpleActionClient(action_full_name, SetStringAction)
+
+		if blocking:
+			# check if action is available
+			if not action_client.wait_for_server(rospy.Duration(1)):
+				message = "ActionServer %s is not running"%action_full_name
+				rospy.logerr(message)
+				ah.set_failed(4, message)
+				return ah
+
+		# call the action
+		goal = SetStringGoal()
+		goal.data = data
+		if blocking:
+			rospy.loginfo("Wait for <<%s>> to <<%s>>...", component_name, action_name)
+			goal_state = action_client.send_goal_and_wait(goal)
+			if not (action_client.get_state() == GoalStatus.SUCCEEDED):
+				message = "...state of <<" + action_name + ">> of <<" + component_name + ">> : " + GoalStatus.to_string(action_client.get_state())
+				rospy.logerr(message)
+				ah.set_failed(10, message)
+				return ah
+		else:
+			action_client.send_goal(goal)
 
 		# full success
 		rospy.loginfo("...<<%s>> is <<%s>>", component_name, action_name)
@@ -652,39 +700,6 @@ class simple_script_server:
 		# sending goal
 		client_goal = FollowJointTrajectoryGoal()
 		client_goal.trajectory = traj_msg
-		#print client_goal
-		client.send_goal(client_goal)
-		ah.set_client(client)
-		ah.wait_inside()
-		return ah
-
-	def set_recommendation(self,component_name, parameter_name, blocking):
-		ah = action_handle("set_recommendation", component_name, parameter_name, blocking, self.parse)
-		if(self.parse):
-			return ah
-		else:
-			ah.set_active()
-
-		rospy.loginfo("Set recommendation of <<%s>> to <<%s>>",component_name,parameter_name)
-
-		# call action server
-		action_server_name = "/woz/set_recommendation"
-		rospy.logdebug("calling %s action server",action_server_name)
-		client = actionlib.SimpleActionClient(action_server_name, FollowJointTrajectoryAction)
-		# trying to connect to server
-		rospy.logdebug("waiting for %s action server to start",action_server_name)
-		if not client.wait_for_server(rospy.Duration(1)):
-			# error: server did not respond
-			message = "ActionServer " + action_server_name + " not ready within timeout, aborting..."
-			rospy.logerr(message)
-			ah.set_failed(4, message)
-			return ah
-		else:
-			rospy.logdebug("%s action server ready",action_server_name)
-
-		# sending goal
-		client_goal = FollowJointTrajectoryGoal()
-		client_goal.trajectory.header.frame_id = parameter_name
 		#print client_goal
 		client.send_goal(client_goal)
 		ah.set_client(client)
