@@ -53,6 +53,8 @@ class command_gui_buttons:
 					buttons.append(self.CreateButton(button[0],self.sss.move_base_rel,component_name,button[2]))
 				elif button[1] == "trigger_action":
 					buttons.append(self.CreateButton(button[0],self.sss.trigger_action,component_name,button[2],True))
+				elif button[1] == "string_action":
+					buttons.append(self.CreateButton(button[0],self.sss.string_action,component_name,button[2],True))
 				elif button[1] == "trigger":
 					buttons.append(self.CreateButton(button[0],self.sss.trigger,component_name,button[2]))
 					if button[2] == "stop":
