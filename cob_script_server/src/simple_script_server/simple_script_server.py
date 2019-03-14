@@ -42,6 +42,7 @@ from control_msgs.msg import *
 from tf.transformations import *
 
 # care-o-bot includes
+from cob_actions.msg import SetStringAction, SetStringGoal
 from cob_sound.msg import *
 from cob_script_server.msg import *
 from cob_light.msg import LightMode, LightModes, SetLightModeGoal, SetLightModeAction
@@ -325,6 +326,53 @@ class simple_script_server:
 		return ah
 
 
+	## Allows to trigger actions of the type cob_actions/SetString
+	#
+	# Based on the component and action name, the corresponding ActionServer will be called.
+	#
+	# \param component_name Name of the component (namespace of the action).
+	# \param data The data to be send in the ActionGoal.
+	# \param blocking Whether to wait for the Action to return.
+	def string_action(self,component_name, data, blocking):
+		action_name = "set_string"
+		ah = action_handle(action_name, component_name, "", blocking, self.parse)
+		if(self.parse):
+			return ah
+		else:
+			ah.set_active(mode="action")
+
+		rospy.loginfo("<<%s>> <<%s>>", action_name, component_name)
+		action_full_name = "/" + component_name + "/" + action_name
+		action_client = actionlib.SimpleActionClient(action_full_name, SetStringAction)
+
+		if blocking:
+			# check if action is available
+			if not action_client.wait_for_server(rospy.Duration(1)):
+				message = "ActionServer %s is not running"%action_full_name
+				rospy.logerr(message)
+				ah.set_failed(4, message)
+				return ah
+
+		# call the action
+		goal = SetStringGoal()
+		goal.data = data
+		if blocking:
+			rospy.loginfo("Wait for <<%s>> to <<%s>>...", component_name, action_name)
+			goal_state = action_client.send_goal_and_wait(goal)
+			if not (action_client.get_state() == GoalStatus.SUCCEEDED):
+				message = "...state of <<" + action_name + ">> of <<" + component_name + ">> : " + GoalStatus.to_string(action_client.get_state())
+				rospy.logerr(message)
+				ah.set_failed(10, message)
+				return ah
+		else:
+			action_client.send_goal(goal)
+
+		# full success
+		rospy.loginfo("...<<%s>> is <<%s>>", component_name, action_name)
+		ah.set_succeeded() # full success
+		return ah
+
+
 #------------------- Move section -------------------#
 	## Deals with all kind of movements for different components.
 	#
@@ -544,10 +592,17 @@ class simple_script_server:
 
 		param_string = self.ns_global_prefix + "/" + component_name + "/default_vel"
 		if not rospy.has_param(param_string):
-			rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default of 0.1 [rad/sec].",param_string)
 			default_vel = 0.1 # rad/s
+			rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default of %f [rad/sec].",param_string,default_vel)
 		else:
 			default_vel = rospy.get_param(param_string)
+
+		param_string = self.ns_global_prefix + "/" + component_name + "/default_acc"
+		if not rospy.has_param(param_string):
+			default_acc = 1.0 # rad^2/s
+			rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default of %f [rad^2/sec].",param_string,default_acc)
+		else:
+			default_acc = rospy.get_param(param_string)
 
 		for point in traj:
 			point_nr = point_nr + 1
@@ -564,7 +619,7 @@ class simple_script_server:
 
 			# use hardcoded point_time if no start_pos available
 			if start_pos != []:
-				point_time = self.calculate_point_time(component_name, start_pos, point, default_vel)
+				point_time = self.calculate_point_time(component_name, start_pos, point, default_vel, default_acc)
 			else:
 				point_time = 8*point_nr
 
@@ -574,10 +629,26 @@ class simple_script_server:
 			traj_msg.points.append(point_msg)
 		return (traj_msg, 0)
 
-	def calculate_point_time(self, component_name, start_pos, end_pos, default_vel):
+	def calculate_point_time(self, component_name, start_pos, end_pos, default_vel, default_acc):
 		try:
 			d_max = max(list(abs(numpy.array(start_pos) - numpy.array(end_pos))))
-			point_time = max(d_max / default_vel, 0.4)	# use minimal point_time
+			t1 = default_vel / default_acc
+			s1 = default_acc / 2 * t1**2
+			if (2 * s1 < d_max):
+				# with constant velocity phase (acc, const vel, dec)
+				# 1st phase: accelerate from v=0 to v=default_vel with a=default_acc in t=t1
+				# 2nd phase: constante velocity with v=default_vel and t=t2
+				# 3rd phase: decceleration (analog to 1st phase)
+				s2 = d_max - 2 * s1
+				t2 = s2 / default_vel
+				t = 2 * t1 + t2
+			else:
+				# without constant velocity phase (only acc and dec)
+				# 1st phase: accelerate from v=0 to v=default_vel with a=default_acc in t=t1
+				# 2nd phase: missing because distance is to short (we already reached the distance with the acc and dec phase)
+				# 3rd phase: decceleration (analog to 1st phase)
+				t = math.sqrt(d_max / default_acc)
+			point_time = max(t, 0.4)	# use minimal point_time
 		except ValueError as e:
 			print "Value Error", e
 			print "Likely due to mimic joints. Using default point_time: 3.0 [sec]"

@@ -2,6 +2,22 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.10 (2019-03-14)
+-------------------
+* Merge pull request `#239 <https://github.com/ipa320/cob_command_tools/issues/239>`_ from fmessmer/max_retry_auto_init
+  introduce max_retries for auto_init
+* introduce max_retries for auto_init
+* Merge pull request `#231 <https://github.com/ipa320/cob_command_tools/issues/231>`_ from fmessmer/auto_recover_diagnostics_based
+  fix typo
+* fix typo
+* Merge pull request `#230 <https://github.com/ipa320/cob_command_tools/issues/230>`_ from fmessmer/auto_recover_diagnostics_based
+  do not auto-recover based on diagnostics
+* do not auto-recover based on diagnostics
+* Merge pull request `#229 <https://github.com/ipa320/cob_command_tools/issues/229>`_ from HannesBachter/fix/auto_recover
+  case insensitive comparison
+* case insensitive comparison
+* Contributors: Felix Messmer, fmessmer, hyb
+
 0.6.9 (2018-07-21)
 ------------------
 * update maintainer

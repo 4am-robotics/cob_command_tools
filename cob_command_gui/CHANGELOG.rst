@@ -2,6 +2,14 @@
 Changelog for package cob_command_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.10 (2019-03-14)
+-------------------
+* Merge pull request `#241 <https://github.com/ipa320/cob_command_tools/issues/241>`_ from fmessmer/add_string_action
+  Add string action
+* add SetString action interface
+* temp_woz
+* Contributors: Felix Messmer, fmessmer, ipa-fmw
+
 0.6.9 (2018-07-21)
 ------------------
 * update maintainer

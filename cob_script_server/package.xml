@@ -1,6 +1,6 @@
 <package format="2">
   <name>cob_script_server</name>
-  <version>0.6.9</version>
+  <version>0.6.10</version>
   <description>The cob_script_server package provides a simple interface to operate Care-O-bot. It can be used via the python API or the actionlib interface.</description>
 
   <license>Apache 2.0</license>
@@ -22,6 +22,7 @@
   <depend>rostest</depend>
   <depend>trajectory_msgs</depend>
 
+  <exec_depend>cob_actions</exec_depend>
   <exec_depend>cob_light</exec_depend>
   <exec_depend>cob_mimic</exec_depend>
   <exec_depend>cob_sound</exec_depend>
