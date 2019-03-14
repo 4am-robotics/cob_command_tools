@@ -2,8 +2,8 @@
 Changelog for package cob_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.10 (2019-03-14)
+-------------------
 * Merge pull request `#238 <https://github.com/ipa320/cob_command_tools/issues/238>`_ from benmaidel/feature/publish_feq
   [cob_teleop] made publish rate configurable
 * made publish rate configurable

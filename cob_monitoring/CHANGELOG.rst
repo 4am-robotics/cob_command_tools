@@ -2,8 +2,8 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.10 (2019-03-14)
+-------------------
 * Merge pull request `#242 <https://github.com/ipa320/cob_command_tools/issues/242>`_ from fmessmer/diagnostics_based_em_stop_monitor
   diagnostics-based emergency state verbalization
 * diagnostics-based emergency state verbalization
