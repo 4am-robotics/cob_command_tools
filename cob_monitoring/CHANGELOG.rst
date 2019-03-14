@@ -2,6 +2,26 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#242 <https://github.com/ipa320/cob_command_tools/issues/242>`_ from fmessmer/diagnostics_based_em_stop_monitor
+  diagnostics-based emergency state verbalization
+* diagnostics-based emergency state verbalization
+* Merge pull request `#236 <https://github.com/ipa320/cob_command_tools/issues/236>`_ from fmessmer/missing_dependency_python-requests
+  add missing dependency python-requests
+* add missing dependency python-requests
+* add missing rosdep key ifstat
+* Merge pull request `#235 <https://github.com/ipa320/cob_command_tools/issues/235>`_ from fmessmer/network_monitor_internal
+  network monitor internal
+* additional net and statistic keys
+* proper timer and STALE handling
+* add net_monitor from ethz-asl/ros-system-monitor
+* Merge pull request `#232 <https://github.com/ipa320/cob_command_tools/issues/232>`_ from Acuda/feature/core_thermal_throttling
+  new metrics (thermal throttling, idlejitter) for cpu monitor based on netdata
+* use False as default in order to not produce stale/error diagnostics for robots that do not want/have the respective tools setup
+* new metrics (thermal throttling, idlejitter) for cpu monitor based on netdata
+* Contributors: Björn Eistel, Felix Messmer, fmessmer
+
 0.6.9 (2018-07-21)
 ------------------
 * update maintainer

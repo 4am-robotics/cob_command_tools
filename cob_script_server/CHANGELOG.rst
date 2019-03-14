@@ -2,6 +2,22 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#241 <https://github.com/ipa320/cob_command_tools/issues/241>`_ from fmessmer/add_string_action
+  Add string action
+* add SetString action interface
+* temp_woz
+* Merge pull request `#237 <https://github.com/ipa320/cob_command_tools/issues/237>`_ from fmessmer/default_value_handling
+  fix comments for default values
+* fix comments for default values
+* Merge pull request `#227 <https://github.com/ipa320/cob_command_tools/issues/227>`_ from floweisshardt/feature/new_trajectory
+  new trajectory point time calculation
+* remove print
+* fix syntax
+* new trajectory point time calculation
+* Contributors: Felix Messmer, Florian Weisshardt, fmessmer, ipa-fmw, robot@cob4-19
+
 0.6.9 (2018-07-21)
 ------------------
 * update maintainer
