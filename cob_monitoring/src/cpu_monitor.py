@@ -198,7 +198,7 @@ class CPUMonitor():
         except Exception, e:
             diag_level = DiagnosticStatus.ERROR
             diag_msgs = [ 'IPMI Exception' ]
-            diag_vals = [ KeyValue(key = 'Exception', value = str(e)()) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
 
         return diag_vals, diag_msgs, diag_level
 
@@ -248,7 +248,7 @@ class CPUMonitor():
         except Exception, e:
             diag_level = DiagnosticStatus.ERROR
             diag_msgs = [ 'Core Temp Exception' ]
-            diag_vals = [ KeyValue(key = 'Exception', value = str(e)()) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
 
         return diag_vals, diag_msgs, diag_level
 
@@ -320,7 +320,7 @@ class CPUMonitor():
         except Exception, e:
             diag_level = DiagnosticStatus.ERROR
             diag_msgs = [ 'Clock Speed Exception' ]
-            diag_vals = [ KeyValue(key = 'Exception', value = str(e)()) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
 
         return diag_vals, diag_msgs, diag_level
 
@@ -368,7 +368,7 @@ class CPUMonitor():
         except Exception, e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'Uptime Exception'
-            diag_vals = [ KeyValue(key = 'Exception', value = str(e)()) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
 
         return diag_vals, diag_msg, diag_level
 
@@ -434,7 +434,7 @@ class CPUMonitor():
         except Exception, e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'Memory Usage Exception'
-            diag_vals = [ KeyValue(key = 'Exception', value = str(e)()) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
 
         return diag_vals, diag_msg, diag_level
 
@@ -521,7 +521,7 @@ class CPUMonitor():
         except Exception, e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'CPU Usage Exception'
-            diag_vals = [ KeyValue(key = 'Exception', value = str(e)()) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
 
         return diag_vals, diag_msg, diag_level
 
