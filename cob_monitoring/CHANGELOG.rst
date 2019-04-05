@@ -2,6 +2,16 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.11 (2019-04-05)
+-------------------
+* Merge pull request `#243 <https://github.com/ipa320/cob_command_tools/issues/243>`_ from KITrobotics/cpu_monitor_str_repair
+  Repaired call of str object in cpu_monitor
+* Merge pull request `#244 <https://github.com/ipa320/cob_command_tools/issues/244>`_ from fmessmer/enhance_wlan_monitor
+  query all wireless interfaces, fix parsing
+* query all wireless interfaces, fix parsing
+* Repaired call of str object in cpu_monitor
+* Contributors: Felix Messmer, andreeatulbure, fmessmer
+
 0.6.10 (2019-03-14)
 -------------------
 * Merge pull request `#242 <https://github.com/ipa320/cob_command_tools/issues/242>`_ from fmessmer/diagnostics_based_em_stop_monitor

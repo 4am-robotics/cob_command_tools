@@ -23,53 +23,23 @@ import paramiko
 import rospy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
-class IwConfigParser():
-    def __init__(self, interface):
-        self.interface = interface
-        self.norm = ""
-        self.essid = ""
-        self.mode = ""
-        self.frequency = 0.0
-        self.access_point = ""
-        self.bit_rate = 0.0
-        self.tx_power = 0.0
-        self.retry_short_limit = 0
-        self.rts_thr = ""
-        self.fragment_thr = ""
-        self.power_management = ""
-        self.link_quality = ""
-        self.link_quality_percent = 0
-        self.signal_level = 0.0
-        self.rx_invalid_nwid = 0
-        self.rx_invalid_crypt = 0
-        self.rx_invalid_frag = 0
-        self.tx_excessive_retries = 0
-        self.invalic_misc = 0
-        self.missed_beacon = 0
-        self.stat = DiagnosticStatus()
-
+class IwConfigParser(object):
     def _parse_info(self, info):
+        if 'ESSID' in info:
+           return self._parse_client(info)
+        else:
+           return self._parse_ap(info)
+
+    def _parse_ap(self, info):
+        values = []
         try:
             split = info.split('IEEE ',1)
-            split = split[1].split('ESSID:',1)
-            self.norm = split[0].encode('utf8').strip()
-            split = split[1].split('\n',1)
-            self.essid = split[0].encode('utf8').strip()
             split = split[1].split('Mode:',1)
-            split = split[1].split('Frequency:',1)
-            self.mode = split[0].encode('utf8').strip()
-            split = split[1].split(' GHz',1)
-            self.frequency = float(split[0].strip())
-            split = split[1].split('Access Point: ',1)
+            norm = split[0].encode('utf8').strip()
+            values.append(KeyValue("IEEE Norm", norm))
             split = split[1].split('\n',1)
-            self.access_point = split[0].encode('utf8').strip()
-            split = split[1].split('Bit Rate=',1)
-            split = split[1].split(' Mb/s',1)
-            self.bit_rate = float(split[0].strip())
-            if split[1].find('Tx-Power') != -1:
-                split = split[1].split('Tx-Power=',1)
-                split = split[1].split(' dBm',1)
-                self.tx_power = float(split[0].strip())
+            mode = split[0].encode('utf8').strip()
+            values.append(KeyValue("Mode", mode))
             if split[1].find('Retry short limit:') != -1:
                 split = split[1].split('Retry short limit:',1)
             if split[1].find('Retry short limit=') != -1:
@@ -78,95 +48,158 @@ class IwConfigParser():
                 split = split[1].split('RTS thr:',1)
             if split[1].find('RTS thr=') != -1:
                 split = split[1].split('RTS thr=',1)
-            self.retry_short_limit = split[0].encode('utf8').strip()
+            retry_short_limit = split[0].encode('utf8').strip()
+            values.append(KeyValue("Retry short limit", str(retry_short_limit)))
             if split[1].find('Fragment thr:') != -1:
                 split = split[1].split('Fragment thr:',1)
             if split[1].find('Fragment thr=') != -1:
                 split = split[1].split('Fragment thr=',1)
-            self.rts_thr = split[0].encode('utf8').strip()
+            rts_thr = split[0].encode('utf8').strip()
+            values.append(KeyValue("RTS thr", rts_thr))
             split = split[1].split('\n',1)
-            self.fragment_thr = split[0].encode('utf8').strip()
+            fragment_thr = split[0].encode('utf8').strip()
+            values.append(KeyValue("Fragment thr", fragment_thr))
             split = split[1].split('Power Management:',1)
             split = split[1].split('\n',1)
-            self.power_managment = split[0].encode('utf8').strip()
+            power_managment = split[0].encode('utf8').strip()
+            values.append(KeyValue("Power Managment", power_managment))
+
+        except Exception, e:
+            rospy.logerr("IwConfigParser parsing exception: %s" %e)
+            values = [ KeyValue(key = 'parsing exception', value = str(e)) ]
+        
+        return values
+
+    def _parse_client(self, info):
+        values = []
+        try:
+            split = info.split('IEEE ',1)
+            split = split[1].split('ESSID:',1)
+            norm = split[0].encode('utf8').strip()
+            values.append(KeyValue("IEEE Norm", norm))
+            split = split[1].split('\n',1)
+            essid = split[0].encode('utf8').strip()
+            values.append(KeyValue("ESSID", essid))
+            split = split[1].split('Mode:',1)
+            split = split[1].split('Frequency:',1)
+            mode = split[0].encode('utf8').strip()
+            values.append(KeyValue("Mode", mode))
+            split = split[1].split(' GHz',1)
+            frequency = float(split[0].strip())
+            values.append(KeyValue("Frequency", str(frequency)))
+            split = split[1].split('Access Point: ',1)
+            split = split[1].split('\n',1)
+            access_point = split[0].encode('utf8').strip()
+            values.append(KeyValue("Access Point", access_point))
+            split = split[1].split('Bit Rate=',1)
+            split = split[1].split(' Mb/s',1)
+            bit_rate = float(split[0].strip())
+            values.append(KeyValue("Bit Rate [Mb/s]", str(bit_rate)))
+            if split[1].find('Tx-Power') != -1:
+                split = split[1].split('Tx-Power=',1)
+                split = split[1].split(' dBm',1)
+                tx_power = float(split[0].strip())
+                values.append(KeyValue("Tx-Power [dBm]", str(tx_power)))
+            if split[1].find('Retry short limit:') != -1:
+                split = split[1].split('Retry short limit:',1)
+            if split[1].find('Retry short limit=') != -1:
+                split = split[1].split('Retry short limit=',1)
+            if split[1].find('RTS thr:') != -1:
+                split = split[1].split('RTS thr:',1)
+            if split[1].find('RTS thr=') != -1:
+                split = split[1].split('RTS thr=',1)
+            retry_short_limit = split[0].encode('utf8').strip()
+            values.append(KeyValue("Retry short limit", str(retry_short_limit)))
+            if split[1].find('Fragment thr:') != -1:
+                split = split[1].split('Fragment thr:',1)
+            if split[1].find('Fragment thr=') != -1:
+                split = split[1].split('Fragment thr=',1)
+            rts_thr = split[0].encode('utf8').strip()
+            values.append(KeyValue("RTS thr", rts_thr))
+            split = split[1].split('\n',1)
+            fragment_thr = split[0].encode('utf8').strip()
+            values.append(KeyValue("Fragment thr", fragment_thr))
+            split = split[1].split('Power Management:',1)
+            split = split[1].split('\n',1)
+            power_managment = split[0].encode('utf8').strip()
+            values.append(KeyValue("Power Managment", power_managment))
             split = split[1].split('Link Quality=',1)
             split = split[1].split('Signal level=',1)
-            self.link_quality = split[0].encode('utf8').strip()
-            self.link_quality_percent = split[0].split('/')
-            self.link_quality_percent = int(float(self.link_quality_percent[0].strip()) / float(self.link_quality_percent[1].strip())*100.0)
+            link_quality = split[0].encode('utf8').strip()
+            values.append(KeyValue("Link Quality", link_quality))
+            link_quality_percent = split[0].split('/')
+            link_quality_percent = int(float(link_quality_percent[0].strip()) / float(link_quality_percent[1].strip())*100.0)
+            values.append(KeyValue("Link Quality %", str(link_quality_percent)))
             split = split[1].split(' dBm',1)
-            self.signal_level = float(split[0].strip())
+            signal_level = float(split[0].strip())
+            values.append(KeyValue("Signal level [dBm]", str(signal_level)))
             split = split[1].split('Rx invalid nwid:',1)
             split = split[1].split('Rx invalid crypt:',1)
-            self.rx_invalid_nwid = int(split[0].strip())
+            rx_invalid_nwid = int(split[0].strip())
+            values.append(KeyValue("Rx invalid nwid", str(rx_invalid_nwid)))
             split = split[1].split('Rx invalid frag:',1)
-            self.rx_invalid_crypt = int(split[0].strip())
+            rx_invalid_crypt = int(split[0].strip())
+            values.append(KeyValue("Rx invalid crypt", str(rx_invalid_crypt)))
             split = split[1].split('\n',1)
-            self.rx_invalid_frag = int(split[0].strip())
+            rx_invalid_frag = int(split[0].strip())
+            values.append(KeyValue("Rx invalid frag", str(rx_invalid_frag)))
             split = split[1].split('Tx excessive retries:',1)
             split = split[1].split('Invalid misc:',1)
-            self.tx_excessive_retries = int(split[0].strip())
+            tx_excessive_retries = int(split[0].strip())
+            values.append(KeyValue("Tx excessive retries", str(tx_excessive_retries)))
             split = split[1].split('Missed beacon:',1)
-            self.invalid_misc = int(split[0].strip())
+            invalid_misc = int(split[0].strip())
+            values.append(KeyValue("Invalid misc", str(invalid_misc)))
             split = split[1].split('\n',1)
-            self.missed_beacon = int(split[0].strip())
-
-            #ToDo: set diagnostic warning/error level accordingly
-            self.stat.level = DiagnosticStatus.OK
-            self.stat.message = "OK"
-            self.stat.values = [ KeyValue("Interface" , self.interface),
-                                 KeyValue("IEEE Norm", self.norm),
-                                 KeyValue("ESSID", self.essid),
-                                 KeyValue("Mode", self.mode),
-                                 KeyValue("Frequency", str(self.frequency)),
-                                 KeyValue("Access Point", self.access_point),
-                                 KeyValue("Bit Rate [Mb/s]", str(self.bit_rate)),
-                                 KeyValue("Tx-Power [dBm]", str(self.tx_power)),
-                                 KeyValue("Retry short limit", str(self.retry_short_limit)),
-                                 KeyValue("RTS thr", self.rts_thr),
-                                 KeyValue("Fragment thr", self.fragment_thr),
-                                 KeyValue("Power Managment", self.power_management),
-                                 KeyValue("Link Quality", self.link_quality),
-                                 KeyValue("Link Quality %", str(self.link_quality_percent)),
-                                 KeyValue("Signal level [dBm]", str(self.signal_level)),
-                                 KeyValue("Rx invalid nwid", str(self.rx_invalid_nwid)),
-                                 KeyValue("Rx invalid crypt", str(self.rx_invalid_crypt)),
-                                 KeyValue("Rx invalid frag", str(self.rx_invalid_frag)),
-                                 KeyValue("Tx excessive retries", str(self.tx_excessive_retries)),
-                                 KeyValue("Invalid misc", str(self.invalic_misc)),
-                                 KeyValue("Missed beacon", str(self.missed_beacon)) ]
+            missed_beacon = int(split[0].strip())
+            values.append(KeyValue("Missed beacon", str(missed_beacon)))
 
         except Exception, e:
-            rospy.logerr("Parsing Error: %s" %e)
-            self.stat.level = DiagnosticStatus.ERROR
-            self.stat.message = 'iwconfig Exception'
-            self.stat.values = [ KeyValue(key = 'Exception', value = str(e)) ]
+            rospy.logerr("IwConfigParser parsing exception: %s" %e)
+            values = [ KeyValue(key = 'parsing exception', value = str(e)) ]
+        
+        return values
 
 class IwConfigLocal(IwConfigParser):
-    def __init__(self, interface):
-        IwConfigParser.__init__(self, interface)
+    def __init__(self):
+        IwConfigParser.__init__(self)
 
-    def update(self):
+        self.interfaces = []
+        self.stat = DiagnosticStatus()
+        self.stat.level = DiagnosticStatus.OK
+        self.stat.message = "OK"
+        self.stat.values = []
         try:
-            p = Popen(["iwconfig", self.interface], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+            p = Popen("iw dev | awk '$1==\"Interface\"{print $2}'", stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
             res = p.wait()
             (stdout,stderr) = p.communicate()
-
-            if res != 0:
-                self.stat.level = DiagnosticStatus.ERROR
-                self.stat.message = 'iwconfig Error'
-                self.stat.values = [ KeyValue(key = 'iwconfig Error', value = stderr),
-                                     KeyValue(key = 'Output', value = stdout) ]
-            else:
-                self._parse_info(stdout)
+            self.interfaces = sorted(os.linesep.join([s for s in stdout.splitlines() if s]).split('\n'))
         except Exception, e:
-            self.stat.level = DiagnosticStatus.ERROR
-            self.stat.message = 'iwconfig Exception'
-            self.stat.values = [ KeyValue(key = 'Exception', value = str(e)) ]
+            rospy.logerr("IwConfigLocal init exception: %s" %e)
+
+    def update(self):
+        self.stat.level = DiagnosticStatus.OK
+        self.stat.message = "OK"
+        self.stat.values = []
+        for interface in self.interfaces:
+            self.stat.values.append(KeyValue(key = str(interface), value = "======================="))
+            try:
+                p = Popen(["iwconfig", interface], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+                res = p.wait()
+                (stdout,stderr) = p.communicate()
+
+                if res != 0:
+                    self.stat.values.append(KeyValue(key = 'iwconfig stderr', value = stderr))
+                    self.stat.values.append(KeyValue(key = 'iwconfig stdout', value = stdout))
+                else:
+                    self.stat.values += self._parse_info(stdout)
+            except Exception, e:
+                rospy.logerr("IwConfigLocal update exception: %s" %e)
+                self.stat.values.append(KeyValue(key = 'update exception', value = str(e)))
 
 class IwConfigSSH(IwConfigParser):
-    def __init__(self, interface, hostname, user, password):
-        IwConfigParser.__init__(self, interface)
+    def __init__(self, hostname, user, password):
+        IwConfigParser.__init__(self)
         self.ssh = paramiko.SSHClient()
         self.ssh.load_system_host_keys()
         ssh_key_file   = os.getenv("HOME")+'/.ssh/id_rsa.pub'
@@ -174,16 +207,32 @@ class IwConfigSSH(IwConfigParser):
         self.ssh.connect(str(hostname), username=user, key_filename=ssh_key_file) # no passwd needed
         #self.ssh.connect(str(hostname), username=user, password=password)
 
-    def update(self):
+        self.interfaces = []
+        self.stat = DiagnosticStatus()
+        self.stat.level = DiagnosticStatus.OK
+        self.stat.message = "OK"
+        self.stat.values = []
         try:
-            (stdin, stdout, stderr) = self.ssh.exec_command("iwconfig %s"%self.interface)
-
+            (stdin, stdout, stderr) = self.ssh.exec_command("iw dev | awk '$1==\"Interface\"{print $2}'")
             output = ''.join(stdout.readlines())
-            self._parse_info(output)
+            self.interfaces = sorted(os.linesep.join([s for s in output.splitlines() if s]).split('\n'))
         except Exception, e:
-            self.stat.level = DiagnosticStatus.ERROR
-            self.stat.message = 'iwconfig Exception'
-            self.stat.values = [ KeyValue(key = 'Exception', value = str(e)) ]
+            rospy.logerr("IwConfigSSH init exception: %s" %e)
+
+    def update(self):
+        self.stat.level = DiagnosticStatus.OK
+        self.stat.message = "OK"
+        self.stat.values = []
+        for interface in self.interfaces:
+            self.stat.values.append(KeyValue(key = str(interface), value = "======================="))
+            try:
+                (stdin, stdout, stderr) = self.ssh.exec_command("iwconfig %s"%interface)
+
+                output = ''.join(stdout.readlines())
+                self.stat.values += self._parse_info(output)
+            except Exception, e:
+                rospy.logerr("IwConfigSSH update exception: %s" %e)
+                self.stat.values.append(KeyValue(key = 'update exception', value = str(e)))
 
 class WlanMonitor():
     def __init__(self):
@@ -204,14 +253,14 @@ class WlanMonitor():
         self.diag_timer = rospy.Timer(rospy.Duration(1.0), self.publish_diagnostics)
 
         if self.monitor_local:
-            self.iwconfig = IwConfigLocal(self.interface)
+            self.iwconfig = IwConfigLocal()
         else:
             try:
-                self.iwconfig = IwConfigSSH(self.interface, self.diag_hostname, self.user, self.password)
+                self.iwconfig = IwConfigSSH(self.diag_hostname, self.user, self.password)
             except Exception, e:
                 rospy.logerr("Error connecting ssh to host: %s",e.message)
                 self._wlan_stat.level = DiagnosticStatus.ERROR
-                self._wlan_stat.message = 'iwconfig Exception'
+                self._wlan_stat.message = 'iwconfig init error'
                 self._wlan_stat.values = [ KeyValue(key = 'Exception', value = str(e)) ]
                 self.msg.status = [self._wlan_stat]
                 return
@@ -233,7 +282,6 @@ class WlanMonitor():
 
     def get_params(self):
         self.diag_hostname = rospy.get_param('~diag_hostname', "localhost")
-        self.interface = rospy.get_param('~interface', "wlan0")
         self.monitor_local = rospy.get_param("~monitor_local", True)
         self.user = rospy.get_param('~user', "")
         self.password = rospy.get_param('~password', "")
