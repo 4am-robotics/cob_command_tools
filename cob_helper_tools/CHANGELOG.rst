@@ -2,6 +2,9 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.10 (2019-03-14)
 -------------------
 * Merge pull request `#239 <https://github.com/ipa320/cob_command_tools/issues/239>`_ from fmessmer/max_retry_auto_init

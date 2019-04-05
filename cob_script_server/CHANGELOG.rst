@@ -2,6 +2,9 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.10 (2019-03-14)
 -------------------
 * Merge pull request `#241 <https://github.com/ipa320/cob_command_tools/issues/241>`_ from fmessmer/add_string_action
