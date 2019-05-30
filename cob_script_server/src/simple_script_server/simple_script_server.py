@@ -16,6 +16,7 @@
 
 
 import time
+import datetime
 import os
 import sys
 import types
@@ -52,7 +53,6 @@ from actionlib import GoalStatus
 
 graph=""
 graph_wait_list=[]
-function_counter = 0
 ah_counter = 0
 graph = pgv.AGraph()
 graph.node_attr['shape']='box'
@@ -100,8 +100,6 @@ class script():
 	def Parse(self):
 		rospy.loginfo("Start parsing...")
 		global graph
-		global function_counter
-		function_counter = 0
 		# run script in simulation mode
 		self.sss = simple_script_server(parse=True)
 		self.Initialize()
@@ -112,7 +110,6 @@ class script():
 		rospy.set_param("/script_server/graph", graph.string())
 		self.graph_pub.publish(graph.string())
 		rospy.loginfo("...parsing finished")
-		function_counter = 0
 		return graph.string()
 
 ## Simple script server class.
@@ -1142,12 +1139,10 @@ class action_handle:
 	## Initializes the action handle.
 	def __init__(self, function_name, component_name, parameter_name, blocking, parse):
 		global graph
-		global function_counter
 		self.parent_node = ""
 		self.error_code = -1
 		self.success = False
 		self.message = ""
-		self.function_counter = function_counter
 		self.function_name = function_name
 		self.component_name = component_name
 		self.parameter_name = parameter_name
@@ -1231,9 +1226,9 @@ class action_handle:
 	## Returns the graphstring.
 	def GetGraphstring(self):
 		if type(self.parameter_name) is types.StringType:
-			graphstring = str(self.function_counter)+"_"+self.function_name+"_"+self.component_name+"_"+self.parameter_name
+			graphstring = str(datetime.datetime.utcnow())+"_"+self.function_name+"_"+self.component_name+"_"+self.parameter_name
 		else:
-			graphstring = str(self.function_counter)+"_"+self.function_name+"_"+self.component_name
+			graphstring = str(datetime.datetime.utcnow())+"_"+self.function_name+"_"+self.component_name
 		return graphstring
 
 	## Gets level of function name.
@@ -1254,7 +1249,6 @@ class action_handle:
 	def AppendNode(self, blocking=True):
 		global graph
 		global graph_wait_list
-		global function_counter
 		global last_node
 		graphstring = self.GetGraphstring()
 		if self.parse:
@@ -1272,13 +1266,11 @@ class action_handle:
 				#print "not adding " + graphstring + " to graph"
 		#else:
 			#self.PublishState()
-		function_counter += 1
 
 	## Publishs the state of the action handle
 	def PublishState(self):
 		script_state = ScriptState()
 		script_state.header.stamp = rospy.Time.now()
-		script_state.number = self.function_counter
 		script_state.function_name = self.function_name
 		script_state.component_name = self.component_name
 		script_state.full_graph_name = self.GetGraphstring()
