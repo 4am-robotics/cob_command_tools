@@ -2,6 +2,13 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#247 <https://github.com/ipa320/cob_command_tools/issues/247>`_ from fmessmer/fix_variable_overflow_serialization_exception
+  replace ScriptState number with datetime for uniqueness
+* replace ScriptState number with datetime for uniqueness
+* Contributors: Felix Messmer, fmessmer
+
 0.6.11 (2019-04-05)
 -------------------
 

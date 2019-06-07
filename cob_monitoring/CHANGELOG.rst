@@ -2,6 +2,9 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.11 (2019-04-05)
 -------------------
 * Merge pull request `#243 <https://github.com/ipa320/cob_command_tools/issues/243>`_ from KITrobotics/cpu_monitor_str_repair
