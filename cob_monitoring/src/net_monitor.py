@@ -60,12 +60,11 @@ from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 stat_dict = {0: 'OK', 1: 'Warning', 2: 'Error'}
 
 def get_sys_net_stat(iface, sys):
-  cmd = 'cat /sys/class/net/%s/statistics/%s' %(iface, sys)
-  p = subprocess.Popen(cmd,
-                       stdout = subprocess.PIPE,
-                       stderr = subprocess.PIPE, shell = True)
-  stdout, stderr = p.communicate()
-  return (p.returncode, stdout.strip())
+  with open('/sys/class/net/%s/statistics/%s' %(iface, sys)) as f:
+    try:
+      return 0, f.readline().strip()
+    except:
+      return -1, None
 
 def get_sys_net(iface, sys):
   cmd = 'cat /sys/class/net/%s/%s' %(iface, sys)
