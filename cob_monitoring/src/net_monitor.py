@@ -126,11 +126,11 @@ class NetMonitor():
           if ifacematch and (cmd_out == 'down' or cmd_out == 'dormant'):
             level = DiagnosticStatus.ERROR
         values.append(KeyValue(key = 'Input Traffic',
-          value = str(float(kb_in[i]) / 1024) + " (MB/s)"))
+          value = str(float(kb_in[i]) / 1024) + " (MB/s)")) if kb_in[i] != 'n/a' else 0
         values.append(KeyValue(key = 'Output Traffic',
-          value = str(float(kb_out[i]) / 1024) + " (MB/s)"))
-        net_usage_in = float(kb_in[i]) / 1024 / self._net_capacity
-        net_usage_out = float(kb_out[i]) / 1024 / self._net_capacity
+          value = str(float(kb_out[i]) / 1024) + " (MB/s)")) if kb_out[i] != 'n/a' else 0
+        net_usage_in = float(kb_in[i]) / 1024 / self._net_capacity if kb_in[i] != 'n/a' else 0
+        net_usage_out = float(kb_out[i]) / 1024 / self._net_capacity if kb_out[i] != 'n/a' else 0
         if net_usage_in > self._net_level_warn or\
           net_usage_out > self._net_level_warn:
           level = DiagnosticStatus.WARN
