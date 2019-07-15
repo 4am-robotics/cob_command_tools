@@ -94,8 +94,7 @@ class NetMonitor():
 
   def get_sys_net(self, iface, sys):
     try:
-      with open('/sys/class/net/%s/%s' % (iface, sys)) as f:
-        return 0, f.readline().strip()
+      return 0, self.read_sysinfo('/sys/class/net/%s/%s' % (iface, sys))
     except:
       return -1, None
 
