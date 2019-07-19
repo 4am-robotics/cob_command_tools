@@ -2,6 +2,9 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.13 (2019-07-19)
+------------------
+
 0.6.12 (2019-06-07)
 -------------------
 * Merge pull request `#247 <https://github.com/ipa320/cob_command_tools/issues/247>`_ from fmessmer/fix_variable_overflow_serialization_exception
