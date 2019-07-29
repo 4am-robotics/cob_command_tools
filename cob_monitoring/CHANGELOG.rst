@@ -2,6 +2,21 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.13 (2019-07-19)
+------------------
+* Merge pull request `#248 <https://github.com/ipa320/cob_command_tools/issues/248>`_ from LoyVanBeek/feature/reduce_load
+  Feature/reduce load
+* PEP-8 this code
+* Also use self.read_sysinfo in get_sys_net
+* Cache file-handles instead of opening them again over and over again
+  Reduces load om my laptop from 1.9% CPU to 1.1% CPU (after an initial warm up-period of < 20sec with higher usage)
+* If value is str 'n/a', do not try to convert and calc with it, just use 0
+* Instead of opening subprocess to cat info about network, open the file directly
+  Reduces load from 6-7% to under 2%
+* Instead of opening a subprocess to cat something, just open the file and read the contents
+  Reduces load from this node on my system from 11-12% to 6-7%
+* Contributors: Felix Messmer, Florian Weisshardt, Loy van Beek, andreeatulbure, fmessmer
+
 0.6.12 (2019-06-07)
 -------------------
 
