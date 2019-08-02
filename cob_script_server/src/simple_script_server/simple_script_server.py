@@ -805,27 +805,28 @@ class simple_script_server:
 		rospy.loginfo("Move <<%s>> relatively by <<%s>>", component_name, parameter_name)
 
 		# step 0: check validity of parameters:
-		# if not len(parameter_name) == 3 or not isinstance(parameter_name[0], (int, float)) or not isinstance(parameter_name[1], (int, float)) or not isinstance(parameter_name[2], (int, float)):
-		# 	message = "Parameter " + parameter_name + " not formated correctly (non-numeric list), aborting move_base_rel"
-		# 	rospy.logerr(message)
-		# 	print("parameter_name must be numeric list of length 3; (relative x and y transl [m], relative rotation [rad])")
-		# 	ah.set_failed(3, message)
-		# 	return ah
-		# max_rel_trans_step = 1.0 # [m]
-		# max_rel_rot_step = math.pi/2 # [rad]
-		# if math.sqrt(parameter_name[0]**2 + parameter_name[1]**2) > max_rel_trans_step:
-		# 	message = "Parameter " + str(parameter_name) + " exceeds maximal relative translation step (" + str(max_rel_trans_step) + "), aborting move_base_rel"
-		# 	rospy.logerr(message)
-		# 	ah.set_failed(3, message)
-		# 	return(ah)
-		# if abs(parameter_name[2]) > max_rel_rot_step:
-		# 	message = "Parameter " + str(parameter_name) + " exceeds maximal relative rotation step (" + str(max_rel_rot_step) + "), aborting move_base_rel"
-		# 	rospy.logerr(message)
-		# 	ah.set_failed(3, message)
-		# 	return(ah)
+		if not isinstance(parameter_name, list):
+			message = "Parameter " + str(parameter_name) + " not formated correctly (not a list of numeric lists), aborting move_rel"
+			rospy.logerr(message)
+			print("parameter_name must be list")
+			ah.set_failed(3, message)
+			return ah
+		for parameter in parameter_name:
+			if not isinstance(parameter, list):
+				message = "Parameter " + str(parameter_name) + " not formated correctly (not a list of numeric lists), aborting move_rel"
+				rospy.logerr(message)
+				print("parameter_name must be list of lists")
+				ah.set_failed(3, message)
+				return ah
+			for param in parameter:
+				if not isinstance(param, (int, float)):
+					message = "Parameter " + str(parameter) + " not formated correctly (not a list of numeric lists), aborting move_rel"
+					rospy.logerr(message)
+					print("parameter_name must be list of numeric lists")
+					ah.set_failed(3, message)
+					return ah
 
 		# step 1: get current position
-		# get current pos
 		timeout = 1.0
 		try:
 			joint_names = list(rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout = timeout).name)
@@ -834,13 +835,16 @@ class simple_script_server:
 			rospy.logwarn("no joint states received from %s within timeout of %ssec. using default point time of 8sec.", component_name, str(timeout))
 			start_pos = []
 
+		# step 2: get joint limits from urdf
 		robot_urdf = URDF.from_parameter_server()
 		limits = {}
-		end_pos = []
 		end_poses = []
 		for joint in robot_urdf.joints:
 			limits.update({joint.name : joint.limit})
+		
+		# step 3 calculate and send goal
 		for move_rel_param in parameter_name:
+			end_pos = []
 			if len(start_pos) == len(move_rel_param) and len(joint_names) == len(move_rel_param):
 				for i in range(len(joint_names)):
 					pos_val = start_pos[i] + move_rel_param[i]
@@ -848,12 +852,13 @@ class simple_script_server:
 					if limits[joint_names[i]].upper > pos_val and limits[joint_names[i]].lower < pos_val:
 						end_pos.append(pos_val)
 					else:
-						rospy.logerr("Relative motion wil exceed absolute limits! %s would go to %f but limits are: %f and %f", joint_names[i], pos_val, limits[joint_names[i]].upper, limits[joint_names[i]].lower)
+						rospy.logerr("Relative motion wil exceed absolute limits! %s would go to %f but limits are: %f (upper) and %f (lower)",
+						joint_names[i], pos_val, limits[joint_names[i]].upper, limits[joint_names[i]].lower)
 						return ah
-				end_poses.append(end_pos)
 			else:
 				rospy.logerr("Parameters don't fit with joint states!")
 				return ah
+			end_poses.append(end_pos)
 		self.move_traj(component_name, end_poses, blocking)
 
 		ah.set_succeeded()
