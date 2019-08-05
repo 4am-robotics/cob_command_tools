@@ -30,7 +30,6 @@ import pygraphviz as pgv
 
 # ROS imports
 import rospy
-import roslib; roslib.load_manifest('urdfdom_py')
 import actionlib
 
 from urdf_parser_py.urdf import URDF
@@ -129,7 +128,7 @@ class simple_script_server:
 		self.parse = parse
 		rospy.sleep(1) # we have to wait here until publishers are ready, don't ask why
 
-	#------------------- Init section -------------------#
+#------------------- Init section -------------------#
 	## Initializes different components.
 	#
 	# Based on the component, the corresponding init service will be called.
@@ -373,7 +372,7 @@ class simple_script_server:
 		return ah
 
 
-	#------------------- Move section -------------------#
+#------------------- Move section -------------------#
 	## Deals with all kind of movements for different components.
 	#
 	# Based on the component, the corresponding move functions will be called.
@@ -791,12 +790,14 @@ class simple_script_server:
 	# Based on the component, the corresponding move functions will be called.
 	#
 	# \param component_name Name of the component.
-	# \param parameter_name Name of the parameter on the ROS parameter server.
+	# \param parameter_name List of movements for each joint of the component
 	# \param blocking Bool value to specify blocking behaviour.
 	#
 	# # throws error code 3 in case of invalid parameter_name vector
 	def move_rel(self, component_name, parameter_name, blocking=True):
 		ah = action_handle("move_rel", component_name, parameter_name, blocking, self.parse)
+		# set failed by default
+		ah.set_failed()
 		if(self.parse):
 			return ah
 		else:
@@ -829,11 +830,12 @@ class simple_script_server:
 		# step 1: get current position
 		timeout = 1.0
 		try:
-			joint_names = list(rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout = timeout).name)
-			start_pos = list(rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout = timeout).position)
+			joint_state_message = rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout = timeout)
+			joint_names = list(joint_state_message.name)
+			start_pos = list(joinit_state_message.position)
 		except rospy.ROSException as e:
 			rospy.logwarn("no joint states received from %s within timeout of %ssec. using default point time of 8sec.", component_name, str(timeout))
-			start_pos = []
+			return ah
 
 		# step 2: get joint limits from urdf
 		robot_urdf = URDF.from_parameter_server()
@@ -856,12 +858,12 @@ class simple_script_server:
 						joint_names[i], pos_val, limits[joint_names[i]].upper, limits[joint_names[i]].lower)
 						return ah
 			else:
-				rospy.logerr("Parameters don't fit with joint states!")
+				rospy.logerr("Parameters %s don't fit with joint states!", str(move_rel_param))
 				return ah
 			end_poses.append(end_pos)
-		self.move_traj(component_name, end_poses, blocking)
 
-		ah.set_succeeded()
+		if self.move_traj(component_name, end_poses, blocking):
+			ah.set_succeeded()
 		return ah
 
 #------------------- LED section -------------------#
