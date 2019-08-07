@@ -834,22 +834,26 @@ class simple_script_server:
 			joint_names = list(joint_state_message.name)
 			start_pos = list(joinit_state_message.position)
 		except rospy.ROSException as e:
-			rospy.logwarn("no joint states received from %s within timeout of %ssec. using default point time of 8sec.", component_name, str(timeout))
+			rospy.logerr("no joint states received from %s within timeout of %ssec.", component_name, str(timeout))
 			return ah
 
 		# step 2: get joint limits from urdf
 		robot_urdf = URDF.from_parameter_server()
 		limits = {}
-		end_poses = []
 		for joint in robot_urdf.joints:
 			limits.update({joint.name : joint.limit})
 		
 		# step 3 calculate and send goal
+		end_poses = []
 		for move_rel_param in parameter_name:
 			end_pos = []
 			if len(start_pos) == len(move_rel_param) and len(joint_names) == len(move_rel_param):
 				for i in range(len(joint_names)):
-					pos_val = start_pos[i] + move_rel_param[i]
+					if (end_poses == []):
+						pos_val = start_pos[i] + move_rel_param[i]
+					# for multiple movements, append move_rel_param to previous calculated pose
+					else:
+						pos_val = end_poses[-1][i] + move_rel_param[i]
 					# check if joint limits are exceeded
 					if limits[joint_names[i]].upper > pos_val and limits[joint_names[i]].lower < pos_val:
 						end_pos.append(pos_val)
