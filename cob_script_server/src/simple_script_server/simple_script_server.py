@@ -866,9 +866,7 @@ class simple_script_server:
 				return ah
 			end_poses.append(end_pos)
 
-		if self.move_traj(component_name, end_poses, blocking):
-			ah.set_succeeded()
-		return ah
+		return self.move_traj(component_name, end_poses, blocking)
 
 #------------------- LED section -------------------#
 	## Set the color of the cob_light component.
