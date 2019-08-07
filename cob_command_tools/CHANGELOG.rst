@@ -2,6 +2,9 @@
 Changelog for package cob_command_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.13 (2019-07-19)
 ------------------
 

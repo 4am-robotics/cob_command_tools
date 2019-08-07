@@ -2,6 +2,9 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.13 (2019-07-19)
 ------------------
 * Merge pull request `#248 <https://github.com/ipa320/cob_command_tools/issues/248>`_ from LoyVanBeek/feature/reduce_load
