@@ -35,6 +35,6 @@
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>std_srvs</exec_depend>
   <exec_depend>tf</exec_depend>
-  <exec_depend>urdf</exec_depend>
+  <exec_depend>urdfdom_py</exec_depend>
 
 </package>

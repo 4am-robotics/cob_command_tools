@@ -796,8 +796,6 @@ class simple_script_server:
 	# # throws error code 3 in case of invalid parameter_name vector
 	def move_rel(self, component_name, parameter_name, blocking=True):
 		ah = action_handle("move_rel", component_name, parameter_name, blocking, self.parse)
-		# set failed by default
-		ah.set_failed()
 		if(self.parse):
 			return ah
 		else:
@@ -807,23 +805,20 @@ class simple_script_server:
 
 		# step 0: check validity of parameters:
 		if not isinstance(parameter_name, list):
-			message = "Parameter " + str(parameter_name) + " not formated correctly (not a list of numeric lists), aborting move_rel"
+			message = "Parameter " + str(parameter_name) + " not formated correctly (not a list), aborting move_rel"
 			rospy.logerr(message)
-			print("parameter_name must be list")
 			ah.set_failed(3, message)
 			return ah
 		for parameter in parameter_name:
 			if not isinstance(parameter, list):
-				message = "Parameter " + str(parameter_name) + " not formated correctly (not a list of numeric lists), aborting move_rel"
+				message = "Parameter " + str(parameter_name) + " not formated correctly (not a list of lists), aborting move_rel"
 				rospy.logerr(message)
-				print("parameter_name must be list of lists")
 				ah.set_failed(3, message)
 				return ah
 			for param in parameter:
 				if not isinstance(param, (int, float)):
 					message = "Parameter " + str(parameter) + " not formated correctly (not a list of numeric lists), aborting move_rel"
 					rospy.logerr(message)
-					print("parameter_name must be list of numeric lists")
 					ah.set_failed(3, message)
 					return ah
 
@@ -832,9 +827,11 @@ class simple_script_server:
 		try:
 			joint_state_message = rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout = timeout)
 			joint_names = list(joint_state_message.name)
-			start_pos = list(joinit_state_message.position)
+			start_pos = list(joint_state_message.position)
 		except rospy.ROSException as e:
-			rospy.logerr("no joint states received from %s within timeout of %ssec.", component_name, str(timeout))
+			message = "no joint states received from %s within timeout of %ssec."%(component_name, str(timeout))
+			rospy.logerr(message)
+			ah.set_failed(3, message)
 			return ah
 
 		# step 2: get joint limits from urdf
@@ -858,11 +855,14 @@ class simple_script_server:
 					if limits[joint_names[i]].upper > pos_val and limits[joint_names[i]].lower < pos_val:
 						end_pos.append(pos_val)
 					else:
-						rospy.logerr("Relative motion wil exceed absolute limits! %s would go to %f but limits are: %f (upper) and %f (lower)",
-						joint_names[i], pos_val, limits[joint_names[i]].upper, limits[joint_names[i]].lower)
+						message = "Relative motion wil exceed absolute limits! %s would go to %f but limits are: %f (upper) and %f (lower)"%(joint_names[i], pos_val, limits[joint_names[i]].upper, limits[joint_names[i]].lower)
+						rospy.logerr(message)
+						ah.set_failed(3, message)
 						return ah
 			else:
-				rospy.logerr("Parameters %s don't fit with joint states!", str(move_rel_param))
+				message = "Parameters %s don't fit with joint states!"%str(move_rel_param)
+				rospy.logerr(message)
+				ah.set_failed(3, message)
 				return ah
 			end_poses.append(end_pos)
 
