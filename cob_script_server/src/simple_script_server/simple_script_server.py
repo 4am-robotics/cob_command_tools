@@ -32,6 +32,8 @@ import pygraphviz as pgv
 import rospy
 import actionlib
 
+from urdf_parser_py.urdf import URDF
+
 # msg imports
 from std_msgs.msg import String,ColorRGBA
 from std_srvs.srv import Trigger
@@ -126,7 +128,7 @@ class simple_script_server:
 		self.parse = parse
 		rospy.sleep(1) # we have to wait here until publishers are ready, don't ask why
 
-	#------------------- Init section -------------------#
+#------------------- Init section -------------------#
 	## Initializes different components.
 	#
 	# Based on the component, the corresponding init service will be called.
@@ -781,6 +783,90 @@ class simple_script_server:
 		while not rospy.is_shutdown() and rospy.Time.now() < end_time:
 			pub.publish(twist)
 			r.sleep()
+
+	## Relative movement
+	## Deals with all kind of relative movements for different components.
+	#
+	# Based on the component, the corresponding move functions will be called.
+	#
+	# \param component_name Name of the component.
+	# \param parameter_name List of movements for each joint of the component
+	# \param blocking Bool value to specify blocking behaviour.
+	#
+	# # throws error code 3 in case of invalid parameter_name vector
+	def move_rel(self, component_name, parameter_name, blocking=True):
+		ah = action_handle("move_rel", component_name, parameter_name, blocking, self.parse)
+		if(self.parse):
+			return ah
+		else:
+			ah.set_active(mode="topic")
+
+		rospy.loginfo("Move <<%s>> relatively by <<%s>>", component_name, parameter_name)
+
+		# step 0: check validity of parameters:
+		if not isinstance(parameter_name, list):
+			message = "Parameter " + str(parameter_name) + " not formated correctly (not a list), aborting move_rel"
+			rospy.logerr(message)
+			ah.set_failed(3, message)
+			return ah
+		for parameter in parameter_name:
+			if not isinstance(parameter, list):
+				message = "Parameter " + str(parameter_name) + " not formated correctly (not a list of lists), aborting move_rel"
+				rospy.logerr(message)
+				ah.set_failed(3, message)
+				return ah
+			for param in parameter:
+				if not isinstance(param, (int, float)):
+					message = "Parameter " + str(parameter) + " not formated correctly (not a list of numeric lists), aborting move_rel"
+					rospy.logerr(message)
+					ah.set_failed(3, message)
+					return ah
+
+		# step 1: get current position
+		timeout = 1.0
+		try:
+			joint_state_message = rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout = timeout)
+			joint_names = list(joint_state_message.name)
+			start_pos = list(joint_state_message.position)
+		except rospy.ROSException as e:
+			message = "no joint states received from %s within timeout of %ssec."%(component_name, str(timeout))
+			rospy.logerr(message)
+			ah.set_failed(3, message)
+			return ah
+
+		# step 2: get joint limits from urdf
+		robot_urdf = URDF.from_parameter_server()
+		limits = {}
+		for joint in robot_urdf.joints:
+			limits.update({joint.name : joint.limit})
+		
+		# step 3 calculate and send goal
+		end_poses = []
+		for move_rel_param in parameter_name:
+			end_pos = []
+			if len(start_pos) == len(move_rel_param) and len(joint_names) == len(move_rel_param):
+				for i in range(len(joint_names)):
+					if (end_poses == []):
+						pos_val = start_pos[i] + move_rel_param[i]
+					# for multiple movements, append move_rel_param to previous calculated pose
+					else:
+						pos_val = end_poses[-1][i] + move_rel_param[i]
+					# check if joint limits are exceeded
+					if limits[joint_names[i]].upper > pos_val and limits[joint_names[i]].lower < pos_val:
+						end_pos.append(pos_val)
+					else:
+						message = "Relative motion wil exceed absolute limits! %s would go to %f but limits are: %f (upper) and %f (lower)"%(joint_names[i], pos_val, limits[joint_names[i]].upper, limits[joint_names[i]].lower)
+						rospy.logerr(message)
+						ah.set_failed(3, message)
+						return ah
+			else:
+				message = "Parameters %s don't fit with joint states!"%str(move_rel_param)
+				rospy.logerr(message)
+				ah.set_failed(3, message)
+				return ah
+			end_poses.append(end_pos)
+
+		return self.move_traj(component_name, end_poses, blocking)
 
 #------------------- LED section -------------------#
 	## Set the color of the cob_light component.
