@@ -56,7 +56,7 @@ class COBBattery(BatteryDashWidget):
             if (self._charging):
                 drain_str = "to full charge"
                 self.charging = True
-            self.setToolTip("Battery: %.2f%% \nTime %s: %d Minutes" % (msg.relative_remaining_capacity, drain_str, self._time_remaining * 60.0))
+            self.setToolTip("Battery: %.2f%% \nTime %s: %.2f Minutes" % (msg.relative_remaining_capacity, drain_str, self._time_remaining * 60.0))
             self.update_perc(msg.relative_remaining_capacity)
 
     def set_stale(self):
