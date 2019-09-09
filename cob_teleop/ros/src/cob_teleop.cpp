@@ -21,6 +21,8 @@
 #include <cob_light/SetLightModeAction.h>
 #include <cob_script_server/ScriptAction.h>
 #include <cob_sound/SayAction.h>
+#include <cob_actions/SetStringAction.h>
+#include <cob_actions/SetStringGoal.h>
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/Joy.h>
@@ -57,6 +59,8 @@ public:
   //buttons
   //mode 1: Base
   int run_button_;
+  int dock_button_;
+  int undock_button_;
   //mode 2: Trajectory controller (to default target position using sss.move)
   //mode 3: Velocity group controller
   int right_indicator_button_;
@@ -97,6 +101,17 @@ public:
   SetLightClient_ * setlight_client_;
   bool enable_light_;
   std::string light_action_name_;
+
+  typedef actionlib::SimpleActionClient<cob_actions::SetStringAction> DockClient_;
+  DockClient_ * dock_client_;
+  std::string dock_action_name_;
+
+  typedef actionlib::SimpleActionClient<cob_actions::SetStringAction> UndockClient_;
+  UndockClient_ * undock_client_;
+  std::string undock_action_name_;
+
+  cob_light::SetLightModeGoal confirm_light_goal_;
+  cob_light::SetLightModeGoal error_light_goal_;
 
   std::vector<double> vel_old_;
   std::vector<double> vel_req_;
@@ -232,6 +247,11 @@ void CobTeleop::getConfigurationFromParameters()
   n_.param<bool>("enable_light", enable_light_, false);
   n_.param<std::string>("light_action_name", light_action_name_, "set_light");
   setlight_client_ = new SetLightClient_(light_action_name_, true);
+
+  n_.param<std::string>("dock_action_name", dock_action_name_, "/docker_control/dock");
+  dock_client_ = new DockClient_(dock_action_name_, true);
+  n_.param<std::string>("undock_action_name", undock_action_name_, "/docker_control/undock");
+  undock_client_ = new UndockClient_(undock_action_name_, true);
 
   vel_req_.resize(component_config_["base"].twist_max_acc.size());
   vel_old_.resize(component_config_["base"].twist_max_acc.size());
@@ -474,6 +494,34 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
   if (mode_==1)
   {
     ROS_DEBUG("Mode 1: Move the base using twist controller");
+    if(dock_button_>=0 && dock_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[dock_button_]==1)
+    {
+      actionlib::SimpleClientGoalState state = dock_client_->getState();
+      if(state == actionlib::SimpleClientGoalState::ACTIVE ||
+        state == actionlib::SimpleClientGoalState::PENDING)
+      {
+        ROS_DEBUG_STREAM("docking already in progress: "<<state.getText());
+        setlight_client_->sendGoal(error_light_goal_);
+        return;
+      }
+      dock_client_->sendGoal(cob_actions::SetStringGoal());
+      setlight_client_->sendGoal(confirm_light_goal_);
+    }
+
+    if(undock_button_>=0 && undock_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[undock_button_]==1)
+    {
+      actionlib::SimpleClientGoalState state = undock_client_->getState();
+      if(state == actionlib::SimpleClientGoalState::ACTIVE ||
+        state == actionlib::SimpleClientGoalState::PENDING)
+      {
+        ROS_DEBUG_STREAM("undocking already in progress: "<<state.getText());
+        setlight_client_->sendGoal(error_light_goal_);
+        return;
+      }
+      undock_client_->sendGoal(cob_actions::SetStringGoal());
+      setlight_client_->sendGoal(confirm_light_goal_);
+    }
+
     if(axis_vx_>=0 && axis_vx_<(int)joy_msg->axes.size())
     {
       joy_active_ = true;
@@ -696,6 +744,8 @@ void CobTeleop::init()
   n_.param("init_button",init_button_,3);
 
   n_.param("run_button",run_button_,9);
+  n_.param("dock_button",dock_button_,3);
+  n_.param("undock_button",undock_button_,1);
 
   n_.param("right_indicator_button",right_indicator_button_,9);
   n_.param("left_indicator_button",left_indicator_button_,8);
@@ -725,6 +775,26 @@ void CobTeleop::init()
   LEDS_=led_mode_[mode_];
   joy_active_ = false;
   safe_mode_ = true;
+
+  cob_light::LightMode light;
+  light.mode = cob_light::LightModes::FLASH;
+  light.frequency = 5;
+  light.priority = 12;
+  std_msgs::ColorRGBA color;
+  color.r = 0;
+  color.g = 1;
+  color.b = 0;
+  color.a = 1;
+  light.pulses = 2;
+  light.colors.push_back(color);
+  confirm_light_goal_.mode = light;
+
+  color.r = 1;
+  color.g = 0;
+  light.pulses = 3;
+  light.colors.clear();
+  light.colors.push_back(color);
+  error_light_goal_.mode = light;
 }
 
 

@@ -12,6 +12,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>actionlib</depend>
+  <depend>cob_actions</depend>
   <depend>cob_light</depend>
   <depend>cob_script_server</depend>
   <depend>cob_sound</depend>
