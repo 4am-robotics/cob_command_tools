@@ -577,7 +577,12 @@ class simple_script_server:
 		# get current pos
 		timeout = 3.0
 		try:
-			start_pos = rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout = timeout).position
+			joint_state = rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout = timeout)
+			# make sure we have the same joint order
+			start_pos = []
+			for name in joint_names:
+				idx = joint_state.name.index(name)
+				start_pos.append(joint_state.position[idx])
 		except rospy.ROSException as e:
 			rospy.logwarn("no joint states received from %s within timeout of %ssec. using default point time of 8sec.", component_name, str(timeout))
 			start_pos = []
@@ -618,7 +623,7 @@ class simple_script_server:
 
 			# use hardcoded point_time if no start_pos available
 			if start_pos != []:
-				point_time = self.calculate_point_time(component_name, start_pos, point, default_vel, default_acc)
+				point_time = self.calculate_point_time(start_pos, point, default_vel, default_acc)
 			else:
 				point_time = 8*point_nr
 
@@ -628,11 +633,11 @@ class simple_script_server:
 			traj_msg.points.append(point_msg)
 		return (traj_msg, 0)
 
-	def calculate_point_time(self, component_name, start_pos, end_pos, default_vel, default_acc):
+	def calculate_point_time(self, start_pos, end_pos, default_vel, default_acc):
 		try:
 			d_max = max(list(abs(numpy.array(start_pos) - numpy.array(end_pos))))
 			t1 = default_vel / default_acc
-			s1 = default_acc / 2 * t1**2
+			s1 = default_acc / 2.0 * t1**2
 			if (2 * s1 < d_max):
 				# with constant velocity phase (acc, const vel, dec)
 				# 1st phase: accelerate from v=0 to v=default_vel with a=default_acc in t=t1
