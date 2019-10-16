@@ -43,18 +43,18 @@ class VisualizerNavigationGoals():
             # check if pose is valid
             if len(pose) != 3:
                 continue
-            
+
             # arrow
             marker_arrow = Marker()
             marker_arrow.header.stamp = rospy.Time.now()
             marker_arrow.header.frame_id = "/map"
-            marker_arrow.ns = "/pose"
+            marker_arrow.ns = "/"+name
             marker_arrow.id = i
             marker_arrow.type = Marker.ARROW
             marker_arrow.action = Marker.ADD
             marker_arrow.scale.x = 1.0
             marker_arrow.scale.y = 0.1
-            marker_arrow.scale.z = 1.0
+            marker_arrow.scale.z = 0.1
             marker_arrow.color.r = 0.0
             marker_arrow.color.g = 0.0
             marker_arrow.color.b = 1.0
@@ -68,12 +68,12 @@ class VisualizerNavigationGoals():
             marker_arrow.pose.orientation.z = quaternion[2]
             marker_arrow.pose.orientation.w = quaternion[3]
             markerarray.markers.append(marker_arrow)
-            
+
             # text
             marker_text = Marker()
             marker_text.header.stamp = rospy.Time.now()
             marker_text.header.frame_id = "/map"
-            marker_text.ns = "/name"
+            marker_text.ns = "/"+name
             marker_text.id = i + 1000000
             marker_text.type = Marker.TEXT_VIEW_FACING
             marker_text.action = Marker.ADD
@@ -92,7 +92,7 @@ class VisualizerNavigationGoals():
             marker_text.pose.orientation.w = quaternion[3]
             marker_text.text = name
             markerarray.markers.append(marker_text)
-            
+
             i = i + 1
 
         self.pubGoals.publish(markerarray)
