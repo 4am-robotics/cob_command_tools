@@ -258,9 +258,10 @@ class WlanMonitor():
             try:
                 self.iwconfig = IwConfigSSH(self.diag_hostname, self.user, self.password)
             except Exception, e:
-                rospy.logerr("Error connecting ssh to host: %s",e.message)
+                msg = "Cannot connect to router via ssh. Please check if ssh key of user '%s' is contained in the router configuration or password is provided. Error message: %s"%(self.user, e.message)
+                rospy.logerr(msg)
                 self._wlan_stat.level = DiagnosticStatus.ERROR
-                self._wlan_stat.message = 'iwconfig init error'
+                self._wlan_stat.message = msg
                 self._wlan_stat.values = [ KeyValue(key = 'Exception', value = str(e)) ]
                 self.msg.status = [self._wlan_stat]
                 return
