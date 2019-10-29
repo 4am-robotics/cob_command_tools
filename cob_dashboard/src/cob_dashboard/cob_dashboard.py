@@ -74,7 +74,7 @@ class CobDashboard(Dashboard):
             elif msg.emergency_stop_state.scanner_stop:
                 self._runstop.set_scanner_stop()
             else:
-                rospy.error("reason for emergency stop not known")
+                rospy.logerr("reason for emergency stop not known")
             self._runstop.setToolTip(self.tr("Button stop: %s\nScanner stop: %s" %(str(msg.emergency_stop_state.emergency_button_stop), str(msg.emergency_stop_state.scanner_stop))))
 
     def shutdown_dashboard(self):
