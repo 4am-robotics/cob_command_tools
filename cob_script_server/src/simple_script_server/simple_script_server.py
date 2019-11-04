@@ -635,29 +635,54 @@ class simple_script_server:
 		return (traj_msg, 0)
 
 	def calculate_point_time(self, start_pos, end_pos, default_vel, default_acc):
+		if isinstance(default_vel, float):
+			default_vel = numpy.array([default_vel for _ in start_pos])
+
+		if isinstance(default_acc, float):
+			default_acc = numpy.array([default_acc for _ in start_pos])
+
 		try:
-			d_max = max(list(abs(numpy.array(start_pos) - numpy.array(end_pos))))
-			t1 = default_vel / default_acc
-			s1 = default_acc / 2.0 * t1**2
-			if (2 * s1 < d_max):
-				# with constant velocity phase (acc, const vel, dec)
-				# 1st phase: accelerate from v=0 to v=default_vel with a=default_acc in t=t1
-				# 2nd phase: constante velocity with v=default_vel and t=t2
-				# 3rd phase: decceleration (analog to 1st phase)
-				s2 = d_max - 2 * s1
-				t2 = s2 / default_vel
-				t = 2 * t1 + t2
-			else:
-				# without constant velocity phase (only acc and dec)
-				# 1st phase: accelerate from v=0 to v=default_vel with a=default_acc in t=t1
-				# 2nd phase: missing because distance is to short (we already reached the distance with the acc and dec phase)
-				# 3rd phase: decceleration (analog to 1st phase)
-				t = math.sqrt(d_max / default_acc)
-			point_time = max(t, 0.4)	# use minimal point_time
+			# d_max: Distance traveled in the move by each joint
+			d_max = numpy.abs(numpy.array(start_pos) - numpy.array(end_pos))
+
+			t1 = default_vel / default_acc  # Time needed for joints to accelerate to desired velocity
+			s1 = default_acc / 2.0 * t1**2  # Distance traveled during this time
+
+			t = numpy.zeros_like(d_max)
+
+			for i in range(len(start_pos)):
+				if 2 * s1[i] < d_max[i]:
+					# If we can accelerate and decelerate in less than the total distance, then:
+					# accelerate up to speed, travel at that speed for a bit and then decelerate, a three phase trajectory:
+					# with constant velocity phase (acc, const vel, dec)
+					# 1st phase: accelerate from v=0 to v=default_vel with a=default_acc in t=t1. Need s1 distance for this
+					# 2nd phase: constant velocity with v=default_vel and t=t2
+					# 3rd phase: deceleration (analog to 1st phase). Need s1 distance for this
+					#  ^
+					#  |    __2__
+					#  |   /     \
+					# v|1 /       \ 3
+					#  | /         \
+					#  o--------------->
+					#         t     d_max
+					s2 = d_max[i] - 2 * s1[i]
+					t2 = s2[i] / default_vel[i]
+					t[i] = 2 * t1[i] + t2
+				else:
+					# If we don't have enough distance to get to full speed, then we do
+					# without constant velocity phase (only acc and dec, so a two phase trajectory)
+					# 1st phase: accelerate from v=0 to v=default_vel with a=default_acc in t=t1
+					# 2nd phase: missing because distance is to short (we already reached the distance with the acc and dec phase)
+					# 3rd phase: deceleration (analog to 1st phase)
+					t[i] = numpy.sqrt(d_max[i] / default_acc[i])
+
+			# Instead of deciding per joint if we can do a three or two-phase trajectory,
+			# we can simply take the slowest joint of them all and select that.
+			point_time = max(numpy.max(t), 0.4)	 # use minimal point_time
 		except ValueError as e:
-			print "Value Error", e
-			print "Likely due to mimic joints. Using default point_time: 3.0 [sec]"
-			point_time = 3.0	# use default point_time
+			print("Value Error: {}".format(e))
+			print("Likely due to mimic joints. Using default point_time: 3.0 [sec]")
+			point_time = 3.0  # use default point_time
 		return point_time
 
 	## Deals with all kind of trajectory movements for different components.
