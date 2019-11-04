@@ -24,6 +24,7 @@ import thread
 import commands
 import math
 import threading
+import numpy
 
 # graph includes
 import pygraphviz as pgv
