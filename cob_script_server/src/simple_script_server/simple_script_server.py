@@ -25,6 +25,7 @@ import commands
 import math
 import threading
 import numpy
+import itertools
 
 # graph includes
 import pygraphviz as pgv
@@ -685,6 +686,7 @@ class simple_script_server:
 				default_acc = numpy.array([1.0 for _ in start_pos]) # rad^2/s
 				rospy.logwarn("parameter '{}' {} has wrong format (must be float/int or list of float/int), using default_acc {} [rad^2/sec].".format(param_string,param_acc,default_acc))
 
+		# calculate time_from_start
 		for point in traj:
 			point_nr = point_nr + 1
 			point_msg = JointTrajectoryPoint()
@@ -708,6 +710,15 @@ class simple_script_server:
 			point_msg.time_from_start=rospy.Duration(point_time + traj_time)
 			traj_time += point_time
 			traj_msg.points.append(point_msg)
+
+		# calculate traj_point velocities and accelerations
+		prevs, items, nexts = itertools.tee(traj_msg.points, 3)
+		prevs = itertools.chain([None], prevs)
+		nexts = itertools.chain(itertools.islice(nexts, 1, None), [None])
+		for idx, (pre, curr, post) in enumerate(itertools.izip(prevs, items, nexts)):
+			traj_msg.points[idx].velocities = self.calculate_point_velocities(pre, curr, post)
+			traj_msg.points[idx].accelerations = self.calculate_point_accelerations(pre, curr, post)
+
 		return (traj_msg, 0)
 
 	def calculate_point_time(self, start_pos, end_pos, default_vel, default_acc):
@@ -760,6 +771,20 @@ class simple_script_server:
 			print("Likely due to mimic joints. Using default point_time: 3.0 [sec]")
 			point_time = 3.0  # use default point_time
 		return point_time
+
+	def calculate_point_velocities(self, prev, curr, post):
+		# set zero velocities for last trajectory point only
+		if not post:
+			return [0]*len(curr.positions)
+		else:
+			# check sign change
+			if prev and not numpy.all(numpy.equal(numpy.sign(numpy.subtract(numpy.array(curr.positions), numpy.array(prev.positions))), numpy.sign(numpy.subtract(numpy.array(post.positions), numpy.array(curr.positions))))):
+				return [0]*len(curr.positions)
+			#calculate based on difference quotient post-curr
+			return list(numpy.divide(numpy.subtract(numpy.array(post.positions), numpy.array(curr.positions)),numpy.array([(post.time_from_start-curr.time_from_start).to_sec()]*len(curr.positions))))
+
+	def calculate_point_accelerations(self, prev, curr, post):
+		return []
 
 	## Deals with all kind of trajectory movements for different components.
 	#
