@@ -2,6 +2,24 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.15 (2019-11-07)
+-------------------
+* Merge pull request `#261 <https://github.com/ipa320/cob_command_tools/issues/261>`_ from fmessmer/fix/travis
+  fix/travis
+* disable test
+* Merge pull request `#256 <https://github.com/ipa320/cob_command_tools/issues/256>`_ from floweisshardt/fix/joint_order
+  fix joint order in sss
+* fix joint order
+* Merge pull request `#250 <https://github.com/ipa320/cob_command_tools/issues/250>`_ from HannesBachter/feature/move_rel
+  Feature/move rel
+* fix ah handling and dependency
+* return move_traj action_handle
+* calculate poses for multiple movements
+* add urdf, cleanup and return in error case
+* check parameters
+* move rel with check of joint limits
+* Contributors: Felix Messmer, Florian Weisshardt, floweisshardt, fmessmer, hyb, robot@mrl-a
+
 0.6.14 (2019-08-07)
 -------------------
 

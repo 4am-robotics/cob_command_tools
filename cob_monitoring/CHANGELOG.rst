@@ -2,6 +2,16 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.15 (2019-11-07)
+-------------------
+* Merge pull request `#255 <https://github.com/ipa320/cob_command_tools/issues/255>`_ from floweisshardt/fix/wlan_monitor
+  more verbose error message for wlan monitor
+* more verbose error message for wlan monitor
+* Merge pull request `#254 <https://github.com/ipa320/cob_command_tools/issues/254>`_ from floweisshardt/remove_terminal_spam
+  remove terminal spam
+* remove terminal spam
+* Contributors: Florian Weisshardt, floweisshardt
+
 0.6.14 (2019-08-07)
 -------------------
 

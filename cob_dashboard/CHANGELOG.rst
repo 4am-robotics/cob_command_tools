@@ -2,6 +2,16 @@
 Changelog for package cob_dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.15 (2019-11-07)
+-------------------
+* Merge pull request `#258 <https://github.com/ipa320/cob_command_tools/issues/258>`_ from floweisshardt/fix/error_print
+  fix syntax error in cob_dashboard error print
+* fix syntax error in cob_dashboard error print
+* Merge pull request `#251 <https://github.com/ipa320/cob_command_tools/issues/251>`_ from HannesBachter/fix/batt_tooltip
+  fix format of battery minutes
+* fix format of battery minutes
+* Contributors: Felix Messmer, floweisshardt, robot@cob4-99
+
 0.6.14 (2019-08-07)
 -------------------
 

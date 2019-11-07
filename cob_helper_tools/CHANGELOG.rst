@@ -2,6 +2,15 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.15 (2019-11-07)
+-------------------
+* Merge pull request `#253 <https://github.com/ipa320/cob_command_tools/issues/253>`_ from benmaidel/fix/visualize_nav_goals
+  visualize nav_goals improvements
+* improvements:
+  - add every nav_goal to a separate namespace (enable/disable visual)
+  - fix scaling for Arrow marker
+* Contributors: Benjamin Maidel, Florian Weisshardt
+
 0.6.14 (2019-08-07)
 -------------------
 

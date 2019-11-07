@@ -63,7 +63,7 @@ class HzTest():
                         self.missing_topics.remove(real_topic)
             if len(self.missing_topics) == 0:
                 break
-            rospy.loginfo("hz monitor is waiting for type of topics %s."%str(self.missing_topics))
+            rospy.logdebug("hz monitor is waiting for type of topics %s."%str(self.missing_topics))
             self.publish_diagnostics()
             
             try:
