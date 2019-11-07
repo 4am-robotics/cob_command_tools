@@ -2,8 +2,8 @@
 Changelog for package cob_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.15 (2019-11-07)
+-------------------
 * Merge pull request `#252 <https://github.com/ipa320/cob_command_tools/issues/252>`_ from benmaidel/feature/dock_undock
   added docking/undocking feature to teleop
 * added docking/undocking feature to teleop

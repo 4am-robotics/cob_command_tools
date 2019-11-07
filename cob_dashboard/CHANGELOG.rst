@@ -2,8 +2,8 @@
 Changelog for package cob_dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.15 (2019-11-07)
+-------------------
 * Merge pull request `#258 <https://github.com/ipa320/cob_command_tools/issues/258>`_ from floweisshardt/fix/error_print
   fix syntax error in cob_dashboard error print
 * fix syntax error in cob_dashboard error print

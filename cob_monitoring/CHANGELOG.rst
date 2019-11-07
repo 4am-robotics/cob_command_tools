@@ -2,8 +2,8 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.15 (2019-11-07)
+-------------------
 * Merge pull request `#255 <https://github.com/ipa320/cob_command_tools/issues/255>`_ from floweisshardt/fix/wlan_monitor
   more verbose error message for wlan monitor
 * more verbose error message for wlan monitor

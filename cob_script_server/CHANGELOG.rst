@@ -2,8 +2,8 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.15 (2019-11-07)
+-------------------
 * Merge pull request `#261 <https://github.com/ipa320/cob_command_tools/issues/261>`_ from fmessmer/fix/travis
   fix/travis
 * disable test
