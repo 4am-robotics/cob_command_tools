@@ -773,25 +773,36 @@ class simple_script_server:
 		return point_time
 
 	def calculate_point_velocities(self, prev, curr, post):
+		rospy.logerr("calculate_point_velocities")
+		rospy.loginfo("prev: {}".format(prev))
+		rospy.loginfo("curr: {}".format(curr))
+		rospy.loginfo("post: {}".format(post))
+
 		# set zero velocities for last trajectory point only
 		if not post:
-			return [0.0]*len(curr.positions)
+			point_velocities = numpy.zeros(len(curr.positions))
 		else:
 			#calculate based on difference quotient post-curr
 			point_velocities = numpy.divide(numpy.subtract(numpy.array(post.positions), numpy.array(curr.positions)), numpy.array([(post.time_from_start-curr.time_from_start).to_sec()]*len(curr.positions)))
+			rospy.loginfo("point_velocities: {}".format(point_velocities))
 
 			# check sign change or consecutive points too close
 			if prev:
 				curr_prev_diff = numpy.subtract(numpy.array(curr.positions), numpy.array(prev.positions))
 				post_curr_diff = numpy.subtract(numpy.array(post.positions), numpy.array(curr.positions))
+				rospy.loginfo("curr_prev_diff: {}".format(curr_prev_diff))
+				rospy.loginfo("post_curr_diff: {}".format(post_curr_diff))
 				same_sign = numpy.equal(numpy.sign(curr_prev_diff), numpy.sign(post_curr_diff))
 				prev_close = numpy.isclose(curr_prev_diff, numpy.zeros_like(curr_prev_diff), atol=0.01)
+				rospy.loginfo("same_sign: {}".format(same_sign))
+				rospy.loginfo("prev_close: {}".format(prev_close))
 
 				for idx, vel in enumerate(point_velocities):
 					if not same_sign[idx] or prev_close[idx]:
 						point_velocities[idx] = 0.0
 
-			return list(point_velocities)
+		rospy.logwarn("point_velocities: {}".format(point_velocities))
+		return list(point_velocities)
 
 	def calculate_point_accelerations(self, prev, curr, post):
 		return []
