@@ -675,7 +675,7 @@ class simple_script_server:
 					#  o--------------->
 					#         t     d_max
 					s2 = d_max[i] - 2 * s1[i]
-					t2 = s2[i] / default_vel[i]
+					t2 = s2 / default_vel[i]
 					t[i] = 2 * t1[i] + t2
 				else:
 					# If we don't have enough distance to get to full speed, then we do
