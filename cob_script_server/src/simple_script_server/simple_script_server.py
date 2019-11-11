@@ -578,7 +578,7 @@ class simple_script_server:
 		# get current pos
 		timeout = 3.0
 		try:
-			joint_state = rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout = timeout)
+			joint_state = rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout=timeout)  # type: JointState
 			# make sure we have the same joint order
 			start_pos = []
 			for name in joint_names:
@@ -602,6 +602,15 @@ class simple_script_server:
 		else:
 			default_vel = rospy.get_param(param_string)
 
+		robot_urdf = URDF.from_parameter_server()
+		velocities = []
+		for joint_name in joint_names:
+			try:
+				velocities.append(robot_urdf.joint_map[joint_name].limit.velocity)
+			except KeyError:
+				velocities.append(default_vel)
+		rospy.logdebug("Velocities are: {}".format(velocities))
+
 		param_string = self.ns_global_prefix + "/" + component_name + "/default_acc"
 		if not rospy.has_param(param_string):
 			default_acc = 1.0 # rad^2/s
@@ -624,7 +633,7 @@ class simple_script_server:
 
 			# use hardcoded point_time if no start_pos available
 			if start_pos != []:
-				point_time = self.calculate_point_time(start_pos, point, default_vel, default_acc)
+				point_time = self.calculate_point_time(start_pos, point, numpy.array(velocities), default_acc)
 			else:
 				point_time = 8*point_nr
 
