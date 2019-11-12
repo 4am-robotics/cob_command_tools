@@ -381,11 +381,11 @@ class simple_script_server:
 	# \param component_name Name of the component.
 	# \param parameter_name Name of the parameter on the ROS parameter server.
 	# \param blocking Bool value to specify blocking behaviour.
-	def move(self,component_name,parameter_name,blocking=True, mode=None, speed_factor=1.0):
+	def move(self,component_name,parameter_name,blocking=True, mode=None, speed_factor=1.0, urdf_vel=False):
 		if component_name == "base":
 			return self.move_base(component_name,parameter_name,blocking, mode)
 		else:
-			return self.move_traj(component_name,parameter_name,blocking, speed_factor=speed_factor)
+			return self.move_traj(component_name,parameter_name,blocking, speed_factor=speed_factor, urdf_vel=urdf_vel)
 
 	## Deals with movements of the base.
 	#
@@ -498,7 +498,7 @@ class simple_script_server:
 		return ah
 
 	## Parse and compose trajectory message
-	def compose_trajectory(self, component_name, parameter_name, speed_factor=1.0):
+	def compose_trajectory(self, component_name, parameter_name, speed_factor=1.0, urdf_vel=False):
 		# get joint_names from parameter server
 		param_string = self.ns_global_prefix + "/" + component_name + "/joint_names"
 		if not rospy.has_param(param_string):
@@ -602,14 +602,17 @@ class simple_script_server:
 		else:
 			default_vel = rospy.get_param(param_string)
 
-		robot_urdf = URDF.from_parameter_server()
-		velocities = []
-		for joint_name in joint_names:
-			try:
-				velocities.append(robot_urdf.joint_map[joint_name].limit.velocity)
-			except KeyError:
-				velocities.append(default_vel)
-		rospy.logdebug("Velocities are: {}".format(velocities))
+		if urdf_vel:
+			robot_urdf = URDF.from_parameter_server()
+			velocities = []
+			for joint_name in joint_names:
+				try:
+					velocities.append(robot_urdf.joint_map[joint_name].limit.velocity)
+				except KeyError:
+					velocities.append(default_vel)
+		else:
+			velocities = [default_vel for _ in joint_names]
+		rospy.loginfo("Velocities are: {}".format(velocities))
 
 		param_string = self.ns_global_prefix + "/" + component_name + "/default_acc"
 		if not rospy.has_param(param_string):
@@ -701,7 +704,7 @@ class simple_script_server:
 	# \param component_name Name of the component.
 	# \param parameter_name Name of the parameter on the ROS parameter server.
 	# \param blocking Bool value to specify blocking behaviour.
-	def move_traj(self,component_name,parameter_name,blocking, speed_factor=1.0):
+	def move_traj(self,component_name,parameter_name,blocking, speed_factor=1.0, urdf_vel=False):
 		ah = action_handle("move", component_name, parameter_name, blocking, self.parse)
 		if(self.parse):
 			return ah
@@ -709,7 +712,7 @@ class simple_script_server:
 			ah.set_active()
 
 		rospy.loginfo("Move <<%s>> to <<%s>>",component_name,parameter_name)
-		(traj_msg, error_code) = self.compose_trajectory(component_name, parameter_name, speed_factor=speed_factor)
+		(traj_msg, error_code) = self.compose_trajectory(component_name, parameter_name, speed_factor=speed_factor, urdf_vel=urdf_vel)
 		if error_code != 0:
 			message = "Composing the trajectory failed with error: " + str(error_code)
 			ah.set_failed(error_code, message)
