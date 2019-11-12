@@ -381,11 +381,11 @@ class simple_script_server:
 	# \param component_name Name of the component.
 	# \param parameter_name Name of the parameter on the ROS parameter server.
 	# \param blocking Bool value to specify blocking behaviour.
-	def move(self,component_name,parameter_name,blocking=True, mode=None, speed_factor=1.0, urdf_vel=False):
+	def move(self,component_name,parameter_name,blocking=True, mode=None, speed_factor=1.0, urdf_vel=False, default_vel=None):
 		if component_name == "base":
 			return self.move_base(component_name,parameter_name,blocking, mode)
 		else:
-			return self.move_traj(component_name,parameter_name,blocking, speed_factor=speed_factor, urdf_vel=urdf_vel)
+			return self.move_traj(component_name,parameter_name,blocking, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel)
 
 	## Deals with movements of the base.
 	#
@@ -498,7 +498,7 @@ class simple_script_server:
 		return ah
 
 	## Parse and compose trajectory message
-	def compose_trajectory(self, component_name, parameter_name, speed_factor=1.0, urdf_vel=False):
+	def compose_trajectory(self, component_name, parameter_name, speed_factor=1.0, urdf_vel=False, default_vel=None):
 		# get joint_names from parameter server
 		param_string = self.ns_global_prefix + "/" + component_name + "/joint_names"
 		if not rospy.has_param(param_string):
@@ -595,19 +595,28 @@ class simple_script_server:
 		point_nr = 0
 		traj_time = 0
 
-		param_string = self.ns_global_prefix + "/" + component_name + "/default_vel"
-		if not rospy.has_param(param_string):
-			default_vel = numpy.array([0.1 for _ in start_pos]) # rad/s
-			rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default_vel {} [rad/sec].".format(param_string,default_vel))
-		else:
-			param_vel = rospy.get_param(param_string)
-			if (type(param_vel) is float) or (type(param_vel) is int):
-				default_vel = numpy.array([param_vel for _ in start_pos])
-			elif (type(param_vel) is list) and (len(param_vel) == len(start_pos)) and all(((type(item) is float) or (type(item) is int)) for item in param_vel):
-				default_vel = param_vel
+		if default_vel: # passed via argument
+			if (type(default_vel) is float) or (type(default_vel) is int):
+				default_vel = numpy.array([default_vel for _ in start_pos])
+			elif (type(default_vel) is list) and (len(default_vel) == len(start_pos)) and all(((type(item) is float) or (type(item) is int)) for item in default_vel):
+				default_vel = default_vel
 			else:
+				rospy.logerr("parameter %s has wrong format (must be float/int or list of float/int) with proper dimensions.")
+				return (JointTrajectory(), 3)
+		else: # get from parameter server
+			param_string = self.ns_global_prefix + "/" + component_name + "/default_vel"
+			if not rospy.has_param(param_string):
 				default_vel = numpy.array([0.1 for _ in start_pos]) # rad/s
-				rospy.logwarn("parameter %s has wrong format (must be float/int or list of float/int), using default_vel {} [rad/sec].".format(param_string,default_vel))
+				rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default_vel {} [rad/sec].".format(param_string,default_vel))
+			else:
+				param_vel = rospy.get_param(param_string)
+				if (type(param_vel) is float) or (type(param_vel) is int):
+					default_vel = numpy.array([param_vel for _ in start_pos])
+				elif (type(param_vel) is list) and (len(param_vel) == len(start_pos)) and all(((type(item) is float) or (type(item) is int)) for item in param_vel):
+					default_vel = param_vel
+				else:
+					default_vel = numpy.array([0.1 for _ in start_pos]) # rad/s
+					rospy.logwarn("parameter %s has wrong format (must be float/int or list of float/int), using default_vel {} [rad/sec].".format(param_string,default_vel))
 
 		if urdf_vel:
 			robot_urdf = URDF.from_parameter_server()
@@ -718,7 +727,7 @@ class simple_script_server:
 	# \param component_name Name of the component.
 	# \param parameter_name Name of the parameter on the ROS parameter server.
 	# \param blocking Bool value to specify blocking behaviour.
-	def move_traj(self,component_name,parameter_name,blocking, speed_factor=1.0, urdf_vel=False):
+	def move_traj(self,component_name,parameter_name,blocking, speed_factor=1.0, urdf_vel=False, default_vel=None):
 		ah = action_handle("move", component_name, parameter_name, blocking, self.parse)
 		if(self.parse):
 			return ah
@@ -726,7 +735,7 @@ class simple_script_server:
 			ah.set_active()
 
 		rospy.loginfo("Move <<%s>> to <<%s>>",component_name,parameter_name)
-		(traj_msg, error_code) = self.compose_trajectory(component_name, parameter_name, speed_factor=speed_factor, urdf_vel=urdf_vel)
+		(traj_msg, error_code) = self.compose_trajectory(component_name, parameter_name, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel)
 		if error_code != 0:
 			message = "Composing the trajectory failed with error: " + str(error_code)
 			ah.set_failed(error_code, message)
