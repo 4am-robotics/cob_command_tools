@@ -622,17 +622,26 @@ class simple_script_server:
 					default_vel = numpy.array([0.1 for _ in start_pos]) # rad/s
 					rospy.logwarn("parameter %s has wrong format (must be float/int or list of float/int), using default_vel {} [rad/sec].".format(param_string,default_vel))
 
+		robot_urdf = URDF.from_parameter_server()
+		urdf_vel = []
+		for idx, joint_name in enumerate(joint_names):
+			try:
+				urdf_vel.append(robot_urdf.joint_map[joint_name].limit.velocity)
+			except KeyError:
+				urdf_vel.append(default_vel[i])
+
+		# urdf_vel or default_vel (from argument or parameter server)
 		if urdf_vel:
-			robot_urdf = URDF.from_parameter_server()
-			velocities = []
-			for idx, joint_name in enumerate(joint_names):
-				try:
-					velocities.append(robot_urdf.joint_map[joint_name].limit.velocity)
-				except KeyError:
-					velocities.append(default_vel[i])
+			velocities = urdf_vel
 		else:
 			velocities = list(default_vel)
-		rospy.loginfo("Velocities are: {}".format(velocities))
+
+		# check velocity limits
+		desired_vel = numpy.array(velocities)*speed_factor
+		if (numpy.any(desired_vel > numpy.array(urdf_vel)) or numpy.any(desired_vel < numpy.zeros_like(desired_vel))):
+			rospy.logerr("desired velocities {} exceed velocity limits {},...aborting".format(desired_vel, numpy.array(urdf_vel)))
+			return (JointTrajectory(), 3)
+		rospy.loginfo("Velocities are: {}".format(desired_vel))
 
 		param_string = self.ns_global_prefix + "/" + component_name + "/default_acc"
 		if not rospy.has_param(param_string):
@@ -663,7 +672,7 @@ class simple_script_server:
 
 			# use hardcoded point_time if no start_pos available
 			if start_pos != []:
-				point_time = self.calculate_point_time(start_pos, point, numpy.array(velocities)*speed_factor, default_acc)
+				point_time = self.calculate_point_time(start_pos, point, desired_vel, default_acc)
 			else:
 				point_time = 8*point_nr
 
