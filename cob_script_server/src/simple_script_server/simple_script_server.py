@@ -499,6 +499,10 @@ class simple_script_server:
 
 	## Parse and compose trajectory message
 	def compose_trajectory(self, component_name, parameter_name, speed_factor=1.0, urdf_vel=False, default_vel=None):
+		if urdf_vel and default_vel:
+			rospy.logerr("arguments not valid - cannot set 'urdf_vel' and 'default_vel' at the same time, aborting...")
+			return (JointTrajectory(), 3)
+
 		# get joint_names from parameter server
 		param_string = self.ns_global_prefix + "/" + component_name + "/joint_names"
 		if not rospy.has_param(param_string):
