@@ -654,16 +654,16 @@ class simple_script_server:
 			default_acc = numpy.array([default_acc for _ in start_pos])
 
 		try:
-			# d_max: Distance traveled in the move by each joint
-			d_max = numpy.abs(numpy.array(start_pos) - numpy.array(end_pos))
+			# dist: Distance traveled in the move by each joint
+			dist = numpy.abs(numpy.array(start_pos) - numpy.array(end_pos))
 
 			t1 = default_vel / default_acc  # Time needed for joints to accelerate to desired velocity
 			s1 = default_acc / 2.0 * t1**2  # Distance traveled during this time
 
-			t = numpy.zeros_like(d_max)
+			t = numpy.zeros_like(dist)
 
 			for i in range(len(start_pos)):
-				if 2 * s1[i] < d_max[i]:
+				if 2 * s1[i] < dist[i]:
 					# If we can accelerate and decelerate in less than the total distance, then:
 					# accelerate up to speed, travel at that speed for a bit and then decelerate, a three phase trajectory:
 					# with constant velocity phase (acc, const vel, dec)
@@ -677,7 +677,7 @@ class simple_script_server:
 					#  | /         \
 					#  o--------------->
 					#         t     d_max
-					s2 = d_max[i] - 2 * s1[i]
+					s2 = dist[i] - 2 * s1[i]
 					t2 = s2 / default_vel[i]
 					t[i] = 2 * t1[i] + t2
 				else:
@@ -686,7 +686,7 @@ class simple_script_server:
 					# 1st phase: accelerate from v=0 to v=default_vel with a=default_acc in t=t1
 					# 2nd phase: missing because distance is to short (we already reached the distance with the acc and dec phase)
 					# 3rd phase: deceleration (analog to 1st phase)
-					t[i] = numpy.sqrt(d_max[i] / default_acc[i])
+					t[i] = numpy.sqrt(dist[i] / default_acc[i])
 
 			# Instead of deciding per joint if we can do a three or two-phase trajectory,
 			# we can simply take the slowest joint of them all and select that.
