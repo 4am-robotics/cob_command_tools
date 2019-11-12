@@ -860,7 +860,7 @@ class simple_script_server:
 	# \param blocking Bool value to specify blocking behaviour.
 	#
 	# # throws error code 3 in case of invalid parameter_name vector
-	def move_rel(self, component_name, parameter_name, blocking=True):
+	def move_rel(self, component_name, parameter_name, blocking=True, speed_factor=1.0, urdf_vel=False, default_vel=None):
 		ah = action_handle("move_rel", component_name, parameter_name, blocking, self.parse)
 		if(self.parse):
 			return ah
@@ -932,7 +932,7 @@ class simple_script_server:
 				return ah
 			end_poses.append(end_pos)
 
-		return self.move_traj(component_name, end_poses, blocking)
+		return self.move_traj(component_name, end_poses, blocking, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel)
 
 #------------------- LED section -------------------#
 	## Set the color of the cob_light component.
