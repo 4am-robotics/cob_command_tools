@@ -600,6 +600,7 @@ class simple_script_server:
 		traj_time = 0
 
 		if default_vel: # passed via argument
+			rospy.logdebug("using default_vel from argument")
 			if (type(default_vel) is float) or (type(default_vel) is int):
 				default_vel = numpy.array([default_vel for _ in start_pos])
 			elif (type(default_vel) is list) and (len(default_vel) == len(start_pos)) and all(((type(item) is float) or (type(item) is int)) for item in default_vel):
@@ -608,6 +609,7 @@ class simple_script_server:
 				rospy.logerr("parameter %s has wrong format (must be float/int or list of float/int) with proper dimensions.")
 				return (JointTrajectory(), 3)
 		else: # get from parameter server
+			rospy.logdebug("using default_vel parameter server")
 			param_string = self.ns_global_prefix + "/" + component_name + "/default_vel"
 			if not rospy.has_param(param_string):
 				default_vel = numpy.array([0.1 for _ in start_pos]) # rad/s
@@ -621,25 +623,28 @@ class simple_script_server:
 				else:
 					default_vel = numpy.array([0.1 for _ in start_pos]) # rad/s
 					rospy.logwarn("parameter %s has wrong format (must be float/int or list of float/int), using default_vel {} [rad/sec].".format(param_string,default_vel))
+		rospy.logdebug("default_vel: {}".format(default_vel))
 
 		robot_urdf = URDF.from_parameter_server()
-		urdf_vel = []
+		limit_vel = []
 		for idx, joint_name in enumerate(joint_names):
 			try:
-				urdf_vel.append(robot_urdf.joint_map[joint_name].limit.velocity)
+				limit_vel.append(robot_urdf.joint_map[joint_name].limit.velocity)
 			except KeyError:
-				urdf_vel.append(default_vel[i])
+				limit_vel.append(default_vel[i])
 
-		# urdf_vel or default_vel (from argument or parameter server)
+		# limit_vel from urdf or default_vel (from argument or parameter server)
 		if urdf_vel:
-			velocities = urdf_vel
+			rospy.logdebug("using default_vel from urdf_limits")
+			velocities = limit_vel
 		else:
+			rospy.logdebug("using default_vel from argument or parameter server")
 			velocities = list(default_vel)
 
 		# check velocity limits
 		desired_vel = numpy.array(velocities)*speed_factor
-		if (numpy.any(desired_vel > numpy.array(urdf_vel)) or numpy.any(desired_vel < numpy.zeros_like(desired_vel))):
-			rospy.logerr("desired velocities {} exceed velocity limits {},...aborting".format(desired_vel, numpy.array(urdf_vel)))
+		if (numpy.any(desired_vel > numpy.array(limit_vel)) or numpy.any(desired_vel < numpy.zeros_like(desired_vel))):
+			rospy.logerr("desired velocities {} exceed velocity limits {},...aborting".format(desired_vel, numpy.array(limit_vel)))
 			return (JointTrajectory(), 3)
 		rospy.loginfo("Velocities are: {}".format(desired_vel))
 
