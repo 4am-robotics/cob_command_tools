@@ -643,8 +643,11 @@ class simple_script_server:
 
 		# check velocity limits
 		desired_vel = numpy.array(velocities)*speed_factor
-		if (numpy.any(desired_vel > numpy.array(limit_vel)) or numpy.any(desired_vel < numpy.zeros_like(desired_vel))):
+		if (numpy.any(desired_vel > numpy.array(limit_vel))):
 			rospy.logerr("desired velocities {} exceed velocity limits {},...aborting".format(desired_vel, numpy.array(limit_vel)))
+			return (JointTrajectory(), 3)
+		if (numpy.any(desired_vel <= numpy.zeros_like(desired_vel))):
+			rospy.logerr("desired velocities {} cannot be zero or negative,...aborting".format(desired_vel))
 			return (JointTrajectory(), 3)
 		rospy.loginfo("Velocities are: {}".format(desired_vel))
 
