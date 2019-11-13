@@ -631,7 +631,7 @@ class simple_script_server:
 			try:
 				limit_vel.append(robot_urdf.joint_map[joint_name].limit.velocity)
 			except KeyError:
-				limit_vel.append(default_vel[i])
+				limit_vel.append(default_vel[idx])
 
 		# limit_vel from urdf or default_vel (from argument or parameter server)
 		if urdf_vel:
