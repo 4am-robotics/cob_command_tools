@@ -659,7 +659,7 @@ class simple_script_server:
 			elif (type(param_acc) is list) and (len(param_acc) == len(start_pos)) and all(((type(item) is float) or (type(item) is int)) for item in param_acc):
 				default_acc = param_acc
 			else:
-				default_acc = numpy.array([0.1 for _ in start_pos]) # rad/s
+				default_acc = numpy.array([1.0 for _ in start_pos]) # rad^2/s
 				rospy.logwarn("parameter %s has wrong format (must be float/int or list of float/int), using default_acc {} [rad^2/sec].".format(param_string,default_acc))
 
 		for point in traj:
