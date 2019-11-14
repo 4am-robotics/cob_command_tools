@@ -520,7 +520,7 @@ class simple_script_server:
 				#print i,"type1 = ", type(i)
 				if not type(i) is str: # check string
 					rospy.logerr("no valid joint_names for %s: not a list of strings, aborting...",component_name)
-					print "joint_names are:",param
+					print "joint_names are:", joint_names
 					return (JointTrajectory(), 3)
 				else:
 					rospy.logdebug("accepted joint_names for component %s",component_name)
