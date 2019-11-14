@@ -497,6 +497,66 @@ class simple_script_server:
 		ah.wait_inside()
 		return ah
 
+	def _determine_desired_velocity(self, default_vel, start_pos, component_name, joint_names, speed_factor, urdf_vel):
+		if default_vel:  # passed via argument
+			rospy.logdebug("using default_vel from argument")
+			if (type(default_vel) is float) or (type(default_vel) is int):
+				default_vel = numpy.array([default_vel for _ in start_pos])
+			elif (type(default_vel) is list) and (len(default_vel) == len(start_pos)) and all(
+					((type(item) is float) or (type(item) is int)) for item in default_vel):
+				default_vel = default_vel
+			else:
+				rospy.logerr(
+					"parameter %s has wrong format (must be float/int or list of float/int) with proper dimensions.", default_vel)
+				raise ValueError("parameter %s has wrong format (must be float/int or list of float/int) with proper dimensions." % default_vel)
+		else:  # get from parameter server
+			rospy.logdebug("using default_vel parameter server")
+			param_string = self.ns_global_prefix + "/" + component_name + "/default_vel"
+			if not rospy.has_param(param_string):
+				default_vel = numpy.array([0.1 for _ in start_pos])  # rad/s
+				rospy.logwarn(
+					"parameter %s does not exist on ROS Parameter Server, using default_vel {} [rad/sec].".format(
+						param_string, default_vel))
+			else:
+				param_vel = rospy.get_param(param_string)
+				if (type(param_vel) is float) or (type(param_vel) is int):
+					default_vel = numpy.array([param_vel for _ in start_pos])
+				elif (type(param_vel) is list) and (len(param_vel) == len(start_pos)) and all(
+						((type(item) is float) or (type(item) is int)) for item in param_vel):
+					default_vel = param_vel
+				else:
+					default_vel = numpy.array([0.1 for _ in start_pos])  # rad/s
+					rospy.logwarn(
+						"parameter %s has wrong format (must be float/int or list of float/int), using default_vel {} [rad/sec].".format(
+							param_string, default_vel))
+		rospy.logdebug("default_vel: {}".format(default_vel))
+
+		robot_urdf = URDF.from_parameter_server()
+		limit_vel = []
+		for idx, joint_name in enumerate(joint_names):
+			try:
+				limit_vel.append(robot_urdf.joint_map[joint_name].limit.velocity)
+			except KeyError:
+				limit_vel.append(default_vel[idx])
+
+		# limit_vel from urdf or default_vel (from argument or parameter server)
+		if urdf_vel:
+			rospy.logdebug("using default_vel from urdf_limits")
+			velocities = limit_vel
+		else:
+			rospy.logdebug("using default_vel from argument or parameter server")
+			velocities = list(default_vel)
+
+		# check velocity limits
+		desired_vel = numpy.array(velocities)*speed_factor
+		if (numpy.any(desired_vel > numpy.array(limit_vel))):
+			raise ValueError("desired velocities {} exceed velocity limits {},...aborting".format(desired_vel, numpy.array(limit_vel)))
+
+		if (numpy.any(desired_vel <= numpy.zeros_like(desired_vel))):
+			raise ValueError("desired velocities {} cannot be zero or negative,...aborting".format(desired_vel))
+		rospy.loginfo("Velocities are: {}".format(desired_vel))
+		return desired_vel
+
 	## Parse and compose trajectory message
 	def compose_trajectory(self, component_name, parameter_name, speed_factor=1.0, urdf_vel=False, default_vel=None):
 		if urdf_vel and default_vel:
@@ -599,57 +659,12 @@ class simple_script_server:
 		point_nr = 0
 		traj_time = 0
 
-		if default_vel: # passed via argument
-			rospy.logdebug("using default_vel from argument")
-			if (type(default_vel) is float) or (type(default_vel) is int):
-				default_vel = numpy.array([default_vel for _ in start_pos])
-			elif (type(default_vel) is list) and (len(default_vel) == len(start_pos)) and all(((type(item) is float) or (type(item) is int)) for item in default_vel):
-				default_vel = default_vel
-			else:
-				rospy.logerr("parameter %s has wrong format (must be float/int or list of float/int) with proper dimensions.")
-				return (JointTrajectory(), 3)
-		else: # get from parameter server
-			rospy.logdebug("using default_vel parameter server")
-			param_string = self.ns_global_prefix + "/" + component_name + "/default_vel"
-			if not rospy.has_param(param_string):
-				default_vel = numpy.array([0.1 for _ in start_pos]) # rad/s
-				rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default_vel {} [rad/sec].".format(param_string,default_vel))
-			else:
-				param_vel = rospy.get_param(param_string)
-				if (type(param_vel) is float) or (type(param_vel) is int):
-					default_vel = numpy.array([param_vel for _ in start_pos])
-				elif (type(param_vel) is list) and (len(param_vel) == len(start_pos)) and all(((type(item) is float) or (type(item) is int)) for item in param_vel):
-					default_vel = param_vel
-				else:
-					default_vel = numpy.array([0.1 for _ in start_pos]) # rad/s
-					rospy.logwarn("parameter %s has wrong format (must be float/int or list of float/int), using default_vel {} [rad/sec].".format(param_string,default_vel))
-		rospy.logdebug("default_vel: {}".format(default_vel))
-
-		robot_urdf = URDF.from_parameter_server()
-		limit_vel = []
-		for idx, joint_name in enumerate(joint_names):
-			try:
-				limit_vel.append(robot_urdf.joint_map[joint_name].limit.velocity)
-			except KeyError:
-				limit_vel.append(default_vel[idx])
-
-		# limit_vel from urdf or default_vel (from argument or parameter server)
-		if urdf_vel:
-			rospy.logdebug("using default_vel from urdf_limits")
-			velocities = limit_vel
-		else:
-			rospy.logdebug("using default_vel from argument or parameter server")
-			velocities = list(default_vel)
-
-		# check velocity limits
-		desired_vel = numpy.array(velocities)*speed_factor
-		if (numpy.any(desired_vel > numpy.array(limit_vel))):
-			rospy.logerr("desired velocities {} exceed velocity limits {},...aborting".format(desired_vel, numpy.array(limit_vel)))
+		try:
+			desired_vel = self._determine_desired_velocity(default_vel, start_pos, component_name, joint_names, speed_factor, urdf_vel)
+		except ValueError as val_err:
+			# check velocity limits
+			rospy.logerr(val_err.message)
 			return (JointTrajectory(), 3)
-		if (numpy.any(desired_vel <= numpy.zeros_like(desired_vel))):
-			rospy.logerr("desired velocities {} cannot be zero or negative,...aborting".format(desired_vel))
-			return (JointTrajectory(), 3)
-		rospy.loginfo("Velocities are: {}".format(desired_vel))
 
 		param_string = self.ns_global_prefix + "/" + component_name + "/default_acc"
 		if not rospy.has_param(param_string):
