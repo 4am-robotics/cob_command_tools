@@ -506,16 +506,14 @@ class simple_script_server:
 					((type(item) is float) or (type(item) is int)) for item in default_vel):
 				default_vel = default_vel
 			else:
-				rospy.logerr(
-					"parameter %s has wrong format (must be float/int or list of float/int) with proper dimensions.", default_vel)
-				raise ValueError("parameter %s has wrong format (must be float/int or list of float/int) with proper dimensions." % default_vel)
+				raise ValueError("argument 'default_vel' {} has wrong format (must be float/int or list of float/int) with proper dimensions.".format(default_vel))
 		else:  # get from parameter server
 			rospy.logdebug("using default_vel parameter server")
 			param_string = self.ns_global_prefix + "/" + component_name + "/default_vel"
 			if not rospy.has_param(param_string):
 				default_vel = numpy.array([0.1 for _ in start_pos])  # rad/s
 				rospy.logwarn(
-					"parameter %s does not exist on ROS Parameter Server, using default_vel {} [rad/sec].".format(
+					"parameter '{}' does not exist on ROS Parameter Server, using default_vel {} [rad/sec].".format(
 						param_string, default_vel))
 			else:
 				param_vel = rospy.get_param(param_string)
@@ -527,8 +525,8 @@ class simple_script_server:
 				else:
 					default_vel = numpy.array([0.1 for _ in start_pos])  # rad/s
 					rospy.logwarn(
-						"parameter %s has wrong format (must be float/int or list of float/int), using default_vel {} [rad/sec].".format(
-							param_string, default_vel))
+						"parameter '{}' {} has wrong format (must be float/int or list of float/int), using default_vel {} [rad/sec].".format(
+							param_string, param_vel, default_vel))
 		rospy.logdebug("default_vel: {}".format(default_vel))
 
 		robot_urdf = URDF.from_parameter_server(key='/robot_description')
@@ -662,14 +660,13 @@ class simple_script_server:
 		try:
 			desired_vel = self._determine_desired_velocity(default_vel, start_pos, component_name, joint_names, speed_factor, urdf_vel)
 		except ValueError as val_err:
-			# check velocity limits
 			rospy.logerr(val_err.message)
 			return (JointTrajectory(), 3)
 
 		param_string = self.ns_global_prefix + "/" + component_name + "/default_acc"
 		if not rospy.has_param(param_string):
 			default_acc = numpy.array([1.0 for _ in start_pos]) # rad^2/s
-			rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default_acc {} [rad^2/sec].".format(param_string,default_acc))
+			rospy.logwarn("parameter '{}' does not exist on ROS Parameter Server, using default_acc {} [rad^2/sec].".format(param_string,default_acc))
 		else:
 			param_acc = rospy.get_param(param_string)
 			if (type(param_acc) is float) or (type(param_acc) is int):
@@ -678,7 +675,7 @@ class simple_script_server:
 				default_acc = param_acc
 			else:
 				default_acc = numpy.array([1.0 for _ in start_pos]) # rad^2/s
-				rospy.logwarn("parameter %s has wrong format (must be float/int or list of float/int), using default_acc {} [rad^2/sec].".format(param_string,default_acc))
+				rospy.logwarn("parameter '{}' {} has wrong format (must be float/int or list of float/int), using default_acc {} [rad^2/sec].".format(param_string,param_acc,default_acc))
 
 		for point in traj:
 			point_nr = point_nr + 1
