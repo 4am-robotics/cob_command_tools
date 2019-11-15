@@ -531,7 +531,7 @@ class simple_script_server:
 							param_string, default_vel))
 		rospy.logdebug("default_vel: {}".format(default_vel))
 
-		robot_urdf = URDF.from_parameter_server()
+		robot_urdf = URDF.from_parameter_server(key='/robot_description')
 		limit_vel = []
 		for idx, joint_name in enumerate(joint_names):
 			try:
@@ -937,7 +937,7 @@ class simple_script_server:
 			return ah
 
 		# step 2: get joint limits from urdf
-		robot_urdf = URDF.from_parameter_server()
+		robot_urdf = URDF.from_parameter_server(key='/robot_description')
 		limits = {}
 		for joint in robot_urdf.joints:
 			limits.update({joint.name : joint.limit})
