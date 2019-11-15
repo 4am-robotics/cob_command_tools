@@ -24,6 +24,7 @@ import thread
 import commands
 import math
 import threading
+import numpy
 
 # graph includes
 import pygraphviz as pgv
@@ -380,11 +381,11 @@ class simple_script_server:
 	# \param component_name Name of the component.
 	# \param parameter_name Name of the parameter on the ROS parameter server.
 	# \param blocking Bool value to specify blocking behaviour.
-	def move(self,component_name,parameter_name,blocking=True, mode=None):
+	def move(self,component_name,parameter_name,blocking=True, mode=None, speed_factor=1.0, urdf_vel=False, default_vel=None):
 		if component_name == "base":
 			return self.move_base(component_name,parameter_name,blocking, mode)
 		else:
-			return self.move_traj(component_name,parameter_name,blocking)
+			return self.move_traj(component_name,parameter_name,blocking, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel)
 
 	## Deals with movements of the base.
 	#
@@ -496,8 +497,70 @@ class simple_script_server:
 		ah.wait_inside()
 		return ah
 
+	def _determine_desired_velocity(self, default_vel, start_pos, component_name, joint_names, speed_factor, urdf_vel):
+		if default_vel:  # passed via argument
+			rospy.logdebug("using default_vel from argument")
+			if (type(default_vel) is float) or (type(default_vel) is int):
+				default_vel = numpy.array([default_vel for _ in start_pos])
+			elif (type(default_vel) is list) and (len(default_vel) == len(start_pos)) and all(
+					((type(item) is float) or (type(item) is int)) for item in default_vel):
+				default_vel = default_vel
+			else:
+				raise ValueError("argument 'default_vel' {} has wrong format (must be float/int or list of float/int) with proper dimensions.".format(default_vel))
+		else:  # get from parameter server
+			rospy.logdebug("using default_vel parameter server")
+			param_string = self.ns_global_prefix + "/" + component_name + "/default_vel"
+			if not rospy.has_param(param_string):
+				default_vel = numpy.array([0.1 for _ in start_pos])  # rad/s
+				rospy.logwarn(
+					"parameter '{}' does not exist on ROS Parameter Server, using default_vel {} [rad/sec].".format(
+						param_string, default_vel))
+			else:
+				param_vel = rospy.get_param(param_string)
+				if (type(param_vel) is float) or (type(param_vel) is int):
+					default_vel = numpy.array([param_vel for _ in start_pos])
+				elif (type(param_vel) is list) and (len(param_vel) == len(start_pos)) and all(
+						((type(item) is float) or (type(item) is int)) for item in param_vel):
+					default_vel = param_vel
+				else:
+					default_vel = numpy.array([0.1 for _ in start_pos])  # rad/s
+					rospy.logwarn(
+						"parameter '{}' {} has wrong format (must be float/int or list of float/int), using default_vel {} [rad/sec].".format(
+							param_string, param_vel, default_vel))
+		rospy.logdebug("default_vel: {}".format(default_vel))
+
+		robot_urdf = URDF.from_parameter_server(key='/robot_description')
+		limit_vel = []
+		for idx, joint_name in enumerate(joint_names):
+			try:
+				limit_vel.append(robot_urdf.joint_map[joint_name].limit.velocity)
+			except KeyError:
+				limit_vel.append(default_vel[idx])
+
+		# limit_vel from urdf or default_vel (from argument or parameter server)
+		if urdf_vel:
+			rospy.logdebug("using default_vel from urdf_limits")
+			velocities = limit_vel
+		else:
+			rospy.logdebug("using default_vel from argument or parameter server")
+			velocities = list(default_vel)
+
+		# check velocity limits
+		desired_vel = numpy.array(velocities)*speed_factor
+		if (numpy.any(desired_vel > numpy.array(limit_vel))):
+			raise ValueError("desired velocities {} exceed velocity limits {},...aborting".format(desired_vel, numpy.array(limit_vel)))
+
+		if (numpy.any(desired_vel <= numpy.zeros_like(desired_vel))):
+			raise ValueError("desired velocities {} cannot be zero or negative,...aborting".format(desired_vel))
+		rospy.loginfo("Velocities are: {}".format(desired_vel))
+		return desired_vel
+
 	## Parse and compose trajectory message
-	def compose_trajectory(self, component_name, parameter_name):
+	def compose_trajectory(self, component_name, parameter_name, speed_factor=1.0, urdf_vel=False, default_vel=None):
+		if urdf_vel and default_vel:
+			rospy.logerr("arguments not valid - cannot set 'urdf_vel' and 'default_vel' at the same time, aborting...")
+			return (JointTrajectory(), 3)
+
 		# get joint_names from parameter server
 		param_string = self.ns_global_prefix + "/" + component_name + "/joint_names"
 		if not rospy.has_param(param_string):
@@ -515,7 +578,7 @@ class simple_script_server:
 				#print i,"type1 = ", type(i)
 				if not type(i) is str: # check string
 					rospy.logerr("no valid joint_names for %s: not a list of strings, aborting...",component_name)
-					print "joint_names are:",param
+					print "joint_names are:", joint_names
 					return (JointTrajectory(), 3)
 				else:
 					rospy.logdebug("accepted joint_names for component %s",component_name)
@@ -577,7 +640,7 @@ class simple_script_server:
 		# get current pos
 		timeout = 3.0
 		try:
-			joint_state = rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout = timeout)
+			joint_state = rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout=timeout)  # type: JointState
 			# make sure we have the same joint order
 			start_pos = []
 			for name in joint_names:
@@ -594,19 +657,25 @@ class simple_script_server:
 		point_nr = 0
 		traj_time = 0
 
-		param_string = self.ns_global_prefix + "/" + component_name + "/default_vel"
-		if not rospy.has_param(param_string):
-			default_vel = 0.1 # rad/s
-			rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default of %f [rad/sec].",param_string,default_vel)
-		else:
-			default_vel = rospy.get_param(param_string)
+		try:
+			desired_vel = self._determine_desired_velocity(default_vel, start_pos, component_name, joint_names, speed_factor, urdf_vel)
+		except ValueError as val_err:
+			rospy.logerr(val_err.message)
+			return (JointTrajectory(), 3)
 
 		param_string = self.ns_global_prefix + "/" + component_name + "/default_acc"
 		if not rospy.has_param(param_string):
-			default_acc = 1.0 # rad^2/s
-			rospy.logwarn("parameter %s does not exist on ROS Parameter Server, using default of %f [rad^2/sec].",param_string,default_acc)
+			default_acc = numpy.array([1.0 for _ in start_pos]) # rad^2/s
+			rospy.logwarn("parameter '{}' does not exist on ROS Parameter Server, using default_acc {} [rad^2/sec].".format(param_string,default_acc))
 		else:
-			default_acc = rospy.get_param(param_string)
+			param_acc = rospy.get_param(param_string)
+			if (type(param_acc) is float) or (type(param_acc) is int):
+				default_acc = numpy.array([param_acc for _ in start_pos])
+			elif (type(param_acc) is list) and (len(param_acc) == len(start_pos)) and all(((type(item) is float) or (type(item) is int)) for item in param_acc):
+				default_acc = param_acc
+			else:
+				default_acc = numpy.array([1.0 for _ in start_pos]) # rad^2/s
+				rospy.logwarn("parameter '{}' {} has wrong format (must be float/int or list of float/int), using default_acc {} [rad^2/sec].".format(param_string,param_acc,default_acc))
 
 		for point in traj:
 			point_nr = point_nr + 1
@@ -623,7 +692,7 @@ class simple_script_server:
 
 			# use hardcoded point_time if no start_pos available
 			if start_pos != []:
-				point_time = self.calculate_point_time(start_pos, point, default_vel, default_acc)
+				point_time = self.calculate_point_time(start_pos, point, desired_vel, default_acc)
 			else:
 				point_time = 8*point_nr
 
@@ -634,29 +703,54 @@ class simple_script_server:
 		return (traj_msg, 0)
 
 	def calculate_point_time(self, start_pos, end_pos, default_vel, default_acc):
+		if isinstance(default_vel, float):
+			default_vel = numpy.array([default_vel for _ in start_pos])
+
+		if isinstance(default_acc, float):
+			default_acc = numpy.array([default_acc for _ in start_pos])
+
 		try:
-			d_max = max(list(abs(numpy.array(start_pos) - numpy.array(end_pos))))
-			t1 = default_vel / default_acc
-			s1 = default_acc / 2.0 * t1**2
-			if (2 * s1 < d_max):
-				# with constant velocity phase (acc, const vel, dec)
-				# 1st phase: accelerate from v=0 to v=default_vel with a=default_acc in t=t1
-				# 2nd phase: constante velocity with v=default_vel and t=t2
-				# 3rd phase: decceleration (analog to 1st phase)
-				s2 = d_max - 2 * s1
-				t2 = s2 / default_vel
-				t = 2 * t1 + t2
-			else:
-				# without constant velocity phase (only acc and dec)
-				# 1st phase: accelerate from v=0 to v=default_vel with a=default_acc in t=t1
-				# 2nd phase: missing because distance is to short (we already reached the distance with the acc and dec phase)
-				# 3rd phase: decceleration (analog to 1st phase)
-				t = math.sqrt(d_max / default_acc)
-			point_time = max(t, 0.4)	# use minimal point_time
+			# dist: Distance traveled in the move by each joint
+			dist = numpy.abs(numpy.array(start_pos) - numpy.array(end_pos))
+
+			t1 = default_vel / default_acc  # Time needed for joints to accelerate to desired velocity
+			s1 = default_acc / 2.0 * t1**2  # Distance traveled during this time
+
+			t = numpy.zeros_like(dist)
+
+			for i in range(len(start_pos)):
+				if 2 * s1[i] < dist[i]:
+					# If we can accelerate and decelerate in less than the total distance, then:
+					# accelerate up to speed, travel at that speed for a bit and then decelerate, a three phase trajectory:
+					# with constant velocity phase (acc, const vel, dec)
+					# 1st phase: accelerate from v=0 to v=default_vel with a=default_acc in t=t1. Need s1 distance for this
+					# 2nd phase: constant velocity with v=default_vel and t=t2
+					# 3rd phase: deceleration (analog to 1st phase). Need s1 distance for this
+					#  ^
+					#  |    __2__
+					#  |   /     \
+					# v|1 /       \ 3
+					#  | /         \
+					#  o--------------->
+					#         t     d_max
+					s2 = dist[i] - 2 * s1[i]
+					t2 = s2 / default_vel[i]
+					t[i] = 2 * t1[i] + t2
+				else:
+					# If we don't have enough distance to get to full speed, then we do
+					# without constant velocity phase (only acc and dec, so a two phase trajectory)
+					# 1st phase: accelerate from v=0 to v=default_vel with a=default_acc in t=t1
+					# 2nd phase: missing because distance is to short (we already reached the distance with the acc and dec phase)
+					# 3rd phase: deceleration (analog to 1st phase)
+					t[i] = numpy.sqrt(dist[i] / default_acc[i])
+
+			# Instead of deciding per joint if we can do a three or two-phase trajectory,
+			# we can simply take the slowest joint of them all and select that.
+			point_time = max(numpy.max(t), 0.4)	 # use minimal point_time
 		except ValueError as e:
-			print "Value Error", e
-			print "Likely due to mimic joints. Using default point_time: 3.0 [sec]"
-			point_time = 3.0	# use default point_time
+			print("Value Error: {}".format(e))
+			print("Likely due to mimic joints. Using default point_time: 3.0 [sec]")
+			point_time = 3.0  # use default point_time
 		return point_time
 
 	## Deals with all kind of trajectory movements for different components.
@@ -666,7 +760,7 @@ class simple_script_server:
 	# \param component_name Name of the component.
 	# \param parameter_name Name of the parameter on the ROS parameter server.
 	# \param blocking Bool value to specify blocking behaviour.
-	def move_traj(self,component_name,parameter_name,blocking):
+	def move_traj(self,component_name,parameter_name,blocking, speed_factor=1.0, urdf_vel=False, default_vel=None):
 		ah = action_handle("move", component_name, parameter_name, blocking, self.parse)
 		if(self.parse):
 			return ah
@@ -674,7 +768,7 @@ class simple_script_server:
 			ah.set_active()
 
 		rospy.loginfo("Move <<%s>> to <<%s>>",component_name,parameter_name)
-		(traj_msg, error_code) = self.compose_trajectory(component_name, parameter_name)
+		(traj_msg, error_code) = self.compose_trajectory(component_name, parameter_name, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel)
 		if error_code != 0:
 			message = "Composing the trajectory failed with error: " + str(error_code)
 			ah.set_failed(error_code, message)
@@ -799,7 +893,7 @@ class simple_script_server:
 	# \param blocking Bool value to specify blocking behaviour.
 	#
 	# # throws error code 3 in case of invalid parameter_name vector
-	def move_rel(self, component_name, parameter_name, blocking=True):
+	def move_rel(self, component_name, parameter_name, blocking=True, speed_factor=1.0, urdf_vel=False, default_vel=None):
 		ah = action_handle("move_rel", component_name, parameter_name, blocking, self.parse)
 		if(self.parse):
 			return ah
@@ -840,7 +934,7 @@ class simple_script_server:
 			return ah
 
 		# step 2: get joint limits from urdf
-		robot_urdf = URDF.from_parameter_server()
+		robot_urdf = URDF.from_parameter_server(key='/robot_description')
 		limits = {}
 		for joint in robot_urdf.joints:
 			limits.update({joint.name : joint.limit})
@@ -871,7 +965,7 @@ class simple_script_server:
 				return ah
 			end_poses.append(end_pos)
 
-		return self.move_traj(component_name, end_poses, blocking)
+		return self.move_traj(component_name, end_poses, blocking, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel)
 
 #------------------- LED section -------------------#
 	## Set the color of the cob_light component.
