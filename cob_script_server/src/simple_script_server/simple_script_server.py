@@ -529,7 +529,15 @@ class simple_script_server:
 							param_string, param_vel, default_vel))
 		rospy.logdebug("default_vel: {}".format(default_vel))
 
-		robot_urdf = URDF.from_parameter_server(key='/robot_description')
+		try:
+			robot_description = rospy.search_param('robot_description') if rospy.search_param('robot_description') else '/robot_description'
+			rospy.loginfo("Initialize urdf structure from '{}'".format(robot_description))
+			robot_urdf = URDF.from_parameter_server(key=robot_description)
+		except KeyError as key_err:
+			message = "Unable to initialize urdf structure: {}".format(key_err.message)
+			rospy.logerr(message)
+			raise ValueError(message)
+
 		limit_vel = []
 		for idx, joint_name in enumerate(joint_names):
 			try:
@@ -934,7 +942,15 @@ class simple_script_server:
 			return ah
 
 		# step 2: get joint limits from urdf
-		robot_urdf = URDF.from_parameter_server(key='/robot_description')
+		try:
+			robot_description = rospy.search_param('robot_description') if rospy.search_param('robot_description') else '/robot_description'
+			rospy.loginfo("Initialize urdf structure from '{}'".format(robot_description))
+			robot_urdf = URDF.from_parameter_server(key=robot_description)
+		except KeyError as key_err:
+			message = "Unable to initialize urdf structure: {}".format(key_err.message)
+			rospy.logerr(message)
+			ah.set_failed(3, message)
+			return ah
 		limits = {}
 		for joint in robot_urdf.joints:
 			limits.update({joint.name : joint.limit})
