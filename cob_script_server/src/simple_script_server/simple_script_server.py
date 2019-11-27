@@ -688,6 +688,16 @@ class simple_script_server:
 				default_acc = numpy.array([1.0 for _ in start_pos]) # rad^2/s
 				rospy.logwarn("parameter '{}' {} has wrong format (must be float/int or list of float/int), using default_acc {} [rad^2/sec].".format(param_string,param_acc,default_acc))
 
+		# check first point close to current pos
+		try:
+			point = traj[0]
+			is_close = numpy.isclose(numpy.array(point), numpy.array(start_pos), atol=0.01)
+			if numpy.all(is_close):
+				traj = traj[1:] # drop first trajectory point
+		except Exception as e:
+			rospy.logerr(e.message)
+			return (JointTrajectory(), 3)
+
 		# calculate time_from_start
 		for point in traj:
 			point_nr = point_nr + 1
