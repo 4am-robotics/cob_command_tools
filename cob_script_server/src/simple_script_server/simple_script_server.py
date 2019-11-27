@@ -769,7 +769,8 @@ class simple_script_server:
 
 			# Instead of deciding per joint if we can do a three or two-phase trajectory,
 			# we can simply take the slowest joint of them all and select that.
-			point_time = max(numpy.max(t), 0.4)	 # use minimal point_time
+			#point_time = max(numpy.max(t), 0.4)	 # use minimal point_time
+			point_time = numpy.max(t)
 		except ValueError as e:
 			print("Value Error: {}".format(e))
 			print("Likely due to mimic joints. Using default point_time: 3.0 [sec]")
