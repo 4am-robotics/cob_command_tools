@@ -819,7 +819,7 @@ class simple_script_server:
 		return list(point_velocities)
 
 	def calculate_point_accelerations(self, prev, curr, post):
-		return []
+		return [0]*len(curr.positions)
 
 	## Deals with all kind of trajectory movements for different components.
 	#
