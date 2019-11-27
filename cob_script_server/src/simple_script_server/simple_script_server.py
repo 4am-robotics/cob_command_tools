@@ -666,12 +666,14 @@ class simple_script_server:
 		point_nr = 0
 		traj_time = 0
 
+		# get desired_vel
 		try:
 			desired_vel = self._determine_desired_velocity(default_vel, start_pos, component_name, joint_names, speed_factor, urdf_vel)
 		except ValueError as val_err:
 			rospy.logerr(val_err.message)
 			return (JointTrajectory(), 3)
 
+		# get default_acc
 		param_string = self.ns_global_prefix + "/" + component_name + "/default_acc"
 		if not rospy.has_param(param_string):
 			default_acc = numpy.array([1.0 for _ in start_pos]) # rad^2/s
@@ -772,14 +774,17 @@ class simple_script_server:
 
 		# set zero velocities for last trajectory point only
 		if not post:
+			rospy.logwarn("not has post")
 			point_velocities = numpy.zeros(len(curr.positions))
 		else:
-			#calculate based on difference quotient post-curr
+			rospy.logwarn("has post")
+			# calculate based on difference quotient post-curr
 			point_velocities = numpy.divide(numpy.subtract(numpy.array(post.positions), numpy.array(curr.positions)), numpy.array([(post.time_from_start-curr.time_from_start).to_sec()]*len(curr.positions)))
-			rospy.loginfo("point_velocities: {}".format(point_velocities))
+			rospy.loginfo("point_velocities diff quot: {}".format(point_velocities))
 
 			# check sign change or consecutive points too close
 			if prev:
+				rospy.logwarn("has prev")
 				curr_prev_diff = numpy.subtract(numpy.array(curr.positions), numpy.array(prev.positions))
 				post_curr_diff = numpy.subtract(numpy.array(post.positions), numpy.array(curr.positions))
 				rospy.loginfo("curr_prev_diff: {}".format(curr_prev_diff))
@@ -790,10 +795,16 @@ class simple_script_server:
 				rospy.loginfo("prev_close: {}".format(prev_close))
 
 				for idx, vel in enumerate(point_velocities):
-					if not same_sign[idx] or prev_close[idx]:
+					if not same_sign[idx]:
+						rospy.logerr("sign change for joint {} - setting vel to 0.0".format(idx))
 						point_velocities[idx] = 0.0
+					if prev_close[idx]:
+						rospy.logerr("prev close for joint {} - setting vel to 0.0".format(idx))
+						point_velocities[idx] = 0.0
+			else:
+				rospy.logwarn("not has prev")
 
-		rospy.logwarn("point_velocities: {}".format(point_velocities))
+		rospy.logerr("point_velocities: {}".format(point_velocities))
 		return list(point_velocities)
 
 	def calculate_point_accelerations(self, prev, curr, post):
