@@ -522,7 +522,7 @@ class simple_script_server:
 					default_vel = numpy.array([param_vel for _ in start_pos])
 				elif (type(param_vel) is list) and (len(param_vel) == len(start_pos)) and all(
 						((type(item) is float) or (type(item) is int)) for item in param_vel):
-					default_vel = param_vel
+					default_vel = numpy.array(param_vel)
 				else:
 					default_vel = numpy.array([0.1 for _ in start_pos])  # rad/s
 					rospy.logwarn(
@@ -682,8 +682,9 @@ class simple_script_server:
 			param_acc = rospy.get_param(param_string)
 			if (type(param_acc) is float) or (type(param_acc) is int):
 				default_acc = numpy.array([param_acc for _ in start_pos])
-			elif (type(param_acc) is list) and (len(param_acc) == len(start_pos)) and all(((type(item) is float) or (type(item) is int)) for item in param_acc):
-				default_acc = param_acc
+			elif (type(param_acc) is list) and (len(param_acc) == len(start_pos)) and all(
+					((type(item) is float) or (type(item) is int)) for item in param_acc):
+				default_acc = numpy.array(param_acc)
 			else:
 				default_acc = numpy.array([1.0 for _ in start_pos]) # rad^2/s
 				rospy.logwarn("parameter '{}' {} has wrong format (must be float/int or list of float/int), using default_acc {} [rad^2/sec].".format(param_string,param_acc,default_acc))
