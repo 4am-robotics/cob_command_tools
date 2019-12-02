@@ -645,6 +645,7 @@ class simple_script_server:
 			traj.append(point)
 
 		rospy.logdebug("accepted trajectory for %s",component_name)
+		rospy.logdebug("traj after param: {}".format(traj))
 
 		# get current pos
 		timeout = 3.0
@@ -658,6 +659,11 @@ class simple_script_server:
 		except rospy.ROSException as e:
 			rospy.logwarn("no joint states received from %s within timeout of %ssec. using default point time of 8sec.", component_name, str(timeout))
 			start_pos = []
+
+		# insert start_pos to trajectory
+		if start_pos:
+			traj.insert(0,start_pos)
+			rospy.logdebug("traj after add: {}".format(traj))
 
 		# convert to ROS trajectory message
 		traj_msg = JointTrajectory()
@@ -689,15 +695,27 @@ class simple_script_server:
 				default_acc = numpy.array([1.0 for _ in start_pos]) # rad^2/s
 				rospy.logwarn("parameter '{}' {} has wrong format (must be float/int or list of float/int), using default_acc {} [rad^2/sec].".format(param_string,param_acc,default_acc))
 
-		# check first point close to current pos
+		# filter duplicates
+		def is_close(a,b):
+			return numpy.all(numpy.isclose(numpy.array(a), numpy.array(b), atol=0.001))
+
+		def unique_next(elems):
+			for i, (curr, nxt) in enumerate(zip(elems, elems[1:]+[None])):
+				if not nxt:
+					yield curr
+				else:
+					if not is_close(curr, nxt):
+						yield curr
+					else:
+						rospy.logwarn("dropping trajectory point {} due to is close: (curr {}, nxt: {})".format(i, curr, nxt))
+
 		try:
-			point = traj[0]
-			is_close = numpy.isclose(numpy.array(point), numpy.array(start_pos), atol=0.01)
-			if numpy.all(is_close):
-				traj = traj[1:] # drop first trajectory point
+			traj = list(unique_next(traj))
+			traj = traj[1:] # drop first trajectory point because it is equal to start_pos
 		except Exception as e:
 			rospy.logerr(e.message)
 			return (JointTrajectory(), 3)
+		rospy.logdebug("traj after unique_nxt: {}".format(traj))
 
 		# calculate time_from_start
 		for point in traj:
