@@ -711,7 +711,6 @@ class simple_script_server:
 
 		try:
 			traj = list(unique_next(traj))
-			traj = traj[1:] # drop first trajectory point because it is equal to start_pos
 		except Exception as e:
 			rospy.logerr(e.message)
 			return (JointTrajectory(), 3)
@@ -741,6 +740,9 @@ class simple_script_server:
 		for idx, (pre, curr, post) in enumerate(itertools.izip(prevs, items, nexts)):
 			traj_msg.points[idx].velocities = self.calculate_point_velocities(pre, curr, post)
 			traj_msg.points[idx].accelerations = self.calculate_point_accelerations(pre, curr, post)
+
+		# drop first trajectory point because it is equal to start_pos
+		traj_msg.points = traj_msg.points[1:]
 
 		return (traj_msg, 0)
 
