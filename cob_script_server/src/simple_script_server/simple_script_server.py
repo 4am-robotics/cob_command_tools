@@ -808,33 +808,38 @@ class simple_script_server:
 		if not post:
 			rospy.logwarn("not has post")
 			point_velocities = numpy.zeros(len(curr.positions))
+		elif not prev:
+			rospy.logwarn("not has prev")
+			point_velocities = numpy.zeros(len(curr.positions))
 		else:
-			rospy.logwarn("has post")
+			rospy.logwarn("has prev, has post")
 			# calculate based on difference quotient post-curr
-			point_velocities = numpy.divide(numpy.subtract(numpy.array(post.positions), numpy.array(curr.positions)), numpy.array([(post.time_from_start-curr.time_from_start).to_sec()]*len(curr.positions)))
+			point_velocities = numpy.divide(numpy.subtract(numpy.array(post.positions), numpy.array(prev.positions)), numpy.array([(post.time_from_start-prev.time_from_start).to_sec()]*len(curr.positions)))
 			rospy.loginfo("point_velocities diff quot: {}".format(point_velocities))
 
 			# check sign change or consecutive points too close
-			if prev:
-				rospy.logwarn("has prev")
-				curr_prev_diff = numpy.subtract(numpy.array(curr.positions), numpy.array(prev.positions))
-				post_curr_diff = numpy.subtract(numpy.array(post.positions), numpy.array(curr.positions))
-				rospy.loginfo("curr_prev_diff: {}".format(curr_prev_diff))
-				rospy.loginfo("post_curr_diff: {}".format(post_curr_diff))
-				same_sign = numpy.equal(numpy.sign(curr_prev_diff), numpy.sign(post_curr_diff))
-				prev_close = numpy.isclose(curr_prev_diff, numpy.zeros_like(curr_prev_diff), atol=0.01)
-				rospy.loginfo("same_sign: {}".format(same_sign))
-				rospy.loginfo("prev_close: {}".format(prev_close))
+			rospy.logwarn("has prev")
+			curr_prev_diff = numpy.subtract(numpy.array(curr.positions), numpy.array(prev.positions))
+			post_curr_diff = numpy.subtract(numpy.array(post.positions), numpy.array(curr.positions))
+			rospy.loginfo("curr_prev_diff: {}".format(curr_prev_diff))
+			rospy.loginfo("post_curr_diff: {}".format(post_curr_diff))
+			same_sign = numpy.equal(numpy.sign(curr_prev_diff), numpy.sign(post_curr_diff))
+			prev_close = numpy.isclose(curr_prev_diff, numpy.zeros_like(curr_prev_diff), atol=0.01)
+			post_close = numpy.isclose(post_curr_diff, numpy.zeros_like(post_curr_diff), atol=0.01)
+			rospy.loginfo("same_sign: {}".format(same_sign))
+			rospy.loginfo("prev_close: {}".format(prev_close))
+			rospy.loginfo("post_close: {}".format(post_close))
 
-				for idx, vel in enumerate(point_velocities):
-					if not same_sign[idx]:
-						rospy.logerr("sign change for joint {} - setting vel to 0.0".format(idx))
-						point_velocities[idx] = 0.0
-					if prev_close[idx]:
-						rospy.logerr("prev close for joint {} - setting vel to 0.0".format(idx))
-						point_velocities[idx] = 0.0
-			else:
-				rospy.logwarn("not has prev")
+			for idx, vel in enumerate(point_velocities):
+				if prev_close[idx]:
+					rospy.logerr("prev close for joint {} - setting vel to 0.0".format(idx))
+					point_velocities[idx] = 0.0
+				if post_close[idx]:
+					rospy.logerr("post close for joint {} - setting vel to 0.0".format(idx))
+					point_velocities[idx] = 0.0
+				if not same_sign[idx]:
+					rospy.logerr("sign change for joint {} - setting vel to 0.0".format(idx))
+					point_velocities[idx] = 0.0
 
 		rospy.logerr("point_velocities: {}".format(point_velocities))
 		return list(point_velocities)
