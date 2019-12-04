@@ -79,7 +79,7 @@ class AutoRecover():
   
   def unsubscribe(self):
     self.em_stop_state_subscriber.unregister()
-    self.diagnostics_subscriber.unregister
+    self.diagnostics_subscriber.unregister()
 
   def recover(self, components):
     if self.enabled:
