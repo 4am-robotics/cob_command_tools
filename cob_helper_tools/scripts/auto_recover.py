@@ -20,6 +20,7 @@ import rospy
 
 from cob_msgs.msg import EmergencyStopState
 from diagnostic_msgs.msg import DiagnosticArray
+from std_srvs.srv import Trigger, TriggerResponse
 
 from simple_script_server import *
 sss = simple_script_server()
@@ -35,8 +36,11 @@ class AutoRecover():
     self.components_recover_time = {}
     for component in self.components.keys():
       self.components_recover_time[component] = now
-    rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.em_cb, queue_size=1)
-    rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.diagnostics_cb, queue_size=1)
+
+    rospy.Service('~enable',Trigger,self.enable_cb)
+    rospy.Service('~disable',Trigger,self.disable_cb)
+    self.enabled = True
+    self.subscribe()
 
   # auto recover based on emergency stop
   def em_cb(self, msg):
@@ -56,15 +60,36 @@ class AutoRecover():
         if status.name.lower().startswith(self.components[component].lower()) and status.level > 0 and self.em_state == 0 and (rospy.Time.now() - self.components_recover_time[component] > rospy.Duration(10)):
           rospy.loginfo("auto_recover from diagnostic failure")
           self.recover([component])
+  
+  # callback for enable service
+  def enable_cb(self, req):
+    self.enabled = True
+    self.subscribe()
+    return TriggerResponse(True, "auto recover enabled")
+
+  # callback for disable service
+  def disable_cb(self, req):
+    self.enabled = False
+    self.unsubscribe()
+    return TriggerResponse(True, "auto recover disabled")
+
+  def subscribe(self):
+    self.em_stop_state_subscriber = rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.em_cb, queue_size=1)
+    self.diagnostics_subscriber = rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.diagnostics_cb, queue_size=1)
+  
+  def unsubscribe(self):
+    self.em_stop_state_subscriber.unregister()
+    self.diagnostics_subscriber.unregister
 
   def recover(self, components):
-    for component in components:
-      handle = sss.recover(component)
-      if not (handle.get_error_code() == 0):
-        rospy.logerr("[auto_recover]: Could not recover %s", component)
-      else:
-        rospy.loginfo("[auto_recover]: Component %s recovered successfully", component)
-        self.components_recover_time[component] = rospy.Time.now()
+    if self.enabled:
+      for component in components:
+        handle = sss.recover(component)
+        if not (handle.get_error_code() == 0):
+          rospy.logerr("[auto_recover]: Could not recover %s", component)
+        else:
+          rospy.loginfo("[auto_recover]: Component %s recovered successfully", component)
+          self.components_recover_time[component] = rospy.Time.now()
 
 if __name__ == "__main__":
   rospy.init_node("auto_recover")
