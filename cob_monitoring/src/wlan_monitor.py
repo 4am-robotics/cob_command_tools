@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import getpass
 import os
 import sys
 from subprocess import Popen, PIPE
@@ -258,7 +258,7 @@ class WlanMonitor():
             try:
                 self.iwconfig = IwConfigSSH(self.diag_hostname, self.user, self.password)
             except Exception, e:
-                msg = "Cannot connect to router via ssh. Please check if ssh key of user '%s' is contained in the router configuration or password is provided. Error message: %s"%(self.user, e.message)
+                msg = "Cannot connect to router via ssh. Please check if ssh key of user '%s' is contained in the router configuration or password is provided. Error message: %s"%(getpass.getuser(), e.message)
                 rospy.logerr(msg)
                 self._wlan_stat.level = DiagnosticStatus.ERROR
                 self._wlan_stat.message = msg
