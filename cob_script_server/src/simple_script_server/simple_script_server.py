@@ -382,11 +382,11 @@ class simple_script_server:
 	# \param component_name Name of the component.
 	# \param parameter_name Name of the parameter on the ROS parameter server.
 	# \param blocking Bool value to specify blocking behaviour.
-	def move(self,component_name,parameter_name,blocking=True, mode=None, speed_factor=1.0, urdf_vel=False, default_vel=None):
+	def move(self,component_name,parameter_name,blocking=True, mode=None, speed_factor=1.0, urdf_vel=False, default_vel=None, stop_at_waypoints=False):
 		if component_name == "base":
 			return self.move_base(component_name,parameter_name,blocking, mode)
 		else:
-			return self.move_traj(component_name,parameter_name,blocking, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel)
+			return self.move_traj(component_name,parameter_name,blocking, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel, stop_at_waypoints=stop_at_waypoints)
 
 	## Deals with movements of the base.
 	#
@@ -565,7 +565,7 @@ class simple_script_server:
 		return desired_vel
 
 	## Parse and compose trajectory message
-	def compose_trajectory(self, component_name, parameter_name, speed_factor=1.0, urdf_vel=False, default_vel=None):
+	def compose_trajectory(self, component_name, parameter_name, speed_factor=1.0, urdf_vel=False, default_vel=None, stop_at_waypoints=False):
 		if urdf_vel and default_vel:
 			rospy.logerr("arguments not valid - cannot set 'urdf_vel' and 'default_vel' at the same time, aborting...")
 			return (JointTrajectory(), 3)
@@ -738,7 +738,7 @@ class simple_script_server:
 		prevs = itertools.chain([None], prevs)
 		nexts = itertools.chain(itertools.islice(nexts, 1, None), [None])
 		for idx, (pre, curr, post) in enumerate(itertools.izip(prevs, items, nexts)):
-			traj_msg.points[idx].velocities = self.calculate_point_velocities(pre, curr, post)
+			traj_msg.points[idx].velocities = self.calculate_point_velocities(pre, curr, post, stop_at_waypoints)
 			traj_msg.points[idx].accelerations = self.calculate_point_accelerations(pre, curr, post)
 
 		# drop first trajectory point because it is equal to start_pos
@@ -798,14 +798,16 @@ class simple_script_server:
 			point_time = 3.0  # use default point_time
 		return point_time
 
-	def calculate_point_velocities(self, prev, curr, post):
+	def calculate_point_velocities(self, prev, curr, post, stop_at_waypoints=False):
 		rospy.logdebug("calculate_point_velocities")
 		rospy.logdebug("prev: {}".format(prev))
 		rospy.logdebug("curr: {}".format(curr))
 		rospy.logdebug("post: {}".format(post))
 
-		# set zero velocities for last trajectory point only
-		if not post:
+		if stop_at_waypoints:
+			rospy.logdebug("stop_at_waypoints")
+			point_velocities = numpy.zeros(len(curr.positions))
+		elif not post: 		# set zero velocities for last trajectory point only
 			rospy.logdebug("not has post")
 			point_velocities = numpy.zeros(len(curr.positions))
 		elif not prev:
@@ -854,7 +856,7 @@ class simple_script_server:
 	# \param component_name Name of the component.
 	# \param parameter_name Name of the parameter on the ROS parameter server.
 	# \param blocking Bool value to specify blocking behaviour.
-	def move_traj(self,component_name,parameter_name,blocking, speed_factor=1.0, urdf_vel=False, default_vel=None):
+	def move_traj(self,component_name,parameter_name,blocking, speed_factor=1.0, urdf_vel=False, default_vel=None, stop_at_waypoints=False):
 		ah = action_handle("move", component_name, parameter_name, blocking, self.parse)
 		if(self.parse):
 			return ah
@@ -862,7 +864,7 @@ class simple_script_server:
 			ah.set_active()
 
 		rospy.loginfo("Move <<%s>> to <<%s>>",component_name,parameter_name)
-		(traj_msg, error_code) = self.compose_trajectory(component_name, parameter_name, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel)
+		(traj_msg, error_code) = self.compose_trajectory(component_name, parameter_name, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel, stop_at_waypoints=stop_at_waypoints)
 		if error_code != 0:
 			message = "Composing the trajectory failed with error: " + str(error_code)
 			ah.set_failed(error_code, message)
@@ -987,7 +989,7 @@ class simple_script_server:
 	# \param blocking Bool value to specify blocking behaviour.
 	#
 	# # throws error code 3 in case of invalid parameter_name vector
-	def move_rel(self, component_name, parameter_name, blocking=True, speed_factor=1.0, urdf_vel=False, default_vel=None):
+	def move_rel(self, component_name, parameter_name, blocking=True, speed_factor=1.0, urdf_vel=False, default_vel=None, stop_at_waypoints=False):
 		ah = action_handle("move_rel", component_name, parameter_name, blocking, self.parse)
 		if(self.parse):
 			return ah
@@ -1067,7 +1069,7 @@ class simple_script_server:
 				return ah
 			end_poses.append(end_pos)
 
-		return self.move_traj(component_name, end_poses, blocking, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel)
+		return self.move_traj(component_name, end_poses, blocking, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel, stop_at_waypoints=stop_at_waypoints)
 
 #------------------- LED section -------------------#
 	## Set the color of the cob_light component.
