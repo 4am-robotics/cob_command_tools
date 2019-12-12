@@ -25,6 +25,7 @@ import commands
 import math
 import threading
 import numpy
+import itertools
 
 # graph includes
 import pygraphviz as pgv
@@ -381,11 +382,11 @@ class simple_script_server:
 	# \param component_name Name of the component.
 	# \param parameter_name Name of the parameter on the ROS parameter server.
 	# \param blocking Bool value to specify blocking behaviour.
-	def move(self,component_name,parameter_name,blocking=True, mode=None, speed_factor=1.0, urdf_vel=False, default_vel=None):
+	def move(self,component_name,parameter_name,blocking=True, mode=None, speed_factor=1.0, urdf_vel=False, default_vel=None, stop_at_waypoints=False):
 		if component_name == "base":
 			return self.move_base(component_name,parameter_name,blocking, mode)
 		else:
-			return self.move_traj(component_name,parameter_name,blocking, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel)
+			return self.move_traj(component_name,parameter_name,blocking, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel, stop_at_waypoints=stop_at_waypoints)
 
 	## Deals with movements of the base.
 	#
@@ -521,7 +522,7 @@ class simple_script_server:
 					default_vel = numpy.array([param_vel for _ in start_pos])
 				elif (type(param_vel) is list) and (len(param_vel) == len(start_pos)) and all(
 						((type(item) is float) or (type(item) is int)) for item in param_vel):
-					default_vel = param_vel
+					default_vel = numpy.array(param_vel)
 				else:
 					default_vel = numpy.array([0.1 for _ in start_pos])  # rad/s
 					rospy.logwarn(
@@ -564,7 +565,7 @@ class simple_script_server:
 		return desired_vel
 
 	## Parse and compose trajectory message
-	def compose_trajectory(self, component_name, parameter_name, speed_factor=1.0, urdf_vel=False, default_vel=None):
+	def compose_trajectory(self, component_name, parameter_name, speed_factor=1.0, urdf_vel=False, default_vel=None, stop_at_waypoints=False):
 		if urdf_vel and default_vel:
 			rospy.logerr("arguments not valid - cannot set 'urdf_vel' and 'default_vel' at the same time, aborting...")
 			return (JointTrajectory(), 3)
@@ -644,6 +645,7 @@ class simple_script_server:
 			traj.append(point)
 
 		rospy.logdebug("accepted trajectory for %s",component_name)
+		rospy.logdebug("traj after param: {}".format(traj))
 
 		# get current pos
 		timeout = 3.0
@@ -658,6 +660,11 @@ class simple_script_server:
 			rospy.logwarn("no joint states received from %s within timeout of %ssec. using default point time of 8sec.", component_name, str(timeout))
 			start_pos = []
 
+		# insert start_pos to trajectory
+		if start_pos:
+			traj.insert(0,start_pos)
+			rospy.logdebug("traj after add: {}".format(traj))
+
 		# convert to ROS trajectory message
 		traj_msg = JointTrajectory()
 		# if no timestamp is set in header, this means that the trajectory starts "now"
@@ -665,12 +672,14 @@ class simple_script_server:
 		point_nr = 0
 		traj_time = 0
 
+		# get desired_vel
 		try:
 			desired_vel = self._determine_desired_velocity(default_vel, start_pos, component_name, joint_names, speed_factor, urdf_vel)
 		except ValueError as val_err:
 			rospy.logerr(val_err.message)
 			return (JointTrajectory(), 3)
 
+		# get default_acc
 		param_string = self.ns_global_prefix + "/" + component_name + "/default_acc"
 		if not rospy.has_param(param_string):
 			default_acc = numpy.array([1.0 for _ in start_pos]) # rad^2/s
@@ -679,24 +688,39 @@ class simple_script_server:
 			param_acc = rospy.get_param(param_string)
 			if (type(param_acc) is float) or (type(param_acc) is int):
 				default_acc = numpy.array([param_acc for _ in start_pos])
-			elif (type(param_acc) is list) and (len(param_acc) == len(start_pos)) and all(((type(item) is float) or (type(item) is int)) for item in param_acc):
-				default_acc = param_acc
+			elif (type(param_acc) is list) and (len(param_acc) == len(start_pos)) and all(
+					((type(item) is float) or (type(item) is int)) for item in param_acc):
+				default_acc = numpy.array(param_acc)
 			else:
 				default_acc = numpy.array([1.0 for _ in start_pos]) # rad^2/s
 				rospy.logwarn("parameter '{}' {} has wrong format (must be float/int or list of float/int), using default_acc {} [rad^2/sec].".format(param_string,param_acc,default_acc))
 
+		# filter duplicates
+		def is_close(a,b):
+			return numpy.all(numpy.isclose(numpy.array(a), numpy.array(b), atol=0.001))
+
+		def unique_next(elems):
+			for i, (curr, nxt) in enumerate(zip(elems, elems[1:]+[None])):
+				if not nxt:
+					yield curr
+				else:
+					if not is_close(curr, nxt):
+						yield curr
+					else:
+						rospy.logdebug("dropping trajectory point {} due to is close: (curr {}, nxt: {})".format(i, curr, nxt))
+
+		try:
+			traj = list(unique_next(traj))
+		except Exception as e:
+			rospy.logerr(e.message)
+			return (JointTrajectory(), 3)
+		rospy.logdebug("traj after unique_nxt: {}".format(traj))
+
+		# calculate time_from_start
 		for point in traj:
 			point_nr = point_nr + 1
 			point_msg = JointTrajectoryPoint()
 			point_msg.positions = point
-
-			# set zero velocities for last trajectory point only
-			#if point_nr == len(traj):
-			#	point_msg.velocities = [0]*len(joint_names)
-
-			# set zero velocity and accelerations for all trajectory points
-			point_msg.velocities = [0]*len(joint_names)
-			point_msg.accelerations = [0]*len(joint_names)
 
 			# use hardcoded point_time if no start_pos available
 			if start_pos != []:
@@ -708,6 +732,18 @@ class simple_script_server:
 			point_msg.time_from_start=rospy.Duration(point_time + traj_time)
 			traj_time += point_time
 			traj_msg.points.append(point_msg)
+
+		# calculate traj_point velocities and accelerations
+		prevs, items, nexts = itertools.tee(traj_msg.points, 3)
+		prevs = itertools.chain([None], prevs)
+		nexts = itertools.chain(itertools.islice(nexts, 1, None), [None])
+		for idx, (pre, curr, post) in enumerate(itertools.izip(prevs, items, nexts)):
+			traj_msg.points[idx].velocities = self.calculate_point_velocities(pre, curr, post, stop_at_waypoints)
+			traj_msg.points[idx].accelerations = self.calculate_point_accelerations(pre, curr, post)
+
+		# drop first trajectory point because it is equal to start_pos
+		traj_msg.points = traj_msg.points[1:]
+
 		return (traj_msg, 0)
 
 	def calculate_point_time(self, start_pos, end_pos, default_vel, default_acc):
@@ -754,12 +790,64 @@ class simple_script_server:
 
 			# Instead of deciding per joint if we can do a three or two-phase trajectory,
 			# we can simply take the slowest joint of them all and select that.
-			point_time = max(numpy.max(t), 0.4)	 # use minimal point_time
+			#point_time = max(numpy.max(t), 0.4)	 # use minimal point_time
+			point_time = numpy.max(t)
 		except ValueError as e:
 			print("Value Error: {}".format(e))
 			print("Likely due to mimic joints. Using default point_time: 3.0 [sec]")
 			point_time = 3.0  # use default point_time
 		return point_time
+
+	def calculate_point_velocities(self, prev, curr, post, stop_at_waypoints=False):
+		rospy.logdebug("calculate_point_velocities")
+		rospy.logdebug("prev: {}".format(prev))
+		rospy.logdebug("curr: {}".format(curr))
+		rospy.logdebug("post: {}".format(post))
+
+		if stop_at_waypoints:
+			rospy.logdebug("stop_at_waypoints")
+			point_velocities = numpy.zeros(len(curr.positions))
+		elif not post: 		# set zero velocities for last trajectory point only
+			rospy.logdebug("not has post")
+			point_velocities = numpy.zeros(len(curr.positions))
+		elif not prev:
+			rospy.logdebug("not has prev")
+			point_velocities = numpy.zeros(len(curr.positions))
+		else:
+			rospy.logdebug("has prev, has post")
+			# calculate based on difference quotient post-curr
+			point_velocities = numpy.divide(numpy.subtract(numpy.array(post.positions), numpy.array(prev.positions)), numpy.array([(post.time_from_start-prev.time_from_start).to_sec()]*len(curr.positions)))
+			rospy.logdebug("point_velocities diff quot: {}".format(point_velocities))
+
+			# check sign change or consecutive points too close
+			rospy.logdebug("has prev")
+			curr_prev_diff = numpy.subtract(numpy.array(curr.positions), numpy.array(prev.positions))
+			post_curr_diff = numpy.subtract(numpy.array(post.positions), numpy.array(curr.positions))
+			rospy.logdebug("curr_prev_diff: {}".format(curr_prev_diff))
+			rospy.logdebug("post_curr_diff: {}".format(post_curr_diff))
+			same_sign = numpy.equal(numpy.sign(curr_prev_diff), numpy.sign(post_curr_diff))
+			prev_close = numpy.isclose(curr_prev_diff, numpy.zeros_like(curr_prev_diff), atol=0.01)
+			post_close = numpy.isclose(post_curr_diff, numpy.zeros_like(post_curr_diff), atol=0.01)
+			rospy.logdebug("same_sign: {}".format(same_sign))
+			rospy.logdebug("prev_close: {}".format(prev_close))
+			rospy.logdebug("post_close: {}".format(post_close))
+
+			for idx, vel in enumerate(point_velocities):
+				if prev_close[idx]:
+					rospy.logdebug("prev close for joint {} - setting vel to 0.0".format(idx))
+					point_velocities[idx] = 0.0
+				if post_close[idx]:
+					rospy.logdebug("post close for joint {} - setting vel to 0.0".format(idx))
+					point_velocities[idx] = 0.0
+				if not same_sign[idx]:
+					rospy.logdebug("sign change for joint {} - setting vel to 0.0".format(idx))
+					point_velocities[idx] = 0.0
+
+		rospy.logdebug("point_velocities: {}".format(point_velocities))
+		return list(point_velocities)
+
+	def calculate_point_accelerations(self, prev, curr, post):
+		return [0]*len(curr.positions)
 
 	## Deals with all kind of trajectory movements for different components.
 	#
@@ -768,7 +856,7 @@ class simple_script_server:
 	# \param component_name Name of the component.
 	# \param parameter_name Name of the parameter on the ROS parameter server.
 	# \param blocking Bool value to specify blocking behaviour.
-	def move_traj(self,component_name,parameter_name,blocking, speed_factor=1.0, urdf_vel=False, default_vel=None):
+	def move_traj(self,component_name,parameter_name,blocking, speed_factor=1.0, urdf_vel=False, default_vel=None, stop_at_waypoints=False):
 		ah = action_handle("move", component_name, parameter_name, blocking, self.parse)
 		if(self.parse):
 			return ah
@@ -776,7 +864,7 @@ class simple_script_server:
 			ah.set_active()
 
 		rospy.loginfo("Move <<%s>> to <<%s>>",component_name,parameter_name)
-		(traj_msg, error_code) = self.compose_trajectory(component_name, parameter_name, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel)
+		(traj_msg, error_code) = self.compose_trajectory(component_name, parameter_name, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel, stop_at_waypoints=stop_at_waypoints)
 		if error_code != 0:
 			message = "Composing the trajectory failed with error: " + str(error_code)
 			ah.set_failed(error_code, message)
@@ -901,7 +989,7 @@ class simple_script_server:
 	# \param blocking Bool value to specify blocking behaviour.
 	#
 	# # throws error code 3 in case of invalid parameter_name vector
-	def move_rel(self, component_name, parameter_name, blocking=True, speed_factor=1.0, urdf_vel=False, default_vel=None):
+	def move_rel(self, component_name, parameter_name, blocking=True, speed_factor=1.0, urdf_vel=False, default_vel=None, stop_at_waypoints=False):
 		ah = action_handle("move_rel", component_name, parameter_name, blocking, self.parse)
 		if(self.parse):
 			return ah
@@ -981,7 +1069,7 @@ class simple_script_server:
 				return ah
 			end_poses.append(end_pos)
 
-		return self.move_traj(component_name, end_poses, blocking, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel)
+		return self.move_traj(component_name, end_poses, blocking, speed_factor=speed_factor, urdf_vel=urdf_vel, default_vel=default_vel, stop_at_waypoints=stop_at_waypoints)
 
 #------------------- LED section -------------------#
 	## Set the color of the cob_light component.
