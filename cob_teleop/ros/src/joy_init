@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+import rospy
+from sensor_msgs.msg import Joy
+from std_srvs.srv import Trigger, TriggerRequest
+
+class JoyInit(object):
+  def __init__(self):
+
+    rospy.wait_for_service("/base/driver/init")
+    self.init_client = rospy.ServiceProxy("/base/driver/init", Trigger)
+    rospy.wait_for_service("/base/driver/recover")
+    self.recover_client = rospy.ServiceProxy("/base/driver/recover", Trigger)
+
+    self.last_init = rospy.Time()
+    self.initialized = False
+    self.joy_subscriber = rospy.Subscriber("/joy", Joy, self.joy_callback)
+
+
+
+  def joy_callback(self, joy_message):
+    if (rospy.Time.now() - self.last_init)  < rospy.Duration(1):
+      rospy.logdebug("still cooldown")
+      return
+    if joy_message.buttons[4] and joy_message.buttons[5] and joy_message.buttons[9]:
+      if not self.initialized:
+        rospy.loginfo("Init base")
+
+        response = self.init_client(TriggerRequest())
+        if not response.success:
+          rospy.logerr("Init base failed: {}".format(response.message))
+          return
+        self.initialized = True
+        self.last_init = rospy.Time.now()
+
+      else:
+        rospy.loginfo("Recover base")
+
+        response = self.recover_client(TriggerRequest())
+        if not response.success:
+          rospy.logerr("Recover base failed: {}".format(response.message))
+          return
+        self.last_init = rospy.Time.now()
+      
+
+ 
+
+
+if __name__ == "__main__":
+    rospy.init_node("joystick_init")
+    ji = JoyInit()
+    rospy.spin()
