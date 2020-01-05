@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_helper_tools)
 
-find_package(catkin REQUIRED dynamic_reconfigure)
+find_package(catkin REQUIRED COMPONENTS dynamic_reconfigure message_generation)
 
 generate_dynamic_reconfigure_options(
   cfg/HelperTools.cfg
@@ -13,7 +13,7 @@ catkin_package()
 ## Install ##
 #############
 
-install(PROGRAMS
+catkin_install_python(PROGRAMS
   scripts/auto_init.py
   scripts/auto_recover.py
   scripts/fake_diagnostics.py

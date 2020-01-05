@@ -8,8 +8,8 @@ catkin_python_setup()
 catkin_package()
 
 ### Install ###
-install(PROGRAMS src/knoeppkes.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/src
+catkin_install_python(PROGRAMS src/knoeppkes.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 install(DIRECTORY common
