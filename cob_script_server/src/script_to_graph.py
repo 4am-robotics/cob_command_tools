@@ -28,8 +28,8 @@ from simple_script_server import script
 
 if __name__ == "__main__":
 	if (len(sys.argv) <= 1 ):
-		print "Error: wrong number of input arguments"
-		print "usage: rosrun cob_script_server script_to_graph.py <<SCRIPTFILE>> [level]"
+		print("Error: wrong number of input arguments")
+		print("usage: rosrun cob_script_server script_to_graph.py <<SCRIPTFILE>> [level]")
 		# \todo What does "level" do?
 		sys.exit(1)
 	elif (len(sys.argv) == 2):
@@ -39,12 +39,12 @@ if __name__ == "__main__":
 		filename = sys.argv[1]
 		level = int(sys.argv[2])
 	else:
-		print "Error: to many arguments"
-		print "usage: rosrun cob_script_server script_to_graph.py <<SCRIPTFILE>> [level]"
+		print("Error: to many arguments")
+		print("usage: rosrun cob_script_server script_to_graph.py <<SCRIPTFILE>> [level]")
 		sys.exit(1)
 
-	print "Script file = ", filename
-	print "Graph level = ", level
+	print("Script file = ", filename)
+	print("Graph level = ", level)
 	rospy.set_param("/script_server/level",level)
 
 	filename_splitted = string.split(filename, "/")
@@ -65,12 +65,12 @@ if __name__ == "__main__":
 		scriptmodule = sys.modules[scriptfile_woext]
 		for classname in dir(scriptmodule):
 			subclass = scriptmodule.__getattribute__(classname)
-			if(isinstance(subclass, types.ClassType)):
+			if(isinstance(subclass, type)):
 				if(issubclass(subclass, script)):
 					if(classname != "script"):
 						s = subclass()
 						dotcode = s.Parse()
-						print "dotcode = ",dotcode
+						print("dotcode = ",dotcode)
 						graph=pgv.AGraph(dotcode)
 						graph.layout('dot')
 						basename, extension = os.path.splitext(filename)
@@ -79,6 +79,6 @@ if __name__ == "__main__":
 						else:
 							graph.draw(basename + "_" + str(level) + ".png")
 	except ImportError:
-		print "Unable to import script file"
-		print "usage: rosrun cob_script_server script_to_graph.py <<SCRIPTFILE>> [level]"
+		print("Unable to import script file")
+		print("usage: rosrun cob_script_server script_to_graph.py <<SCRIPTFILE>> [level]")
 

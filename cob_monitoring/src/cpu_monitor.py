@@ -15,7 +15,7 @@
 # limitations under the License.
 
 
-from __future__ import with_statement, print_function
+
 
 import sys, os, time
 import subprocess
@@ -134,7 +134,7 @@ class CPUMonitor():
                 if words[0].startswith('CPU') and words[0].strip().endswith('Temp'):
                     if words[1].strip().endswith('degrees C'):
                         tmp = ipmi_val.rstrip(' degrees C').lstrip()
-                        if unicode(tmp).isnumeric():
+                        if str(tmp).isnumeric():
                             temperature = float(tmp)
                             diag_vals.append(KeyValue(key = name + ' (C)', value = tmp))
 
@@ -156,7 +156,7 @@ class CPUMonitor():
                         diag_vals.append(KeyValue(key = name + ' (C)', value = tmp))
                         # Give temp warning
                         dev_name = name.split()[0]
-                        if unicode(tmp).isnumeric():
+                        if str(tmp).isnumeric():
                             temperature = float(tmp)
 
                             if temperature >= 60 and temperature < 75:
@@ -176,7 +176,7 @@ class CPUMonitor():
                 if (name.startswith('CPU') and name.endswith('Fan')) or name == 'MB Fan':
                     if ipmi_val.endswith('RPM'):
                         rpm = ipmi_val.rstrip(' RPM').lstrip()
-                        if unicode(rpm).isnumeric():
+                        if str(rpm).isnumeric():
                             if int(rpm) == 0:
                                 diag_level = max(diag_level, DiagnosticStatus.ERROR)
                                 diag_msgs.append('CPU Fan Off')
@@ -195,7 +195,7 @@ class CPUMonitor():
                         diag_level = max(diag_level, DiagnosticStatus.ERROR)
                         diag_msgs.append('CPU Hot Alarm')
 
-        except Exception, e:
+        except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msgs = [ 'IPMI Exception' ]
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
@@ -211,7 +211,7 @@ class CPUMonitor():
         diag_level = DiagnosticStatus.OK
 
         try:
-            for device_type, devices in self._temp_vals.items():
+            for device_type, devices in list(self._temp_vals.items()):
                 for dev in devices:
                     cmd = 'cat %s' % dev[1]
                     p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
@@ -228,7 +228,7 @@ class CPUMonitor():
 
                     tmp = stdout.strip()
                     if device_type == 'platform':
-                        if unicode(tmp).isnumeric():
+                        if str(tmp).isnumeric():
                             temp = float(tmp) / 1000
                             diag_vals.append(KeyValue(key = 'Temp '+dev[0], value = str(temp)))
 
@@ -245,7 +245,7 @@ class CPUMonitor():
                     else: # device_type == `virtual`
                         diag_vals.append(KeyValue(key = 'Temp '+dev[0], value = tmp))
 
-        except Exception, e:
+        except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msgs = [ 'Core Temp Exception' ]
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
@@ -280,7 +280,7 @@ class CPUMonitor():
 
                 speed = words[1].strip().split('.')[0] # Conversion to float doesn't work with decimal
                 diag_vals.append(KeyValue(key = 'Core %d MHz' % index, value = speed))
-                if not unicode(speed).isnumeric():
+                if not str(speed).isnumeric():
                     # Automatically give error if speed isn't a number
                     diag_level = max(diag_level, DiagnosticStatus.ERROR)
                     diag_msgs = [ 'Clock speed not numeric' ]
@@ -317,7 +317,7 @@ class CPUMonitor():
 
             diag_vals.append(KeyValue(key = stdout.split(':')[0].strip(), value = str(stdout.split(':')[1].strip())))
 
-        except Exception, e:
+        except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msgs = [ 'Clock Speed Exception' ]
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
@@ -365,7 +365,7 @@ class CPUMonitor():
 
             diag_msg = load_dict[diag_level]
 
-        except Exception, e:
+        except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'Uptime Exception'
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
@@ -431,7 +431,7 @@ class CPUMonitor():
 
             diag_msg = mem_dict[diag_level]
 
-        except Exception, e:
+        except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'Memory Usage Exception'
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
@@ -518,7 +518,7 @@ class CPUMonitor():
 
             diag_msg = load_dict[diag_level]
 
-        except Exception, e:
+        except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'CPU Usage Exception'
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
@@ -542,7 +542,7 @@ class CPUMonitor():
 
         rdata = r.json()
 
-        sdata = zip(*rdata['data'])
+        sdata = list(zip(*rdata['data']))
         d = dict()
 
         for idx, label in enumerate(rdata['labels']):

@@ -42,7 +42,7 @@ class script_server():
 
 #------------------- Service section -------------------#
 	def handle_compose_trajectory(self, req):
-		print "compose trajectory", req.component_name, req.parameter_name
+		print("compose trajectory", req.component_name, req.parameter_name)
 		traj_msg, error_code = sss.compose_trajectory(req.component_name, req.parameter_name)
 		if error_code != 0:
 			return None

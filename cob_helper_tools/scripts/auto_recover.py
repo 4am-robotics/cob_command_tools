@@ -34,7 +34,7 @@ class AutoRecover():
     self.recover_diagnostics = rospy.get_param('~recover_diagnostics', True)
     self.components = rospy.get_param('~components', {})
     self.components_recover_time = {}
-    for component in self.components.keys():
+    for component in list(self.components.keys()):
       self.components_recover_time[component] = now
 
     rospy.Service('~enable',Trigger,self.enable_cb)
@@ -48,7 +48,7 @@ class AutoRecover():
       return
     if msg.emergency_state == 0 and self.em_state != 0:
       rospy.loginfo("auto_recover from emergency state")
-      self.recover(self.components.keys())
+      self.recover(list(self.components.keys()))
     self.em_state = copy.deepcopy(msg.emergency_state)
 
   # auto recover based on diagnostics
@@ -56,7 +56,7 @@ class AutoRecover():
     if not self.recover_diagnostics:
       return
     for status in msg.status:
-      for component in self.components.keys():
+      for component in list(self.components.keys()):
         if status.name.lower().startswith(self.components[component].lower()) and status.level > 0 and self.em_state == 0 and (rospy.Time.now() - self.components_recover_time[component] > rospy.Duration(10)):
           rospy.loginfo("auto_recover from diagnostic failure")
           self.recover([component])

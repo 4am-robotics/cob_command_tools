@@ -1,1 +1,1 @@
-from simple_script_server import *
+from .simple_script_server import *

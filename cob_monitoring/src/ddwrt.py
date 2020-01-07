@@ -16,7 +16,7 @@
 
 
 import os, sys, string, time, getopt, re
-import StringIO
+import io
 
 import mechanize
 import csv
@@ -74,7 +74,7 @@ class WifiAP:
 
       aplines.append(line)
 
-    fp = StringIO.StringIO(string.join(aplines, '\n'))
+    fp = io.StringIO(string.join(aplines, '\n'))
     reader = csv.reader(fp)
     for row in reader:
       essid = row[0]
@@ -99,7 +99,7 @@ class WifiAP:
       line = lines[1].strip()
       iparts = line.split(":", 1)
       parts = iparts[1].split()
-      print interface, parts
+      print(interface, parts)
 
 
   def fetchCurrentAP(self):
@@ -208,13 +208,13 @@ def test():
   while 1:
     if 0:
       survey = ap.fetchSiteSurvey()
-      print survey
+      print(survey)
     if 1:
       node = ap.fetchCurrentAP()
-      print node
+      print(node)
 
 def usage(progname):
-  print __doc__ % vars()
+  print(__doc__ % vars())
 
 def main(argv, stdout, environ):
   progname = argv[0]

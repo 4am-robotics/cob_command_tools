@@ -42,7 +42,7 @@ class PythonAPITest(unittest.TestCase):
 			if not rospy.has_param('~command'):
 				self.fail('Parameter command does not exist on ROS Parameter Server')
 			command = rospy.get_param('~command')
-		except KeyError, e:
+		except KeyError as e:
 			self.fail('Parameters not set properly')
 
 		# choose command to test
@@ -191,7 +191,7 @@ class PythonAPITest(unittest.TestCase):
 		#self.as_server.set_preempted(result)
 		self.as_cb_executed = True
 		self.traj = goal.trajectory
-		print "action server callback"
+		print("action server callback")
 		self.as_server.set_succeeded(result)
 
 	def ss_cb(self,req):
@@ -203,7 +203,7 @@ class PythonAPITest(unittest.TestCase):
 if __name__ == '__main__':
 	try:
 		rostest.run('rostest', 'test_python_apt_test', PythonAPITest, sys.argv)
-	except KeyboardInterrupt, e:
+	except KeyboardInterrupt as e:
 		pass
-	print "exiting"
+	print("exiting")
 

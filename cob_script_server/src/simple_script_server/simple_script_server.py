@@ -20,8 +20,8 @@ import datetime
 import os
 import sys
 import types
-import thread
-import commands
+import _thread
+import subprocess
 import math
 import threading
 import numpy
@@ -241,7 +241,7 @@ class simple_script_server:
 			# check if service is available
 			try:
 				rospy.wait_for_service(service_full_name,1)
-			except rospy.ROSException, e:
+			except rospy.ROSException as e:
 				error_message = "%s"%e
 				message = "...service <<" + service_name + ">> of <<" + component_name + ">> not available,\n error: " + error_message
 				rospy.logerr(message)
@@ -255,8 +255,8 @@ class simple_script_server:
 				rospy.loginfo("Wait for <<%s>> to <<%s>>...", component_name, service_name)
 				resp = trigger()
 			else:
-				thread.start_new_thread(trigger,())
-		except rospy.ServiceException, e:
+				_thread.start_new_thread(trigger,())
+		except rospy.ServiceException as e:
 			error_message = "%s"%e
 			message = "...calling <<" + service_name + ">> of <<" + component_name + ">> not successfull,\n error: " + error_message
 			rospy.logerr(message)
@@ -423,7 +423,7 @@ class simple_script_server:
 		if not type(param) is list: # check outer list
 			message = "No valid parameter for " + component_name + ": not a list, aborting..."
 			rospy.logerr(message)
-			print "parameter is:",param
+			print("parameter is:",param)
 			ah.set_failed(3, message)
 			return ah
 		else:
@@ -432,7 +432,7 @@ class simple_script_server:
 			if not len(param) == DOF: # check dimension
 				message = "No valid parameter for " + component_name + ": dimension should be " + str(DOF) + " but is " + str(len(param)) + ", aborting..."
 				rospy.logerr(message)
-				print "parameter is:",param
+				print("parameter is:",param)
 				ah.set_failed(3, message)
 				return ah
 			else:
@@ -442,7 +442,7 @@ class simple_script_server:
 						#print type(i)
 						message = "No valid parameter for " + component_name + ": not a list of float or int, aborting..."
 						rospy.logerr(message)
-						print "parameter is:",param
+						print("parameter is:",param)
 						ah.set_failed(3, message)
 						return ah
 					else:
@@ -580,14 +580,14 @@ class simple_script_server:
 		# check joint_names parameter
 		if not type(joint_names) is list: # check list
 			rospy.logerr("no valid joint_names for %s: not a list, aborting...",component_name)
-			print "joint_names are:",joint_names
+			print("joint_names are:",joint_names)
 			return (JointTrajectory(), 3)
 		else:
 			for i in joint_names:
 				#print i,"type1 = ", type(i)
 				if not type(i) is str: # check string
 					rospy.logerr("no valid joint_names for %s: not a list of strings, aborting...",component_name)
-					print "joint_names are:", joint_names
+					print("joint_names are:", joint_names)
 					return (JointTrajectory(), 3)
 				else:
 					rospy.logdebug("accepted joint_names for component %s",component_name)
@@ -605,7 +605,7 @@ class simple_script_server:
 		# check trajectory parameters
 		if not type(param) is list: # check outer list
 				rospy.logerr("no valid parameter for %s: not a list, aborting...",component_name)
-				print "parameter is:",param
+				print("parameter is:",param)
 				return (JointTrajectory(), 3)
 
 		traj = []
@@ -623,14 +623,14 @@ class simple_script_server:
 				rospy.logdebug("point is a list")
 			else:
 				rospy.logerr("no valid parameter for %s: not a list of lists or strings, aborting...",component_name)
-				print "parameter is:",param
+				print("parameter is:",param)
 				return (JointTrajectory(), 3)
 
 			# here: point should be list of floats/ints
 			#print point
 			if not len(point) == len(joint_names): # check dimension
 				rospy.logerr("no valid parameter for %s: dimension should be %d and is %d, aborting...",component_name,len(joint_names),len(point))
-				print "parameter is:",param
+				print("parameter is:",param)
 				return (JointTrajectory(), 3)
 
 			for value in point:
@@ -638,7 +638,7 @@ class simple_script_server:
 				if not ((type(value) is float) or (type(value) is int)): # check type
 					#print type(value)
 					rospy.logerr("no valid parameter for %s: not a list of float or int, aborting...",component_name)
-					print "parameter is:",param
+					print("parameter is:",param)
 					return (JointTrajectory(), 3)
 
 				rospy.logdebug("accepted value %f for %s",value,component_name)
@@ -793,7 +793,7 @@ class simple_script_server:
 			#point_time = max(numpy.max(t), 0.4)	 # use minimal point_time
 			point_time = numpy.max(t)
 		except ValueError as e:
-			print("Value Error: {}".format(e))
+			print(("Value Error: {}".format(e)))
 			print("Likely due to mimic joints. Using default point_time: 3.0 [sec]")
 			point_time = 3.0  # use default point_time
 		return point_time
@@ -968,7 +968,7 @@ class simple_script_server:
 			rospy.loginfo("Wait for <<%s>> to finish move_base_rel...", component_name)
 			self.publish_twist(pub, twist, end_time)
 		else:
-			thread.start_new_thread(self.publish_twist,(pub, twist, end_time))
+			_thread.start_new_thread(self.publish_twist,(pub, twist, end_time))
 
 		ah.set_succeeded()
 		return ah
@@ -1092,12 +1092,12 @@ class simple_script_server:
 		# check color parameters
 		if not type(param) is list: # check outer list
 			rospy.logerr("no valid parameter for light: not a list, aborting...")
-			print "parameter is:",param
+			print("parameter is:",param)
 			return 3, None
 		else:
 			if not len(param) == 4: # check dimension
 				rospy.logerr("no valid parameter for light: dimension should be 4 (r,g,b,a) and is %d, aborting...",len(param))
-				print "parameter is:",param
+				print("parameter is:",param)
 				return 3, None
 			else:
 				for i in param:
@@ -1105,7 +1105,7 @@ class simple_script_server:
 					if not ((type(i) is float) or (type(i) is int)): # check type
 						#print type(i)
 						rospy.logerr("no valid parameter for light: not a list of float or int, aborting...")
-						print "parameter is:",param
+						print("parameter is:",param)
 						return 3, None
 					else:
 						rospy.logdebug("accepted parameter %f for light",i)
@@ -1180,7 +1180,7 @@ class simple_script_server:
 		if not (type(parameter_name) is str or type(parameter_name) is list): # check outer list
 			message = "No valid parameter for mimic: not a string or list, aborting..."
 			rospy.logerr(message)
-			print "parameter is:",parameter_name
+			print("parameter is:",parameter_name)
 			ah.set_failed(3, message)
 			return ah
 
@@ -1190,7 +1190,7 @@ class simple_script_server:
 			if len(parameter_name) != 3:
 				message = "No valid parameter for mimic: not a list with size 3, aborting..."
 				rospy.logerr(message)
-				print "parameter is:",parameter_name
+				print("parameter is:",parameter_name)
 				ah.set_failed(3, message)
 				return ah
 			if ((type(parameter_name[0]) is str) and (type(parameter_name[1]) is float or type(parameter_name[1]) is int) and (type(parameter_name[2]) is float or type(parameter_name[2]) is int)):
@@ -1200,7 +1200,7 @@ class simple_script_server:
 			else:
 				message = "No valid parameter for mimic: not a list with [mode, speed, repeat], aborting..."
 				rospy.logerr(message)
-				print "parameter is:",parameter_name
+				print("parameter is:",parameter_name)
 				ah.set_failed(3, message)
 				return ah
 		else:
@@ -1260,7 +1260,7 @@ class simple_script_server:
 		if not type(param) is list: # check list
 			message = "No valid parameter for " + component_name + ": not a list, aborting..."
 			rospy.logerr(message)
-			print "parameter is:",param
+			print("parameter is:",param)
 			ah.set_failed(3, message)
 			return ah
 		else:
@@ -1269,7 +1269,7 @@ class simple_script_server:
 				if not type(i) is str:
 					message = "No valid parameter for " + component_name + ": not a list of strings, aborting..."
 					rospy.logerr(message)
-					print "parameter is:",param
+					print("parameter is:",param)
 					ah.set_failed(3, message)
 					return ah
 				else:
@@ -1315,7 +1315,7 @@ class simple_script_server:
 		if not (type(parameter_name) is str or type(parameter_name) is list): # check outer list
 			message = "No valid parameter for play: not a string or list, aborting..."
 			rospy.logerr(message)
-			print "parameter is:",parameter_name
+			print("parameter is:",parameter_name)
 			ah.set_failed(3, message)
 			return ah
 
@@ -1331,7 +1331,7 @@ class simple_script_server:
 			if len(parameter_name) != 3:
 				message = "No valid parameter for play: not a list with size 3, aborting..."
 				rospy.logerr(message)
-				print "parameter is:",parameter_name
+				print("parameter is:",parameter_name)
 				ah.set_failed(3, message)
 				return ah
 			if ((type(parameter_name[0]) is str) and (type(parameter_name[1]) is str) and (type(parameter_name[2]) is str)):
@@ -1339,7 +1339,7 @@ class simple_script_server:
 			else:
 				message = "No valid parameter for play: not a list with [filename, file_path, file_suffix], aborting..."
 				rospy.logerr(message)
-				print "parameter is:",parameter_name
+				print("parameter is:",parameter_name)
 				ah.set_failed(3, message)
 				return ah
 		else:
@@ -1377,7 +1377,7 @@ class simple_script_server:
 		else:
 			message = "Invalid wav_path parameter specified, aborting..."
 			rospy.logerr(message)
-			print "parameter is:", parameter_name
+			print("parameter is:", parameter_name)
 			ah.set_failed(2, message)
 			return ah
 
@@ -1415,7 +1415,7 @@ class simple_script_server:
 			rospy.logerr("Wait with duration not implemented yet") # \todo TODO: implement waiting with duration
 
 		rospy.loginfo("Wait for user input...")
-		retVal = raw_input()
+		retVal = input()
 		rospy.loginfo("...got string <<%s>>",retVal)
 		ah.set_succeeded()
 		return retVal
@@ -1514,7 +1514,7 @@ class action_handle:
 
 	## Returns the graphstring.
 	def GetGraphstring(self):
-		if type(self.parameter_name) is types.StringType:
+		if type(self.parameter_name) is bytes:
 			graphstring = str(datetime.datetime.utcnow())+"_"+self.function_name+"_"+self.component_name+"_"+self.parameter_name
 		else:
 			graphstring = str(datetime.datetime.utcnow())+"_"+self.function_name+"_"+self.component_name
@@ -1591,7 +1591,7 @@ class action_handle:
 		if self.blocking:
 			self.wait_for_finished(duration,True)
 		else:
-			thread.start_new_thread(self.wait_for_finished,(duration,False,))
+			_thread.start_new_thread(self.wait_for_finished,(duration,False,))
 		return self.error_code
 
 	## Waits for the action to be finished.

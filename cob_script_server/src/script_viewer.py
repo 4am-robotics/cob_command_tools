@@ -39,11 +39,11 @@ else:
 
 ## Graph callback.
 def graph_cb(msg):
-	print "new graph received"
+	print("new graph received")
 	global dotcode
 	global G
 	dotcode = msg.data
-	print dotcode
+	print(dotcode)
 	G=pgv.AGraph(dotcode)
 
 	# update vizualisation

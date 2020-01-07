@@ -15,7 +15,7 @@
 # limitations under the License.
 
 
-from __future__ import with_statement, print_function
+
 
 import sys, os, time
 import subprocess
@@ -98,7 +98,7 @@ class hd_monitor():
                 diag_vals.append(KeyValue(
                         key = '%s kB_wrtn' % device, value=kB_wrtn))
 
-        except Exception, e:
+        except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'HD IO Exception'
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
@@ -129,7 +129,7 @@ class hd_monitor():
                 for row in stdout.split('\n'):
                     if len(row.split()) < 2:
                         continue
-                    if not unicode(row.split()[2]).isnumeric() or float(row.split()[2]) < 10: # Ignore small drives
+                    if not str(row.split()[2]).isnumeric() or float(row.split()[2]) < 10: # Ignore small drives
                         continue
 
                     row_count += 1
@@ -167,7 +167,7 @@ class hd_monitor():
                     diag_level = max(diag_level, level)
                     diag_message = usage_dict[diag_level]
 
-        except Exception, e:
+        except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_message = 'HD Usage Exception'
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
