@@ -18,13 +18,7 @@ env:
     - VERBOSE_TESTS=false
   matrix:
     - ROS_DISTRO=kinetic
-    - ROS_DISTRO=kinetic UPSTREAM_WORKSPACE=file
     - ROS_DISTRO=melodic
-    - ROS_DISTRO=melodic UPSTREAM_WORKSPACE=file
-matrix:
-  allow_failures:
-    - env: ROS_DISTRO=kinetic
-    - env: ROS_DISTRO=melodic
 install:
   - git clone --quiet --depth 1 https://github.com/ros-industrial/industrial_ci.git .industrial_ci -b master
 script:
