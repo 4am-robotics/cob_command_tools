@@ -1,17 +1,17 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_monitoring)
 
-find_package(catkin REQUIRED COMPONENTS roscpp diagnostic_updater topic_tools)
+find_package(catkin REQUIRED COMPONENTS diagnostic_updater roscpp topic_tools)
 
 catkin_package()
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(${catkin_INCLUDE_DIRS})
 
 add_executable(topic_status_monitor src/topic_status_monitor.cpp)
 target_link_libraries(topic_status_monitor ${catkin_LIBRARIES})
 
 ### Install ###
-install(PROGRAMS
+catkin_install_python(PROGRAMS
           src/battery_monitor.py
           src/cpu_monitor.py
           src/ddwrt.py
