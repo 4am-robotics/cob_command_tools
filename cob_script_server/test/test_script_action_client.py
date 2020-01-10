@@ -27,9 +27,11 @@ def script_action_client():
 
     goal = cob_script_server.msg.ScriptGoal()
     goal.function_name = "move"
-    pair = KeyValue(key="component_name",value="base")
+    goal.component_name = "base"
+    goal.parameter_name = "[3.0,0.0,0.0]"
+    pair = KeyValue(key="component_name",value="blub")
     goal.function_params.append(pair)
-    pair = KeyValue(key="parameter_name",value="[3.0,-3.0,0.0]")
+    pair = KeyValue(key="blocking",value="False")
     goal.function_params.append(pair)
 
     client.send_goal(goal)

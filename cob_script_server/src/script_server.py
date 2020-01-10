@@ -73,14 +73,19 @@ class script_server():
 			rospy.logdebug("function_param_values: {}".format(function_param_values))
 			args = {}
 			for arg in argspec.args:
-				if arg in function_param_names:
+				if arg in dir(server_goal):
+					serverArg = getattr(server_goal, arg)
+				elif arg in function_param_names:
 					serverArg = function_param_values[function_param_names.index(arg)]
-					if type(serverArg) == str:
-						try:
-							serverArg = eval(serverArg)
-						except:
-							pass
-					args[arg] = serverArg
+				else:
+					continue
+
+				if type(serverArg) == str:
+					try:
+						serverArg = eval(serverArg)
+					except:
+						pass
+				args[arg] = serverArg
 
 			rospy.logdebug("args: {}".format(args))
 			handle01 = func(*(), **args)
@@ -96,7 +101,11 @@ class script_server():
 			rospy.logwarn("unexpected action result type <<%s>> for function %s", type(handle01), server_goal.function_name)
 			error_code = -1
 
-		if error_code == 0:
+		if "blocking" in function_param_names and not eval(function_param_values[function_param_names.index("blocking")]):
+			msg = "action is non-blocking - not tracking result"
+			rospy.logdebug(msg)
+			self.script_action_server.set_succeeded(ScriptResult(message=msg, error_code=error_code))
+		elif error_code == 0:
 			msg = "action result success"
 			rospy.logdebug(msg)
 			self.script_action_server.set_succeeded(ScriptResult(message=msg, error_code=error_code))
