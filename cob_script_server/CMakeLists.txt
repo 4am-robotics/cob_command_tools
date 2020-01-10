@@ -8,6 +8,7 @@ catkin_python_setup()
 ### Message Generation ###
 add_message_files(
   FILES
+  KeyValue.msg
   ScriptState.msg
 )
 

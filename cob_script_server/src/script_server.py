@@ -56,18 +56,25 @@ class script_server():
 	# \param server_goal ScriptActionGoal
 	#
 	def execute_cb(self, server_goal):
-		server_result = ScriptActionResult().result
 		if server_goal.function_name == None or server_goal.function_name.strip() == "":
-			rospy.logerr("function name cannot be blank")
+			msg = "function name cannot be blank"
+			rospy.logerr(msg)
+			self.script_action_server.set_aborted(ScriptResult(message=msg))
 			return
 
 		if server_goal.function_name in dir(sss):
 			func = getattr(sss, server_goal.function_name)
 			argspec = inspect.getargspec(func)
+			function_param_names = [item.key for item in server_goal.function_params]
+			function_param_values = [item.value for item in server_goal.function_params]
+			rospy.logdebug("argspec: {}".format(argspec))
+			rospy.logdebug("dir(server_goal): {}".format(dir(server_goal)))
+			rospy.logdebug("function_param_names: {}".format(function_param_names))
+			rospy.logdebug("function_param_values: {}".format(function_param_values))
 			args = {}
 			for arg in argspec.args:
-				if arg in dir(server_goal):
-					serverArg = getattr(server_goal, arg)
+				if arg in function_param_names:
+					serverArg = function_param_values[function_param_names.index(arg)]
 					if type(serverArg) == str:
 						try:
 							serverArg = eval(serverArg)
@@ -75,22 +82,28 @@ class script_server():
 							pass
 					args[arg] = serverArg
 
+			rospy.logdebug("args: {}".format(args))
 			handle01 = func(*(), **args)
 		else:
-			rospy.logerr("function <<%s>> not supported", server_goal.function_name)
-			self.script_action_server.set_aborted(server_result)
+			msg = "function <<{}>> not supported".format(server_goal.function_name)
+			rospy.logerr(msg)
+			self.script_action_server.set_aborted(ScriptResult(message=msg))
 			return
 
 		if 'get_error_code' in dir(handle01):
-			server_result.error_code = handle01.get_error_code()
+			error_code = handle01.get_error_code()
 		else:
 			rospy.logwarn("unexpected action result type <<%s>> for function %s", type(handle01), server_goal.function_name)
-		if server_result.error_code == 0:
-			rospy.logdebug("action result success")
-			self.script_action_server.set_succeeded(server_result)
+			error_code = -1
+
+		if error_code == 0:
+			msg = "action result success"
+			rospy.logdebug(msg)
+			self.script_action_server.set_succeeded(ScriptResult(message=msg, error_code=error_code))
 		else:
-			rospy.logerr("action result error, error_code: " + str(server_result.error_code))
-			self.script_action_server.set_aborted(server_result)
+			msg = "action result error, error_code: {}".format(str(error_code))
+			rospy.logerr(msg)
+			self.script_action_server.set_aborted(ScriptResult(message=msg, error_code=error_code))
 
 ## Main routine for running the script server
 #
