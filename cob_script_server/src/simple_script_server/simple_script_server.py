@@ -451,7 +451,7 @@ class simple_script_server:
 		# convert to pose message
 		pose = PoseStamped()
 		pose.header.stamp = rospy.Time.now()
-		pose.header.frame_id = "/map"
+		pose.header.frame_id = "map"
 		pose.pose.position.x = param[0]
 		pose.pose.position.y = param[1]
 		pose.pose.position.z = 0.0
