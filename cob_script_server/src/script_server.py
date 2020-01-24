@@ -15,16 +15,14 @@
 # limitations under the License.
 
 
-import time
 import inspect
 
 import rospy
 import actionlib
 
-from cob_script_server.msg import *
-from cob_script_server.srv import *
+from cob_script_server.msg import ScriptAction, ScriptActionResult
+from cob_script_server.srv import ComposeTrajectory, ComposeTrajectoryResponse
 from simple_script_server import *
-
 sss = simple_script_server()
 
 ## Script server class which inherits from script class.

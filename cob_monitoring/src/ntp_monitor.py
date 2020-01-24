@@ -120,7 +120,7 @@ class NtpMonitor():
             error_offset = int(options.error_offset)
         except:
             parser.error("Offsets must be numbers")
-            print('Offsets must be numbers', file=sys.stderr)
+            print('Offsets must be numbers')
             sys.exit(0)
 
         self.ntp_server = args[1]

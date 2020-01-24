@@ -23,6 +23,7 @@ import actionlib
 from std_msgs.msg import ColorRGBA
 from cob_msgs.msg import PowerState
 from cob_light.msg import LightMode, LightModes, SetLightModeAction, SetLightModeGoal
+from cob_light.srv import StopLightMode, StopLightModeRequest
 
 from simple_script_server import *
 sss = simple_script_server()

@@ -27,7 +27,7 @@ import rospy
 import roslib
 from cob_msgs.msg import EmergencyStopState
 from simple_script_server import *
-from command_gui_buttons import *
+from command_gui_buttons import command_gui_buttons
 
 planning_enabled = False
 base_diff_enabled = False
@@ -236,7 +236,7 @@ class Knoeppkes():
     vbox = gtk.VBox(False, 1)
     self.hbox = gtk.HBox(True, 10)
     vbox.pack_start(self.hbox, True, True, 0)
-    b = command_gui_buttons()
+    b = command_gui_buttons.command_gui_buttons()
     self.gpanel = GtkGeneralPanel(b)
     self.hbox.pack_start(self.gpanel,True, True, 3)
     panels = b.panels
