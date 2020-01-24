@@ -112,7 +112,7 @@ class NtpMonitor():
 
         if (len(args) != 2):
             parser.error("Invalid arguments. Must have HOSTNAME [args]. %s" % args)
-            print('Invalid arguments.', file=sys.stderr)
+            print('Invalid arguments.')
             sys.exit(0)
 
         try:

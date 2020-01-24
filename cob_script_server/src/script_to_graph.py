@@ -47,7 +47,7 @@ if __name__ == "__main__":
 	print("Graph level = ", level)
 	rospy.set_param("/script_server/level",level)
 
-	filename_splitted = string.split(filename, "/")
+	filename_splitted = "/".split(filename)
 	#print filename_splitted
 	scriptfile = filename_splitted[-1]
 	if(len(filename_splitted) > 1):
@@ -57,7 +57,7 @@ if __name__ == "__main__":
 			scriptdir += name + "/"
 		#print scriptdir
 		sys.path.insert(0,scriptdir)
-	scriptfile_woext = string.split(scriptfile, ".")[0]
+	scriptfile_woext = ".".split(scriptfile)[0]
 	#print scriptfile_woext
 
 	try:

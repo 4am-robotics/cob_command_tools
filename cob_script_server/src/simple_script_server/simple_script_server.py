@@ -33,6 +33,8 @@ import pygraphviz as pgv
 # ROS imports
 import rospy
 import actionlib
+from actionlib.action_client import GoalStatus
+from actionlib.msg import TestAction, TestGoal
 
 from urdf_parser_py.urdf import URDF
 
@@ -40,20 +42,18 @@ from urdf_parser_py.urdf import URDF
 from std_msgs.msg import String,ColorRGBA
 from std_srvs.srv import Trigger
 from sensor_msgs.msg import JointState
-from geometry_msgs.msg import *
-from trajectory_msgs.msg import *
-from move_base_msgs.msg import *
-from control_msgs.msg import *
-from tf.transformations import *
+from geometry_msgs.msg import PoseStamped, Twist
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
+from tf.transformations import quaternion_from_euler
 
 # care-o-bot includes
 from cob_actions.msg import SetStringAction, SetStringGoal
-from cob_sound.msg import *
-from cob_script_server.msg import *
+from cob_sound.msg import SayAction, SayGoal, PlayAction, PlayGoal
+from cob_script_server.msg import ScriptState
 from cob_light.msg import LightMode, LightModes, SetLightModeGoal, SetLightModeAction
 from cob_mimic.msg import SetMimicGoal, SetMimicAction
-from actionlib.msg import TestAction, TestGoal
-from actionlib import GoalStatus
 
 graph=""
 graph_wait_list=[]
@@ -535,7 +535,7 @@ class simple_script_server:
 			rospy.loginfo("Initialize urdf structure from '{}'".format(robot_description))
 			robot_urdf = URDF.from_parameter_server(key=robot_description)
 		except KeyError as key_err:
-			message = "Unable to initialize urdf structure: {}".format(key_err.message)
+			message = "Unable to initialize urdf structure: {}".format(key_err)
 			rospy.logerr(message)
 			raise ValueError(message)
 
@@ -676,7 +676,7 @@ class simple_script_server:
 		try:
 			desired_vel = self._determine_desired_velocity(default_vel, start_pos, component_name, joint_names, speed_factor, urdf_vel)
 		except ValueError as val_err:
-			rospy.logerr(val_err.message)
+			rospy.logerr(val_err)
 			return (JointTrajectory(), 3)
 
 		# get default_acc
@@ -712,7 +712,7 @@ class simple_script_server:
 		try:
 			traj = list(unique_next(traj))
 		except Exception as e:
-			rospy.logerr(e.message)
+			rospy.logerr(e)
 			return (JointTrajectory(), 3)
 		rospy.logdebug("traj after unique_nxt: {}".format(traj))
 
@@ -793,7 +793,7 @@ class simple_script_server:
 			#point_time = max(numpy.max(t), 0.4)	 # use minimal point_time
 			point_time = numpy.max(t)
 		except ValueError as e:
-			print(("Value Error: {}".format(e)))
+			print("Value Error: {}".format(e))
 			print("Likely due to mimic joints. Using default point_time: 3.0 [sec]")
 			point_time = 3.0  # use default point_time
 		return point_time
@@ -1023,7 +1023,7 @@ class simple_script_server:
 			joint_state_message = rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout = timeout)
 			joint_names = list(joint_state_message.name)
 			start_pos = list(joint_state_message.position)
-		except rospy.ROSException as e:
+		except rospy.ROSException:
 			message = "no joint states received from %s within timeout of %ssec."%(component_name, str(timeout))
 			rospy.logerr(message)
 			ah.set_failed(3, message)
@@ -1035,7 +1035,7 @@ class simple_script_server:
 			rospy.loginfo("Initialize urdf structure from '{}'".format(robot_description))
 			robot_urdf = URDF.from_parameter_server(key=robot_description)
 		except KeyError as key_err:
-			message = "Unable to initialize urdf structure: {}".format(key_err.message)
+			message = "Unable to initialize urdf structure: {}".format(key_err)
 			rospy.logerr(message)
 			ah.set_failed(3, message)
 			return ah
@@ -1372,6 +1372,7 @@ class simple_script_server:
 		return ah
 
 	def set_wav_path(self,parameter_name,blocking=True):
+		ah = action_handle("set_wav_path", "set_wav_path", parameter_name, blocking, self.parse)
 		if type(parameter_name) is str:
 			self.wav_path = parameter_name
 		else:
@@ -1514,7 +1515,7 @@ class action_handle:
 
 	## Returns the graphstring.
 	def GetGraphstring(self):
-		if type(self.parameter_name) is bytes:
+		if type(self.parameter_name) is str:
 			graphstring = str(datetime.datetime.utcnow())+"_"+self.function_name+"_"+self.component_name+"_"+self.parameter_name
 		else:
 			graphstring = str(datetime.datetime.utcnow())+"_"+self.function_name+"_"+self.component_name

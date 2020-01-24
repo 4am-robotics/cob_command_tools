@@ -53,10 +53,7 @@ class CPUMonitor():
         self._idlejitter_max_threshold = rospy.get_param('~idlejitter_max_threshold', 2000000)
         self._idlejitter_average_threshold = rospy.get_param('~idlejitter_average_threshold', 200000)
 
-        if psutil.__version__ < '2.0.0':
-            self._num_cores = rospy.get_param('~num_cores', psutil.NUM_CPUS)
-        else:
-            self._num_cores = rospy.get_param('~num_cores', psutil.cpu_count())
+        self._num_cores = rospy.get_param('~num_cores', psutil.cpu_count())
 
         # Get temp_input files
         self._temp_vals = self.get_core_temp_names()
@@ -128,7 +125,7 @@ class CPUMonitor():
 
                 name = words[0].strip()
                 ipmi_val = words[1].strip()
-                stat_byte = words[2].strip()
+                #stat_byte = words[2].strip()
 
                 # CPU temps
                 if words[0].startswith('CPU') and words[0].strip().endswith('Temp'):
@@ -138,7 +135,7 @@ class CPUMonitor():
                             temperature = float(tmp)
                             diag_vals.append(KeyValue(key = name + ' (C)', value = tmp))
 
-                            cpu_name = name.split()[0]
+                            #cpu_name = name.split()[0]
                             if temperature >= self._core_temp_error: # CPU should shut down here
                                 diag_level = max(diag_level, DiagnosticStatus.ERROR)
                                 diag_msgs.append('CPU Hot')
@@ -221,7 +218,7 @@ class CPUMonitor():
 
                     if retcode != 0:
                         diag_level = DiagnosticStatus.ERROR
-                        diag_msg = [ 'Core Temp Error' ]
+                        diag_msgs = [ 'Core Temp Error' ]
                         diag_vals = [ KeyValue(key = 'Core Temp Error', value = stderr),
                                       KeyValue(key = 'Output', value = stdout) ]
                         return diag_vals, diag_msgs, diag_level
@@ -670,8 +667,8 @@ class CPUMonitor():
             devices['platform'] = platform_vals
             devices['virtual'] = virtual_vals
             return devices
-        except:
-            rospy.logerr('Exception finding temp vals: %s' % str(e)())
+        except Exception as e:
+            rospy.logerr('Exception finding temp vals: {}'.format(e))
             return []
 
 
@@ -797,7 +794,7 @@ if __name__ == '__main__':
     try:
         rospy.init_node('cpu_monitor_%s' % hostname)
     except rospy.exceptions.ROSInitException:
-        print('CPU monitor is unable to initialize node. Master may not be running.', file=sys.stderr)
+        print('CPU monitor is unable to initialize node. Master may not be running.')
         sys.exit(0)
 
     cpu_node = CPUMonitor(hostname, options.diag_hostname)

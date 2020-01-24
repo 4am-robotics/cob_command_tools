@@ -258,7 +258,7 @@ class WlanMonitor():
             try:
                 self.iwconfig = IwConfigSSH(self.diag_hostname, self.user, self.password)
             except Exception as e:
-                msg = "Cannot connect to router via ssh. Please check if ssh key of user '%s' is contained in the router configuration or password is provided. Error message: %s"%(getpass.getuser(), e.message)
+                msg = "Cannot connect to router via ssh. Please check if ssh key of user '{}' is contained in the router configuration or password is provided. Error message: {}".format(getpass.getuser(), e)
                 rospy.logerr(msg)
                 self._wlan_stat.level = DiagnosticStatus.ERROR
                 self._wlan_stat.message = msg

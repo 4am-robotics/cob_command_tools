@@ -20,9 +20,10 @@ import unittest
 
 import rospy
 import rostest
-from std_srvs.srv import Trigger
-from trajectory_msgs.msg import *
-from control_msgs.msg import *
+import actionlib
+from std_srvs.srv import Trigger, TriggerResponse
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryResult
 from simple_script_server import *
 
 
@@ -42,7 +43,7 @@ class PythonAPITest(unittest.TestCase):
 			if not rospy.has_param('~command'):
 				self.fail('Parameter command does not exist on ROS Parameter Server')
 			command = rospy.get_param('~command')
-		except KeyError as e:
+		except KeyError:
 			self.fail('Parameters not set properly')
 
 		# choose command to test

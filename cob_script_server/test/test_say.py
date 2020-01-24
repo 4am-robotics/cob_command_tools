@@ -21,6 +21,8 @@ import unittest
 import rospy
 import rostest
 
+import actionlib
+from cob_sound.msg import SayAction, SayResult
 from simple_script_server import *
 sss = simple_script_server()
 

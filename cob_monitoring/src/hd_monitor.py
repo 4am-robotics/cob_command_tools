@@ -135,7 +135,7 @@ class hd_monitor():
                     row_count += 1
                     #Filesystem     Type 1073741824-blocks  Used Available Capacity Mounted on
                     name = row.split()[0]
-                    hd_type = row.split()[1]
+                    #hd_type = row.split()[1]
                     size = row.split()[2]
                     used = row.split()[3]
                     available = row.split()[4]
@@ -211,7 +211,7 @@ if __name__ == '__main__':
         node_name = ("hd_monitor_"+hostname).replace ("-", "_")
         rospy.init_node(node_name)
     except rospy.exceptions.ROSInitException:
-        print('HD monitor is unable to initialize node. Master may not be running.', file=sys.stderr)
+        print('HD monitor is unable to initialize node. Master may not be running.')
         sys.exit(0)
 
     hd_monitor = hd_monitor(hostname, options.diag_hostname, options.directory)

@@ -20,10 +20,9 @@ import colorsys
 import copy
 import actionlib
 
-from std_msgs.msg import *
-from cob_msgs.msg import *
-from cob_light.msg import *
-from cob_light.srv import *
+from std_msgs.msg import ColorRGBA
+from cob_msgs.msg import PowerState
+from cob_light.msg import LightMode, LightModes, SetLightModeAction, SetLightModeGoal
 
 from simple_script_server import *
 sss = simple_script_server()
@@ -121,7 +120,7 @@ class battery_monitor():
 
     def timer_callback(self, event):
         # warn if battery is empty
-        if self.is_charging == False:
+        if not self.is_charging:
             # 5%
             if self.power_state.relative_remaining_capacity <= self.threshold_critical and (rospy.get_time() - self.last_time_warned) > 5:
                 self.last_time_warned = rospy.get_time()
@@ -181,7 +180,7 @@ class battery_monitor():
                     mode.frequency = 60.0
                     mode.colors = []
                     color = ColorRGBA(0.0, 1.0, 0.7, 0.4)
-                    for i in range(leds):
+                    for _ in range(leds):
                         mode.colors.append(color)
                 else:
                     mode.mode = LightModes.BREATH

@@ -17,8 +17,6 @@
 
 import sys
 
-import roslib
-
 pkg = 'cob_dashboard'
 from rqt_gui.main import Main
 
