@@ -20,12 +20,12 @@ import datetime
 import os
 import sys
 import types
-import _thread
 import subprocess
 import math
 import threading
 import numpy
 import itertools
+from threading import Thread
 
 # graph includes
 import pygraphviz as pgv
@@ -255,7 +255,7 @@ class simple_script_server:
 				rospy.loginfo("Wait for <<%s>> to <<%s>>...", component_name, service_name)
 				resp = trigger()
 			else:
-				_thread.start_new_thread(trigger,())
+				Thread(target=trigger).start()
 		except rospy.ServiceException as e:
 			error_message = "%s"%e
 			message = "...calling <<" + service_name + ">> of <<" + component_name + ">> not successfull,\n error: " + error_message
@@ -968,7 +968,7 @@ class simple_script_server:
 			rospy.loginfo("Wait for <<%s>> to finish move_base_rel...", component_name)
 			self.publish_twist(pub, twist, end_time)
 		else:
-			_thread.start_new_thread(self.publish_twist,(pub, twist, end_time))
+			Thread(target=self.publish_twist, args=(pub, twist, end_time)).start()
 
 		ah.set_succeeded()
 		return ah
@@ -1592,7 +1592,7 @@ class action_handle:
 		if self.blocking:
 			self.wait_for_finished(duration,True)
 		else:
-			_thread.start_new_thread(self.wait_for_finished,(duration,False,))
+			Thread(target=self.wait_for_finished, args=(duration,False,)).start()
 		return self.error_code
 
 	## Waits for the action to be finished.
