@@ -19,8 +19,6 @@ import time
 import datetime
 import os
 import sys
-import types
-import subprocess
 import math
 import threading
 import numpy

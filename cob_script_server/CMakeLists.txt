@@ -32,11 +32,11 @@ catkin_package(
 )
 
 ### Install ###
-install(DIRECTORY common launch
+install(DIRECTORY launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
-catkin_install_python(PROGRAMS src/cob_console src/script_server.py src/script_to_graph.py src/script_viewer.py src/xdot.py
+catkin_install_python(PROGRAMS src/cob_console src/script_server.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
