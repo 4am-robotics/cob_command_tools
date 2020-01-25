@@ -127,9 +127,12 @@ class hd_monitor():
                 diag_vals.append(KeyValue(key = 'Disk Space Reading', value = 'OK'))
                 row_count = 0
                 for row in stdout.split('\n'):
-                    if len(row.split()) < 2:
-                        continue
-                    if not str(row.split()[2]).isnumeric() or float(row.split()[2]) < 10: # Ignore small drives
+                    try:
+                        if len(row.split()) < 2:
+                            continue
+                        if float(row.split()[2]) < 10: # Ignore small drives
+                            continue
+                    except ValueError:
                         continue
 
                     row_count += 1
