@@ -23,6 +23,7 @@ import math
 import threading
 import numpy
 import itertools
+import six
 from threading import Thread
 
 # graph includes
@@ -1414,7 +1415,7 @@ class simple_script_server:
 			rospy.logerr("Wait with duration not implemented yet") # \todo TODO: implement waiting with duration
 
 		rospy.loginfo("Wait for user input...")
-		retVal = input()
+		retVal = six.moves.input()
 		rospy.loginfo("...got string <<%s>>",retVal)
 		ah.set_succeeded()
 		return retVal
