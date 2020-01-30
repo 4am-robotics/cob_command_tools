@@ -64,7 +64,7 @@ class IwConfigParser(object):
             power_managment = split[0].encode('utf8').strip()
             values.append(KeyValue("Power Managment", power_managment))
 
-        except Exception, e:
+        except Exception as e:
             rospy.logerr("IwConfigParser parsing exception: %s" %e)
             values = [ KeyValue(key = 'parsing exception', value = str(e)) ]
         
@@ -154,7 +154,7 @@ class IwConfigParser(object):
             missed_beacon = int(split[0].strip())
             values.append(KeyValue("Missed beacon", str(missed_beacon)))
 
-        except Exception, e:
+        except Exception as e:
             rospy.logerr("IwConfigParser parsing exception: %s" %e)
             values = [ KeyValue(key = 'parsing exception', value = str(e)) ]
         
@@ -174,7 +174,7 @@ class IwConfigLocal(IwConfigParser):
             res = p.wait()
             (stdout,stderr) = p.communicate()
             self.interfaces = sorted(os.linesep.join([s for s in stdout.splitlines() if s]).split('\n'))
-        except Exception, e:
+        except Exception as e:
             rospy.logerr("IwConfigLocal init exception: %s" %e)
 
     def update(self):
@@ -193,7 +193,7 @@ class IwConfigLocal(IwConfigParser):
                     self.stat.values.append(KeyValue(key = 'iwconfig stdout', value = stdout))
                 else:
                     self.stat.values += self._parse_info(stdout)
-            except Exception, e:
+            except Exception as e:
                 rospy.logerr("IwConfigLocal update exception: %s" %e)
                 self.stat.values.append(KeyValue(key = 'update exception', value = str(e)))
 
@@ -216,7 +216,7 @@ class IwConfigSSH(IwConfigParser):
             (stdin, stdout, stderr) = self.ssh.exec_command("iw dev | awk '$1==\"Interface\"{print $2}'")
             output = ''.join(stdout.readlines())
             self.interfaces = sorted(os.linesep.join([s for s in output.splitlines() if s]).split('\n'))
-        except Exception, e:
+        except Exception as e:
             rospy.logerr("IwConfigSSH init exception: %s" %e)
 
     def update(self):
@@ -230,7 +230,7 @@ class IwConfigSSH(IwConfigParser):
 
                 output = ''.join(stdout.readlines())
                 self.stat.values += self._parse_info(output)
-            except Exception, e:
+            except Exception as e:
                 rospy.logerr("IwConfigSSH update exception: %s" %e)
                 self.stat.values.append(KeyValue(key = 'update exception', value = str(e)))
 
@@ -257,8 +257,8 @@ class WlanMonitor():
         else:
             try:
                 self.iwconfig = IwConfigSSH(self.diag_hostname, self.user, self.password)
-            except Exception, e:
-                msg = "Cannot connect to router via ssh. Please check if ssh key of user '%s' is contained in the router configuration or password is provided. Error message: %s"%(getpass.getuser(), e.message)
+            except Exception as e:
+                msg = "Cannot connect to router via ssh. Please check if ssh key of user '{}' is contained in the router configuration or password is provided. Error message: {}".format(getpass.getuser(), e)
                 rospy.logerr(msg)
                 self._wlan_stat.level = DiagnosticStatus.ERROR
                 self._wlan_stat.message = msg

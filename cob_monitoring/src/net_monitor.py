@@ -40,7 +40,7 @@
 
 # copied from https://github.com/ethz-asl/ros-system-monitor
 
-from __future__ import with_statement
+
 
 import rospy
 
@@ -244,7 +244,7 @@ class NetMonitor(object):
                 (ret_code, cmd_out) = self.get_sys_net(ifaces[i], 'tx_queue_len')
                 if ret_code == 0:
                     values.append(KeyValue(key='tx_queue_len', value=cmd_out))
-        except Exception, e:
+        except Exception as e:
             rospy.logerr(traceback.format_exc())
             net_msg = 'Network Usage Check Error'
             values.append(KeyValue(key=net_msg, value=str(e)))

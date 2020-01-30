@@ -38,7 +38,7 @@ class HzTest():
             # length of test
             self.window_size = float(rospy.get_param('~window_size', 100))
             # name for diagnostic message
-            self.diagnostics_name = rospy.get_param('~diagnostics_name')
+            self.diagnostics_name = rospy.get_param('~diagnostics_name',"")
             self.diagnostics_name = self.diagnostics_name.replace('/','_')
             # sampling rate
             self.sampling_rate = rospy.get_param('~sampling_rate', 1)
@@ -68,7 +68,7 @@ class HzTest():
             
             try:
                 r.sleep()
-            except rospy.exceptions.ROSInterruptException as e:
+            except rospy.exceptions.ROSInterruptException:
                 pass
 
         # call rostopic hz
@@ -86,7 +86,7 @@ class HzTest():
             self.publish_diagnostics(rt_HZ_store)
             try:
                 r.sleep()
-            except rospy.exceptions.ROSInterruptException as e:
+            except rospy.exceptions.ROSInterruptException:
                 pass
 
     def publish_diagnostics(self, rt_HZ_store = []):

@@ -16,7 +16,7 @@
 
 
 import os, sys, string, time, getopt, re
-import StringIO
+import io
 
 import mechanize
 import csv
@@ -24,7 +24,7 @@ import gc
 
 import rospy
 from std_msgs.msg import Header
-from cob_msgs.msg import *
+from cob_msgs.msg import AccessPoint, Network, SiteSurvey
 
 def breakUpTrash():
     for item in gc.garbage:
@@ -43,8 +43,8 @@ class WifiAP:
     # Create new browsers all the time because its data structures grow
     # unboundedly (texas#135)
     br = mechanize.Browser()
-    br.add_password(self.hostname, self.username, self.password)
-    br.set_handle_robots(None)
+    #br.add_password(self.hostname, self.username, self.password)
+    #br.set_handle_robots(None)
     return br
 
   def fetchSiteSurvey(self):
@@ -74,7 +74,7 @@ class WifiAP:
 
       aplines.append(line)
 
-    fp = StringIO.StringIO(string.join(aplines, '\n'))
+    fp = io.StringIO('\n'.join(aplines))
     reader = csv.reader(fp)
     for row in reader:
       essid = row[0]
@@ -99,7 +99,7 @@ class WifiAP:
       line = lines[1].strip()
       iparts = line.split(":", 1)
       parts = iparts[1].split()
-      print interface, parts
+      print(interface, parts)
 
 
   def fetchCurrentAP(self):
@@ -136,7 +136,7 @@ class WifiAP:
       active_wireless = active_wireless.replace("'", "")
       parts = active_wireless.split(",")
       macaddr = parts[0]
-      interface = parts[1]
+      #interface = parts[1]
       if len(parts) == 7:
         signal = int(parts[4])
         noise = int(parts[5])
@@ -208,21 +208,21 @@ def test():
   while 1:
     if 0:
       survey = ap.fetchSiteSurvey()
-      print survey
+      print(survey)
     if 1:
       node = ap.fetchCurrentAP()
-      print node
+      print(node)
 
 def usage(progname):
-  print __doc__ % vars()
+  print(__doc__ % vars())
 
 def main(argv, stdout, environ):
   progname = argv[0]
-  optlist, args = getopt.getopt(argv[1:], "", ["help", "test",])
+  optlist, _ = getopt.getopt(argv[1:], "", ["help", "test",])
 
   testflag = 0
 
-  for (field, val) in optlist:
+  for (field, _) in optlist:
     if field == "--help":
       usage(progname)
       return

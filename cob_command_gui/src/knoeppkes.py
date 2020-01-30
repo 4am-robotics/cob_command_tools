@@ -15,7 +15,7 @@
 # limitations under the License.
 
 
-import thread
+from threading import Thread
 import pygtk
 pygtk.require('2.0')
 import gtk
@@ -27,7 +27,7 @@ import rospy
 import roslib
 from cob_msgs.msg import EmergencyStopState
 from simple_script_server import *
-from command_gui_buttons import *
+from command_gui_buttons import command_gui_buttons
 
 planning_enabled = False
 base_diff_enabled = False
@@ -60,7 +60,7 @@ def start(func, args):
         largs.append("diff")
     #print("Args", tuple(largs))
     #print("func ", func)
-    thread.start_new_thread(func,tuple(largs))  # exits silently without evaluating result
+    Thread(target=func, args=tuple(largs)).start()  # exits silently without evaluating result
 
 ## use this function in order to evaluate result of action_handle, i.e. show pop-up or similar
 def call_thread(func,args):

@@ -15,7 +15,7 @@
 # limitations under the License.
 
 
-from __future__ import with_statement, print_function
+
 
 import sys, os, time
 import subprocess
@@ -98,7 +98,7 @@ class hd_monitor():
                 diag_vals.append(KeyValue(
                         key = '%s kB_wrtn' % device, value=kB_wrtn))
 
-        except Exception, e:
+        except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'HD IO Exception'
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
@@ -127,15 +127,18 @@ class hd_monitor():
                 diag_vals.append(KeyValue(key = 'Disk Space Reading', value = 'OK'))
                 row_count = 0
                 for row in stdout.split('\n'):
-                    if len(row.split()) < 2:
-                        continue
-                    if not unicode(row.split()[2]).isnumeric() or float(row.split()[2]) < 10: # Ignore small drives
+                    try:
+                        if len(row.split()) < 2:
+                            continue
+                        if float(row.split()[2]) < 10: # Ignore small drives
+                            continue
+                    except ValueError:
                         continue
 
                     row_count += 1
                     #Filesystem     Type 1073741824-blocks  Used Available Capacity Mounted on
                     name = row.split()[0]
-                    hd_type = row.split()[1]
+                    #hd_type = row.split()[1]
                     size = row.split()[2]
                     used = row.split()[3]
                     available = row.split()[4]
@@ -167,7 +170,7 @@ class hd_monitor():
                     diag_level = max(diag_level, level)
                     diag_message = usage_dict[diag_level]
 
-        except Exception, e:
+        except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_message = 'HD Usage Exception'
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
@@ -211,7 +214,7 @@ if __name__ == '__main__':
         node_name = ("hd_monitor_"+hostname).replace ("-", "_")
         rospy.init_node(node_name)
     except rospy.exceptions.ROSInitException:
-        print('HD monitor is unable to initialize node. Master may not be running.', file=sys.stderr)
+        print('HD monitor is unable to initialize node. Master may not be running.')
         sys.exit(0)
 
     hd_monitor = hd_monitor(hostname, options.diag_hostname, options.directory)

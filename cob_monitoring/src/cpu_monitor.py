@@ -15,7 +15,7 @@
 # limitations under the License.
 
 
-from __future__ import with_statement, print_function
+
 
 import sys, os, time
 import subprocess
@@ -53,10 +53,7 @@ class CPUMonitor():
         self._idlejitter_max_threshold = rospy.get_param('~idlejitter_max_threshold', 2000000)
         self._idlejitter_average_threshold = rospy.get_param('~idlejitter_average_threshold', 200000)
 
-        if psutil.__version__ < '2.0.0':
-            self._num_cores = rospy.get_param('~num_cores', psutil.NUM_CPUS)
-        else:
-            self._num_cores = rospy.get_param('~num_cores', psutil.cpu_count())
+        self._num_cores = rospy.get_param('~num_cores', psutil.cpu_count())
 
         # Get temp_input files
         self._temp_vals = self.get_core_temp_names()
@@ -128,23 +125,26 @@ class CPUMonitor():
 
                 name = words[0].strip()
                 ipmi_val = words[1].strip()
-                stat_byte = words[2].strip()
+                #stat_byte = words[2].strip()
 
                 # CPU temps
                 if words[0].startswith('CPU') and words[0].strip().endswith('Temp'):
                     if words[1].strip().endswith('degrees C'):
                         tmp = ipmi_val.rstrip(' degrees C').lstrip()
-                        if unicode(tmp).isnumeric():
+                        try:
                             temperature = float(tmp)
                             diag_vals.append(KeyValue(key = name + ' (C)', value = tmp))
 
-                            cpu_name = name.split()[0]
+                            #cpu_name = name.split()[0]
                             if temperature >= self._core_temp_error: # CPU should shut down here
                                 diag_level = max(diag_level, DiagnosticStatus.ERROR)
                                 diag_msgs.append('CPU Hot')
                             elif temperature >= self._core_temp_warn:
                                 diag_level = max(diag_level, DiagnosticStatus.WARN)
                                 diag_msgs.append('CPU Warm')
+                        except ValueError:
+                            diag_level = max(diag_level, DiagnosticStatus.ERROR)
+                            diag_msgs.append('Error: temperature not numeric')
                     else:
                         diag_vals.append(KeyValue(key = name, value = words[1]))
 
@@ -156,7 +156,7 @@ class CPUMonitor():
                         diag_vals.append(KeyValue(key = name + ' (C)', value = tmp))
                         # Give temp warning
                         dev_name = name.split()[0]
-                        if unicode(tmp).isnumeric():
+                        try:
                             temperature = float(tmp)
 
                             if temperature >= 60 and temperature < 75:
@@ -166,9 +166,9 @@ class CPUMonitor():
                             if temperature >= 75:
                                 diag_level = max(diag_level, DiagnosticStatus.ERROR)
                                 diag_msgs.append('%s Hot' % dev_name)
-                        else:
+                        except ValueError:
                             diag_level = max(diag_level, DiagnosticStatus.ERROR)
-                            diag_msgs.append('%s Error' % dev_name)
+                            diag_msgs.append('%s Error: temperature not numeric' % dev_name)
                     else:
                         diag_vals.append(KeyValue(key = name, value = ipmi_val))
 
@@ -176,13 +176,13 @@ class CPUMonitor():
                 if (name.startswith('CPU') and name.endswith('Fan')) or name == 'MB Fan':
                     if ipmi_val.endswith('RPM'):
                         rpm = ipmi_val.rstrip(' RPM').lstrip()
-                        if unicode(rpm).isnumeric():
+                        try:
                             if int(rpm) == 0:
                                 diag_level = max(diag_level, DiagnosticStatus.ERROR)
                                 diag_msgs.append('CPU Fan Off')
 
                             diag_vals.append(KeyValue(key = name + ' RPM', value = rpm))
-                        else:
+                        except ValueError:
                             diag_vals.append(KeyValue(key = name, value = ipmi_val))
 
                 # If CPU is hot we get an alarm from ipmitool, report that too
@@ -195,7 +195,7 @@ class CPUMonitor():
                         diag_level = max(diag_level, DiagnosticStatus.ERROR)
                         diag_msgs.append('CPU Hot Alarm')
 
-        except Exception, e:
+        except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msgs = [ 'IPMI Exception' ]
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
@@ -211,7 +211,7 @@ class CPUMonitor():
         diag_level = DiagnosticStatus.OK
 
         try:
-            for device_type, devices in self._temp_vals.items():
+            for device_type, devices in list(self._temp_vals.items()):
                 for dev in devices:
                     cmd = 'cat %s' % dev[1]
                     p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
@@ -221,14 +221,14 @@ class CPUMonitor():
 
                     if retcode != 0:
                         diag_level = DiagnosticStatus.ERROR
-                        diag_msg = [ 'Core Temp Error' ]
+                        diag_msgs = [ 'Core Temp Error' ]
                         diag_vals = [ KeyValue(key = 'Core Temp Error', value = stderr),
                                       KeyValue(key = 'Output', value = stdout) ]
                         return diag_vals, diag_msgs, diag_level
 
                     tmp = stdout.strip()
                     if device_type == 'platform':
-                        if unicode(tmp).isnumeric():
+                        try:
                             temp = float(tmp) / 1000
                             diag_vals.append(KeyValue(key = 'Temp '+dev[0], value = str(temp)))
 
@@ -238,14 +238,13 @@ class CPUMonitor():
                             elif temp >= self._core_temp_warn:
                                 diag_level = max(diag_level, DiagnosticStatus.OK) #do not set WARN
                                 diag_msgs.append('CPU Warm')
-
-                        else:
+                        except ValueError:
                             diag_level = max(diag_level, DiagnosticStatus.ERROR) # Error if not numeric value
                             diag_vals.append(KeyValue(key = 'Temp '+dev[0], value = tmp))
                     else: # device_type == `virtual`
                         diag_vals.append(KeyValue(key = 'Temp '+dev[0], value = tmp))
 
-        except Exception, e:
+        except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msgs = [ 'Core Temp Exception' ]
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
@@ -280,8 +279,9 @@ class CPUMonitor():
 
                 speed = words[1].strip().split('.')[0] # Conversion to float doesn't work with decimal
                 diag_vals.append(KeyValue(key = 'Core %d MHz' % index, value = speed))
-                if not unicode(speed).isnumeric():
-                    # Automatically give error if speed isn't a number
+                try:
+                    _ = float(speed)
+                except ValueError:
                     diag_level = max(diag_level, DiagnosticStatus.ERROR)
                     diag_msgs = [ 'Clock speed not numeric' ]
 
@@ -317,7 +317,7 @@ class CPUMonitor():
 
             diag_vals.append(KeyValue(key = stdout.split(':')[0].strip(), value = str(stdout.split(':')[1].strip())))
 
-        except Exception, e:
+        except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msgs = [ 'Clock Speed Exception' ]
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
@@ -365,7 +365,7 @@ class CPUMonitor():
 
             diag_msg = load_dict[diag_level]
 
-        except Exception, e:
+        except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'Uptime Exception'
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
@@ -431,7 +431,7 @@ class CPUMonitor():
 
             diag_msg = mem_dict[diag_level]
 
-        except Exception, e:
+        except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'Memory Usage Exception'
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
@@ -518,7 +518,7 @@ class CPUMonitor():
 
             diag_msg = load_dict[diag_level]
 
-        except Exception, e:
+        except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'CPU Usage Exception'
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
@@ -542,7 +542,7 @@ class CPUMonitor():
 
         rdata = r.json()
 
-        sdata = zip(*rdata['data'])
+        sdata = list(zip(*rdata['data']))
         d = dict()
 
         for idx, label in enumerate(rdata['labels']):
@@ -670,8 +670,8 @@ class CPUMonitor():
             devices['platform'] = platform_vals
             devices['virtual'] = virtual_vals
             return devices
-        except:
-            rospy.logerr('Exception finding temp vals: %s' % str(e)())
+        except Exception as e:
+            rospy.logerr('Exception finding temp vals: {}'.format(e))
             return []
 
 
@@ -797,7 +797,7 @@ if __name__ == '__main__':
     try:
         rospy.init_node('cpu_monitor_%s' % hostname)
     except rospy.exceptions.ROSInitException:
-        print('CPU monitor is unable to initialize node. Master may not be running.', file=sys.stderr)
+        print('CPU monitor is unable to initialize node. Master may not be running.')
         sys.exit(0)
 
     cpu_node = CPUMonitor(hostname, options.diag_hostname)

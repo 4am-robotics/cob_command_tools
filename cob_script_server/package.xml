@@ -31,6 +31,7 @@
   <exec_depend>ipython</exec_depend>
   <exec_depend>move_base_msgs</exec_depend>
   <exec_depend>python-pygraphviz</exec_depend>
+  <exec_depend>python-six</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>std_srvs</exec_depend>

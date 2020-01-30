@@ -38,7 +38,7 @@ class VisualizerNavigationGoals():
 
         markerarray = MarkerArray()
         i=0
-        for name, pose in navigation_goals.items():
+        for name, pose in list(navigation_goals.items()):
 
             # check if pose is valid
             if len(pose) != 3:

@@ -45,7 +45,6 @@ class DashboardAggregator:
     self.msg.emergency_stop_state = msg
 
   def publish(self):
-    now = time.time()
     self.pub.publish(self.msg)
 
 if __name__ == "__main__":

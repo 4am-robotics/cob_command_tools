@@ -58,7 +58,7 @@ class GenericThrottle:
 
         if not(locking):
             current_t = currentThread()
-            rospy.logdebug(str(current_t._Thread__name) + ': cannot lock topic '
+            rospy.logdebug(str(current_t.getName()) + ': cannot lock topic '
                           + topic_id)
             return
 
@@ -126,7 +126,7 @@ class GenericThrottle:
 
         if not (locking):
             current_t = currentThread()
-            rospy.logdebug(str(current_t._Thread__name) + ': cannot lock topic '
+            rospy.logdebug(str(current_t.getName()) + ': cannot lock topic '
                           + topic_id)
             return
 

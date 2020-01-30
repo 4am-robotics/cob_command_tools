@@ -1,1 +1,1 @@
-from command_gui_buttons import *
+from .command_gui_buttons import *

@@ -20,9 +20,9 @@ import unittest
 
 import rospy
 import actionlib
-from std_srvs.srv import *
-from move_base_msgs.msg import *
-from control_msgs.msg import *
+from std_srvs.srv import Trigger, TriggerResponse
+from move_base_msgs.msg import MoveBaseAction
+from control_msgs.msg import FollowJointTrajectoryAction
 from simple_script_server import *
 sss = simple_script_server()
 
