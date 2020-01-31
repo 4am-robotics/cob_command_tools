@@ -20,7 +20,7 @@
   <exec_depend>std_srvs</exec_depend>
   <exec_depend>tf</exec_depend>
 
-<!--  These are used in the test scripts-->
+<!--  These are used in the test scripts, the framework can be used without these dependencies-->
   <test_depend>cob_sound</test_depend>
   <test_depend>cob_srvs</test_depend>
   <test_depend>control_msgs</test_depend>
