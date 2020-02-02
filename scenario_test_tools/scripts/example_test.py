@@ -87,7 +87,7 @@ class TestScenario(object):
                                           result_delay=5,
                                           goal_formatter=format_move_base_goal,
                                           result_formatter=lambda result: bcolors.MAGENTA +
-                                                                          "MoveBase: done".format(result) +
+                                                                          "MoveBase: done" +
                                                                           bcolors.ENDC
                                           )
 
@@ -99,7 +99,7 @@ class TestScenario(object):
                                                                           goal.trajectory.points[-1].positions) +
                                                                       bcolors.ENDC,
                                           result_formatter=lambda result: bcolors.CYAN +
-                                                                          "Arm: done".format(result.error_code) +
+                                                                          "Arm: done" +
                                                                           bcolors.ENDC)
 
         self.dock = ScriptableServiceServer('/dock', SetString,
