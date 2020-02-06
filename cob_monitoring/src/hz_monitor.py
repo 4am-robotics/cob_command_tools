@@ -45,7 +45,7 @@ class HzTest():
             if self.hz < 2*self.sampling_rate:
                 rospy.logwarn("sampling_rate is probably to low: desired hz rate should at least be double the sampling_rate. (desired hz rate: %.2f, sampling_rate: %.2f)",self.hz, self.sampling_rate)
         except KeyError as e:
-            rospy.logerr('hztest not initialized properly. Parameter [%s] not set. debug[%s] debug[%s]'%(str(e), rospy.get_caller_id(), rospy.resolve_name(e.args[0])))
+            rospy.logerr('hztest not initialized properly. Parameter [{}] not set. debug[{}] debug[{}]'.format(e, rospy.get_caller_id(), rospy.resolve_name(e.args[0])))
             sys.exit(1)
 
         self.pub_diagnostics = rospy.Publisher('~diagnostics', DiagnosticArray, queue_size = 1)
@@ -63,7 +63,7 @@ class HzTest():
                         self.missing_topics.remove(real_topic)
             if len(self.missing_topics) == 0:
                 break
-            rospy.logdebug("hz monitor is waiting for type of topics %s."%str(self.missing_topics))
+            rospy.logdebug("hz monitor is waiting for type of topics {}.".format(self.missing_topics))
             self.publish_diagnostics()
             
             try:
@@ -78,7 +78,7 @@ class HzTest():
             rt = rostopic.ROSTopicHz(self.window_size)
             rospy.Subscriber(topic, rospy.AnyMsg, rt.callback_hz)
             rt_HZ_store.append(rt)
-            rospy.loginfo("subscribed to [%s]"%topic)
+            rospy.loginfo("subscribed to [{}]".format(topic))
 
         # publish diagnostics continuously
         while not rospy.is_shutdown():
