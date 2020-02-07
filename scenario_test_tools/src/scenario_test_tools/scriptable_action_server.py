@@ -23,7 +23,19 @@ from scenario_test_tools.util import countdown_sleep
 
 class ScriptableActionServer(ScriptableBase):
     """
-    ScriptableActionServer allows its users to determine the ActionResult to an ActionGoal
+    ScriptableActionServer allows its users to determine the ActionResult to an ActionGoal.
+
+    The result-type for e.g. FooAction should be FooResult, not FooActionResult!
+
+    Goals can be aborted by setting `ABORT_GOAL` as the result.
+    
+    Goals can be ignored by setting `IGNORE_GOAL` as the result. This makes the action client never get a result
+
+    Note that Actionlib uses the term 'result' for its, well, results, whereas ROS services use 'reply'.
+    The base class `ScriptableBase` uses the 'reply' terminology.
+    `ScriptableActionServer` should be consistent with the action terminology,
+    so it's constructor does some translation between terms and passes 'default_reply=default_result'
+    to the constructor of `ScriptableBase`.
     """
 
     IGNORE_GOAL = "IGNORE_GOAL"

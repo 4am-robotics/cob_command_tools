@@ -218,7 +218,7 @@ class ScriptableBase(object):
     def default_reply(self, result):
         """
         Set the current default reply.
-        If this is None, there will not be a default reply, then a reply must be defined vai a reply*-call
+        If this is None, there will not be a default reply, then a reply must be defined via a reply*-call
 
         :param result: a ...Result of the type associated with the type of this server
         """

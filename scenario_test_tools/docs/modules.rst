@@ -49,5 +49,5 @@ scenario_test_tools.util
 .. automodule:: scenario_test_tools.util
     :members:
     :show-inheritance:
-    :synopsis: Various small utility functions that make like a bit easier
+    :synopsis: Various small utility functions that make life a bit easier
 
