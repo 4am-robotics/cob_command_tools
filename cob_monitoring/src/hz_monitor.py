@@ -32,9 +32,9 @@ class HzTest():
             # topic to test
             self.topics = rospy.get_param('~topics')
             # expected publishing rate
-            self.hz = rospy.get_param('~hz', None)
+            self.hz = rospy.get_param('~hz')
             # margin of error allowed
-            self.hzerror = rospy.get_param('~hzerror', None)
+            self.hzerror = rospy.get_param('~hzerror')
             # length of test
             self.window_size = float(rospy.get_param('~window_size', 100))
             # name for diagnostic message
