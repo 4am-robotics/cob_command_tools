@@ -76,16 +76,20 @@ class HzTest():
 
     def publish_diagnostics(self, event):
         # set desired rates
-        if self.hzerror:
-            if isinstance(self.hzerror, float) or isinstance(self.hzerror, int):
-                min_rate = self.hz - self.hzerror
-                max_rate = self.hz + self.hzerror
-            else:
-                rospy.logerr("hzerror not float or int")
+        if isinstance(self.hzerror, float) or isinstance(self.hzerror, int):
+            if self.hzerror < 0:
+                rospy.logerr("hzerror cannot be negative")
                 sys.exit(1)
+            min_rate = self.hz - self.hzerror
+            max_rate = self.hz + self.hzerror
+            if min_rate < 0 or max_rate < 0:
+                rospy.logerr("min_rate/max_rate cannot be negative")
+                sys.exit(1)
+            min_duration = 1/min_rate if min_rate > 0 else float('inf')
+            max_duration = 1/max_rate if max_rate > 0 else float('inf')
         else:
-            min_rate = None
-            max_rate = None
+            rospy.logerr("hzerror not float or int")
+            sys.exit(1)
 
         # create diagnostic message
         array = DiagnosticArray()
@@ -128,7 +132,7 @@ class HzTest():
                 rates.append(0.0)
                 consolidated_error_messages["never received message for topics"].append(topic)
             elif rt.msg_tn == rt.last_printed_tn \
-                 and not (event.current_real.to_sec() < rt.msg_tn + 1/self.hz):  # condition to prevent WARN for topics with hz<diagnostics_rate
+                 and not (event.current_real.to_sec() < rt.msg_tn + min_duration):  # condition to prevent WARN for topics with hz<diagnostics_rate, allow 1/min_rte to pass before reporting error
                 hz_status.level = DiagnosticStatus.ERROR
                 rates.append(0.0)
                 consolidated_error_messages["no messages anymore for topics"].append(topic)
