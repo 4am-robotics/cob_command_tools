@@ -28,7 +28,7 @@ class ScriptableActionServer(ScriptableBase):
     The result-type for e.g. FooAction should be FooResult, not FooActionResult!
 
     Goals can be aborted by setting `ABORT_GOAL` as the result.
-    
+
     Goals can be ignored by setting `IGNORE_GOAL` as the result. This makes the action client never get a result
 
     Note that Actionlib uses the term 'result' for its, well, results, whereas ROS services use 'reply'.
