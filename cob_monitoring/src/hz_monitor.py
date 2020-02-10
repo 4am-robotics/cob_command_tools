@@ -40,7 +40,7 @@ class HzTest():
             # name for diagnostic message
             self.diagnostics_name = rospy.get_param('~diagnostics_name',"")
             self.diagnostics_name = self.diagnostics_name.replace('/','_')
-            self.diagnostics_rate = 1.0
+            self.diagnostics_period = rospy.Duration(1.0)
         except KeyError as e:
             rospy.logerr('hztest not initialized properly. Parameter [{}] not set. debug[{}] debug[{}]'.format(e, rospy.get_caller_id(), rospy.resolve_name(e.args[0])))
             sys.exit(1)
@@ -48,7 +48,7 @@ class HzTest():
         self.rt_HZ_store = dict()
         self.missing_topics = copy.deepcopy(self.topics)
         self.pub_diagnostics = rospy.Publisher('~diagnostics', DiagnosticArray, queue_size = 1)
-        self.timer_diagnostics = rospy.Timer(rospy.Duration(self.diagnostics_rate), self.publish_diagnostics)
+        self.timer_diagnostics = rospy.Timer(self.diagnostics_period, self.publish_diagnostics)
 
 
     def run(self):
@@ -62,7 +62,7 @@ class HzTest():
 
             try:
                 rospy.logdebug("hz monitor is waiting for type of topics {}.".format(self.missing_topics))
-                rospy.Rate(self.diagnostics_rate).sleep()
+                rospy.sleep(1.0)
             except rospy.exceptions.ROSInterruptException:
                 pass
 
