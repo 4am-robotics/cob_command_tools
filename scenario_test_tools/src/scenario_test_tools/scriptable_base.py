@@ -77,9 +77,10 @@ class ScriptableBase(object):
         self._sent.set()
         self._reply.set()
 
-    def reply(self, result, timeout=60, reply_delay=None, marker=None):
+    def reply(self, result, timeout=None, reply_delay=None, marker=None):
         """
         Reply to the next goal with the given result, after `reply_delay` amount of seconds.
+        An AssertionError is raised when a goal is not received within the given timeout.
 
         :param result: an ...ActionResult of the type associated with the Action-type of this server
         :param timeout: how long to wait for the goal? Defaults to None to wait indefinitely
@@ -116,15 +117,16 @@ class ScriptableBase(object):
         print("{}.reply{}: Finished replying"
             .format(self._name, '({})'.format(marker) if marker else ''))
 
-    def reply_conditionally(self, condition, true_result, false_result, timeout=60, reply_delay=None, marker=None):
+    def reply_conditionally(self, condition, true_result, false_result, timeout=None, reply_delay=None, marker=None):
         """
         Reply one of two possibilities, based on a condition. This is a callable that, given a Goal, returns a bool
         If True, then reply with the true_reply and vice versa.
+        An AssertionError is raised when a goal is not received within the given timeout.
 
         :param condition: callable(...Goal) -> bool
         :param true_result: a ...Result
         :param false_result: a ...Result
-        :param timeout: seconds to wait for the goal
+        :param timeout: seconds to wait for the goal. Defaults to None to wait indefinitely
         :param reply_delay: Delay the reply by this amount of seconds
         :param marker: A str that is printed in the output for easy reference between different replies
         :return: bool
@@ -166,10 +168,11 @@ class ScriptableBase(object):
 
         return match
 
-    def await_goal(self, timeout=60, marker=None):
+    def await_goal(self, timeout=None, marker=None):
         """
         Await a goal to be sent to this Scriptable... and return that goal for close inspection.
         Based on that, send a reply via `direct_reply`
+        An AssertionError is raised when a goal is not received within the given timeout.
 
         :param timeout: how long to wait for the goal? Defaults to None to wait indefinitely
         :param marker: A str that is printed in the output for easy reference between different replies
