@@ -96,7 +96,8 @@ class ScriptableBase(object):
         assert self._waiting_for is None, "reply{} cannot follow an 'await_goal', use reply_directly".format('({})'.format(marker) if marker else '')
         self.default_reply = None
 
-        print("{}.reply{}: Waiting for goal...".format(self._name, '({})'.format(marker) if marker else ''))
+        print("{}.reply{}: Waiting {}for goal...".format(self._name, '({})'.format(marker) if marker else '',
+                                                         str(timeout)+'s ' if timeout is not None else ''))
 
         assert self._request.wait(timeout), \
             "{}.reply{} did not get a goal in time".format(self._name, '({})'.format(marker) if marker else '')
@@ -140,8 +141,9 @@ class ScriptableBase(object):
         assert self._waiting_for is None, "reply_conditionally{} cannot follow an 'await_goal', use reply_directly".format('({})'.format(marker) if marker else '')
         self.default_reply = None
 
-        print("{}.reply_conditionally{}: Waiting for goal..."
-            .format(self._name, '({})'.format(marker) if marker else ''))
+        print("{}.reply_conditionally{}: Waiting {}for goal..."
+            .format(self._name, '({})'.format(marker) if marker else '',
+                    str(timeout)+'s ' if timeout is not None else ''))
         assert self._request.wait(timeout), "{}.reply_conditionally{} did not get a goal in time"\
             .format(self._name, '({})'.format(marker) if marker else '')
 
@@ -182,8 +184,9 @@ class ScriptableBase(object):
             .format(self._name, '({})'.format(marker) if marker else ''))
         self.default_reply = None
 
-        print("{}.await_goal{}: Waiting for goal..."
-            .format(self._name, '({})'.format(marker) if marker else ''))
+        print("{}.await_goal{}: Waiting {}for goal..."
+            .format(self._name, '({})'.format(marker) if marker else '',
+                    str(timeout)+'s ' if timeout is not None else ''))
         assert self._request.wait(timeout), "{}.await_goal{} did not get a goal in time".format(self._name, '({})'.format(marker) if marker else '')
         self._request.clear()
         print("{}.await_goal{}: Got goal: {}"
