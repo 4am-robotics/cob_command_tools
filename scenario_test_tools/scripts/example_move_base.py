@@ -13,9 +13,9 @@ if __name__ == "__main__":
     succeeded = MoveBaseResult()
 
     # By default, wait 5 secs for the robot to arrive
-    result_delay = rospy.get_param("result_delay", 5)
+    result_delay = rospy.get_param("~result_delay", 5)
     # By default, wait forever for a move_base goal
-    timeout = rospy.get_param("timeout", None)
+    timeout = rospy.get_param("~timeout", None)
 
     move_base = ScriptableMoveBase(rospy.get_name(), MoveBaseAction, default_result_delay=result_delay)
     move_base.start()
