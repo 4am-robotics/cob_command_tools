@@ -24,7 +24,7 @@ from scenario_test_tools.util import countdown_sleep, round_tuple
 
 
 class ScriptableMoveBase(ScriptableActionServer):
-    def __init__(self, name, action_type, goal_formatter=format, result_formatter=format, default_result=None, default_result_delay=0):
+    def __init__(self, name, action_type, goal_formatter=format, result_formatter=format, default_result=None, default_result_delay=0, pub_transform=True):
         ScriptableActionServer.__init__(self,
                                         name=name,
                                         action_type=action_type,
@@ -35,7 +35,8 @@ class ScriptableMoveBase(ScriptableActionServer):
 
         self.br = tf.TransformBroadcaster()
         self.pose_bl = [0, 0, 0]
-        self._base_link_timer = rospy.Timer(rospy.Duration(0.1), self._pub_transform_bl)
+        if pub_transform:
+            self._base_link_timer = rospy.Timer(rospy.Duration(0.1), self._pub_transform_bl)
 
     def stop(self):
         self._base_link_timer.shutdown()
