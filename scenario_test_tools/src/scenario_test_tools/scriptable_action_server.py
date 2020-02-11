@@ -41,7 +41,7 @@ class ScriptableActionServer(ScriptableBase):
     IGNORE_GOAL = "IGNORE_GOAL"
     ABORT_GOAL = "ABORT_GOAL"
 
-    def __init__(self, name, action_type, goal_formatter=format, result_formatter=format, default_result=None, result_delay=0):
+    def __init__(self, name, action_type, goal_formatter=format, result_formatter=format, default_result=None, default_result_delay=0):
         """
         Set up a ScriptableActionServer based on the name and the type of Action it should implement
 
@@ -51,7 +51,7 @@ class ScriptableActionServer(ScriptableBase):
                                 goal_formatter=goal_formatter,
                                 reply_formatter=result_formatter,
                                 default_reply=default_result,
-                                reply_delay=result_delay)
+                                default_reply_delay=default_result_delay)
 
         self._as = actionlib.SimpleActionServer(name, action_type, auto_start=False)
         self._as.register_goal_callback(self._execute_cb)
@@ -71,7 +71,7 @@ class ScriptableActionServer(ScriptableBase):
         """
         Called when the underlying action server receives a goal.
         If the default_result is None, it will wait for a custom result to be set via reply* otherwise
-        return the default_result after the given result_delay
+        return the default_result after the given default_result_delay
 
         In the reply-case,it then notifies self.reply* (which should be called by a test script outside this class),
         after which self.reply* determines the result to the goal.
@@ -88,7 +88,7 @@ class ScriptableActionServer(ScriptableBase):
         print('{}.execute: Goal: {}'.format(self._name, goal_str))
 
         if self.default_reply is not None:
-            countdown_sleep(self._reply_delay, text="{}.execute: Wait for {}s. ".format(self._name, self._reply_delay) + "Remaining {}s...")
+            countdown_sleep(self._default_reply_delay, text="{}.execute: Wait for {}s. ".format(self._name, self._default_reply_delay) + "Remaining {}s...")
             self._call_pre_reply_callbacks(self._current_goal, self.default_reply)
             self._send_result(self.default_reply)
         else:

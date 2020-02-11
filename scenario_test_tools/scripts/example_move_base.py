@@ -12,9 +12,11 @@ if __name__ == "__main__":
 
     succeeded = MoveBaseResult()
 
-    result_delay = rospy.get_param("result_delay", 5)  # By default, wait 5 secs for the robot to arrive
+    # By default, wait 5 secs for the robot to arrive
+    result_delay = rospy.get_param("result_delay", 5)
 
-    move_base = ScriptableMoveBase('/move_base', MoveBaseAction, result_delay=result_delay)
+    # default_result_delay is only used for the default-reply. If you use .reply, that takes a custom 'reply_delay' time for
+    move_base = ScriptableMoveBase('move_base', MoveBaseAction, default_result_delay=result_delay)
     move_base.start()
     rospy.loginfo("fake move base running")
 

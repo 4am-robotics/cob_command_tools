@@ -84,7 +84,7 @@ class TestScenario(object):
                                                                           bcolors.ENDC)
 
         self.move_base = ScriptableMoveBase('/move_base', MoveBaseAction,
-                                          result_delay=5,
+                                          default_result_delay=5,
                                           goal_formatter=format_move_base_goal,
                                           result_formatter=lambda result: bcolors.MAGENTA +
                                                                           "MoveBase: done" +
@@ -93,7 +93,7 @@ class TestScenario(object):
 
         self.arm = ScriptableActionServer('/arm/joint_trajectory_controller/follow_joint_trajectory',
                                           FollowJointTrajectoryAction,
-                                          result_delay=1,
+                                          default_result_delay=1,
                                           goal_formatter=lambda goal: bcolors.CYAN + bcolors.UNDERLINE +
                                                                       "Moving to {}".format(
                                                                           goal.trajectory.points[-1].positions) +
@@ -103,7 +103,7 @@ class TestScenario(object):
                                                                           bcolors.ENDC)
 
         self.dock = ScriptableServiceServer('/dock', SetString,
-                                            response_delay=5,
+                                            default_response_delay=5,
                                             request_formatter=lambda
                                           req: bcolors.YELLOW_BG + bcolors.BLACK + bcolors.UNDERLINE +
                                                "Docking: {}".format(req.data) +

@@ -24,14 +24,14 @@ from scenario_test_tools.util import countdown_sleep, round_tuple
 
 
 class ScriptableMoveBase(ScriptableActionServer):
-    def __init__(self, name, action_type, goal_formatter=format, result_formatter=format, default_result=None, result_delay=0):
+    def __init__(self, name, action_type, goal_formatter=format, result_formatter=format, default_result=None, default_result_delay=0):
         ScriptableActionServer.__init__(self,
                                         name=name,
                                         action_type=action_type,
                                         goal_formatter=goal_formatter,
                                         result_formatter=result_formatter,
                                         default_result=default_result,
-                                        result_delay=result_delay)
+                                        default_result_delay=default_result_delay)
 
         self.br = tf.TransformBroadcaster()
         self.pose_bl = [0, 0, 0]
@@ -45,7 +45,7 @@ class ScriptableMoveBase(ScriptableActionServer):
         """
         Called when the underlying action server receives a goal.
         If the default_result is None, it will wait for a custom result to be set via reply* otherwise
-        return the default_result after the given result_delay
+        return the default_result after the given default_result_delay
 
         In the reply-case,it then notifies self.reply* (which should be called by a test script outside this class),
         after which self.reply* determines the result to the goal.
@@ -64,7 +64,7 @@ class ScriptableMoveBase(ScriptableActionServer):
         print('{}.execute: From {} to Goal: {}'.format(self._name, self.pose_bl, goal_str))
 
         if self.default_reply is not None:
-            countdown_sleep(self._reply_delay, text="{}.execute: Wait for {}s. ".format(self._name, self._reply_delay) + "Remaining {}s...")
+            countdown_sleep(self._default_reply_delay, text="{}.execute: Wait for {}s. ".format(self._name, self._default_reply_delay) + "Remaining {}s...")
             self._call_pre_reply_callbacks(self._current_goal, self.default_reply)
             self._send_result(self.default_reply)
         else:
