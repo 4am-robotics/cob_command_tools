@@ -19,12 +19,15 @@ if __name__ == "__main__":
     move_base.start()
     rospy.loginfo("fake move base running")
 
-    move_base.reply(succeeded, marker='1: succeeded', reply_delay=3)
+    try:
+        move_base.reply(succeeded, marker='1: succeeded', reply_delay=3, timeout=60)
 
-    # To check that the client will perhaps retry the navigation or otherwise handle an abort
-    move_base.reply(move_base.ABORT_GOAL, marker='2: Aborted')
+        # To check that the client will perhaps retry the navigation or otherwise handle an abort
+        move_base.reply(move_base.ABORT_GOAL, marker='2: Aborted')
 
-    # The client will have to decide it's taking too long and cancel
-    move_base.reply(move_base.IGNORE_GOAL, marker='3: Ignored', reply_delay=0)
-
+        # The client will have to decide it's taking too long and cancel
+        move_base.reply(move_base.IGNORE_GOAL, marker='3: Ignored', reply_delay=0)
+    except AssertionError as assertion_err:
+        rospy.logerr(assertion_err)
+        raise assertion_err
     rospy.spin()
