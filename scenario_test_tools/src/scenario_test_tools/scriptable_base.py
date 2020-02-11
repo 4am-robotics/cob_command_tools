@@ -39,6 +39,7 @@ class ScriptableBase(object):
             otherwise a .reply* call is needed to send a reply. Overriding the default reply and
             doing something custom is possible with the `custom_reply`-context manager
         :param default_reply_delay: If default_result is defined, the Scriptable... waits for this delay before returning.
+            This delay is also used when no more specific reply_delay is specified in a reply_*-call
         """
         self._name = name
 
@@ -76,7 +77,7 @@ class ScriptableBase(object):
         self._sent.set()
         self._reply.set()
 
-    def reply(self, result, timeout=60, reply_delay=5, marker=None):
+    def reply(self, result, timeout=60, reply_delay=None, marker=None):
         """
         Reply to the next goal with the given result, after `reply_delay` amount of seconds.
 
@@ -86,6 +87,9 @@ class ScriptableBase(object):
         :param marker: A str that is printed in the output for easy reference between different replies
         :return: None
         """
+        if reply_delay is None:
+            reply_delay = self.default_reply_delay
+
         print('\n########  {}.reply{}  ###########'.format(self._name, '({})'.format(marker) if marker else ''))
 
         assert self._waiting_for is None, "reply{} cannot follow an 'await_goal', use reply_directly".format('({})'.format(marker) if marker else '')
@@ -112,7 +116,7 @@ class ScriptableBase(object):
         print("{}.reply{}: Finished replying"
             .format(self._name, '({})'.format(marker) if marker else ''))
 
-    def reply_conditionally(self, condition, true_result, false_result, timeout=60, reply_delay=5, marker=None):
+    def reply_conditionally(self, condition, true_result, false_result, timeout=60, reply_delay=None, marker=None):
         """
         Reply one of two possibilities, based on a condition. This is a callable that, given a Goal, returns a bool
         If True, then reply with the true_reply and vice versa.
@@ -125,6 +129,9 @@ class ScriptableBase(object):
         :param marker: A str that is printed in the output for easy reference between different replies
         :return: bool
         """
+        if reply_delay is None:
+            reply_delay = self.default_reply_delay
+
         print('\n########  {}.reply_conditionally{}  ###########'
             .format(self._name, '({})'.format(marker) if marker else ''))
 
@@ -183,7 +190,7 @@ class ScriptableBase(object):
 
         return self._current_goal
 
-    def direct_reply(self, result, reply_delay=5, marker=None):
+    def direct_reply(self, result, reply_delay=None, marker=None):
         """
         Reply to the current goal with the given result, after `reply_delay` amount of seconds.
 
@@ -192,6 +199,9 @@ class ScriptableBase(object):
         :param marker: A str that is printed in the output for easy reference between different replies
         """
         assert self._waiting_for == 'direct_reply', "reply cannot follow an 'await_goal', use reply_directly"
+
+        if reply_delay is None:
+            reply_delay = self.default_reply_delay
 
         self._next_reply = result
 
