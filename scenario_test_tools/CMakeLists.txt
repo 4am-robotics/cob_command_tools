@@ -12,4 +12,5 @@ catkin_install_python(PROGRAMS
     scripts/example_test.py
     scripts/example_move_base.py
     scripts/always_succeeding_move_base.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
