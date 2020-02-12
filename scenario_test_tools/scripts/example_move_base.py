@@ -1,5 +1,12 @@
 #! /usr/bin/env python
 
+"""
+This action server node will wait for 3 MoveBaseGoals and handle each differently:
+- succeed the first one
+- abort the 2nd goal
+- just ignore the 3rd one
+"""
+
 import rospy
 
 from scenario_test_tools.scriptable_move_base import ScriptableMoveBase
@@ -23,12 +30,15 @@ if __name__ == "__main__":
     move_base.start()
     rospy.loginfo("fake move base running")
 
+
     try:
         move_base.reply(succeeded, marker='1: succeeded', timeout=timeout)
 
-        # To check that the client will perhaps retry the navigation or otherwise handle an abort
+        # The action server will abort the goal,
+        # to check that the client will perhaps retry the navigation or otherwise handle an abort
         move_base.reply(move_base.ABORT_GOAL, marker='2: Aborted', reply_delay=0, timeout=timeout)
 
+        # The action server will ignore the goal and never send a result.
         # The client will have to decide it's taking too long and cancel
         move_base.reply(move_base.IGNORE_GOAL, marker='3: Ignored', reply_delay=0, timeout=timeout)
     except AssertionError as assertion_err:
