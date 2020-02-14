@@ -38,6 +38,7 @@ class ScriptableActionServer(ScriptableBase):
     to the constructor of `ScriptableBase`.
     """
 
+    SUCCEED_GOAL = "SUCCEED_GOAL"
     IGNORE_GOAL = "IGNORE_GOAL"
     ABORT_GOAL = "ABORT_GOAL"
 
@@ -104,13 +105,26 @@ class ScriptableActionServer(ScriptableBase):
             self._current_goal = None
             self._sent.set()
 
-    def _send_result(self, result):
+    def _send_result(self, result_tuple):
         """
         Send the result and deal with ignored and aborted goals
 
         :param result: a Result associated with the Action-type of this Server
         """
-        if result is not self.IGNORE_GOAL and result is not self.ABORT_GOAL:
+
+        if isinstance(result_tuple, tuple):
+            # In this case, result[0] is the actual result and result[1] is an success/abort/ignore action
+            result, action = result_tuple
+        else:
+            # result_tuple is not really a tuple
+            if result_tuple == self.ABORT_GOAL:
+                result, action = None, self.ABORT_GOAL
+            elif result_tuple == self.IGNORE_GOAL:
+                result, action = None, self.IGNORE_GOAL
+            else:
+                result, action = result_tuple, self.SUCCEED_GOAL
+
+        if action == self.SUCCEED_GOAL:
             try:
                 result_str = self.result_formatter(result)
             except Exception as e:
@@ -118,11 +132,11 @@ class ScriptableActionServer(ScriptableBase):
                 result_str = self._current_goal
             print("{}.execute: Result: {}".format(self._name, result_str))
             self._as.set_succeeded(result)
-        elif result == self.ABORT_GOAL:
-            print("{}.execute: Result: {}".format(self._name, result))
-            self._as.set_aborted()
-        elif result == self.IGNORE_GOAL:
-            print("{}.execute: Result: {}".format(self._name, result))
+        elif action == self.ABORT_GOAL:
+            print("{}.execute: Result: {}, action: {}".format(self._name, result, action))
+            self._as.set_aborted(result)
+        elif action == self.IGNORE_GOAL:
+            print("{}.execute: Result: {}, action: {}".format(self._name, result, action))
             # Do not send a reply at all, to see how the client deals with it
             pass
 
