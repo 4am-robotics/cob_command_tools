@@ -34,5 +34,13 @@ on which `ScriptableActionserver` and `ScriptableServiceServer` are based.
   ```
 
 # Examples
-The `scripts` directory contains 2 scripts: `example_test.py` and `dummy_behavior.py`. 
-The dummy behavior is tested with the example test, which uses a reasonable subset of the features in the framework.
+The `scripts` directory contains several scripts: 
+- `example_test.py` and `dummy_behavior.py` work together.
+    The dummy behavior will wait for commands to have a robot charge itself and plug itself in.
+    The test sends these commands and checks that the behavior handles this command correctly.
+    + Run the dummy_behavior with `rosrun scenario_test_tools dummy_behavior.py`
+    + Then start the test with `rosrun scenario_test_tools example_test.py --start_scenario=test_all`
+
+- `move_base_success.py` uses the default_result feature to have a move_base implementation that always succeeds after a given time
+- `example_move_base` is a more elaborate version of the above, handling each goal a differently to show other features of the framework.
+    First goal received succeeds, 2nd is aborted and 3rd is ignored. Further goals are not expected and not handled at all.
