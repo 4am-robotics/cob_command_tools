@@ -229,7 +229,7 @@ class NetMonitor(object):
                 (ret_code, cmd_out) = self.get_sys_net(ifaces[i], 'carrier_changes')
                 if ret_code == 0:
                     values.append(KeyValue(key='carrier_changes', value=cmd_out))
-                    if cmd_out > self._carrier_changes_threshold:
+                    if int(cmd_out) > self._carrier_changes_threshold:
                         level = DiagnosticStatus.WARN
                         net_msg = 'Network unstable (carrier_changes: {}, threshold: {})'.format(cmd_out, self._carrier_changes_threshold)
                 (ret_code, cmd_out) = self.get_sys_net(ifaces[i], 'carrier_up_count')
