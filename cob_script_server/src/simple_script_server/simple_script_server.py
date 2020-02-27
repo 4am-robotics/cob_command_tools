@@ -127,6 +127,14 @@ class simple_script_server:
 		self.ns_global_prefix = "/script_server"
 		self.wav_path = ""
 		self.parse = parse
+		try:
+			robot_description = rospy.search_param('robot_description') if rospy.search_param('robot_description') else '/robot_description'
+			rospy.loginfo("Initialize urdf structure from '{}'".format(robot_description))
+			self.robot_urdf = URDF.from_parameter_server(key=robot_description)
+		except KeyError as key_err:
+			self.robot_urdf = None
+			message = "Unable to initialize urdf structure: {}".format(key_err)
+			rospy.logerr(message)
 		rospy.sleep(1) # we have to wait here until publishers are ready, don't ask why
 
 #------------------- Init section -------------------#
@@ -529,20 +537,12 @@ class simple_script_server:
 							param_string, param_vel, default_vel))
 		rospy.logdebug("default_vel: {}".format(default_vel))
 
-		try:
-			robot_description = rospy.search_param('robot_description') if rospy.search_param('robot_description') else '/robot_description'
-			rospy.loginfo("Initialize urdf structure from '{}'".format(robot_description))
-			robot_urdf = URDF.from_parameter_server(key=robot_description)
-		except KeyError as key_err:
-			message = "Unable to initialize urdf structure: {}".format(key_err)
-			rospy.logerr(message)
-			raise ValueError(message)
-
 		limit_vel = []
 		for idx, joint_name in enumerate(joint_names):
 			try:
-				limit_vel.append(robot_urdf.joint_map[joint_name].limit.velocity)
-			except KeyError:
+				limit_vel.append(self.robot_urdf.joint_map[joint_name].limit.velocity)
+			except Exception as e:
+				rospy.logwarn("Velocity limits for '{}' could not be retrieved from urdf structure:\n{}\nUsing default velocity: {}".format(joint_name, e, default_vel[idx]))
 				limit_vel.append(default_vel[idx])
 
 		# limit_vel from urdf or default_vel (from argument or parameter server)
@@ -1029,17 +1029,13 @@ class simple_script_server:
 			return ah
 
 		# step 2: get joint limits from urdf
-		try:
-			robot_description = rospy.search_param('robot_description') if rospy.search_param('robot_description') else '/robot_description'
-			rospy.loginfo("Initialize urdf structure from '{}'".format(robot_description))
-			robot_urdf = URDF.from_parameter_server(key=robot_description)
-		except KeyError as key_err:
-			message = "Unable to initialize urdf structure: {}".format(key_err)
+		if not self.robot_urdf:
+			message = "Failed to get joint limits from urdf structure - urdf structure is not initialized"
 			rospy.logerr(message)
 			ah.set_failed(3, message)
 			return ah
 		limits = {}
-		for joint in robot_urdf.joints:
+		for joint in self.robot_urdf.joints:
 			limits.update({joint.name : joint.limit})
 		
 		# step 3 calculate and send goal
