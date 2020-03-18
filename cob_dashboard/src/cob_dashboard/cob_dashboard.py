@@ -29,8 +29,8 @@ try:
 except ImportError:
 	from python_qt_binding.QtGui import QMessageBox # Qt 4
 
-from cob_battery import COBBattery
-from cob_runstops import COBRunstops
+from .cob_battery import COBBattery
+from .cob_runstops import COBRunstops
 
 
 class CobDashboard(Dashboard):

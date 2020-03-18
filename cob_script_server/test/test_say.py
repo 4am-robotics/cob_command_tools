@@ -21,6 +21,8 @@ import unittest
 import rospy
 import rostest
 
+import actionlib
+from cob_sound.msg import SayAction, SayResult
 from simple_script_server import *
 sss = simple_script_server()
 
@@ -47,7 +49,7 @@ class SayTest(unittest.TestCase):
 if __name__ == '__main__':
 	try:
 		rostest.run('rostest', 'test_say_test', SayTest, sys.argv)
-	except KeyboardInterrupt, e:
+	except KeyboardInterrupt as e:
 		pass
-	print "exiting"
+	print("exiting")
 

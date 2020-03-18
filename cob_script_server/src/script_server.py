@@ -15,16 +15,14 @@
 # limitations under the License.
 
 
-import time
 import inspect
 
 import rospy
 import actionlib
 
-from cob_script_server.msg import *
-from cob_script_server.srv import *
+from cob_script_server.msg import ScriptAction, ScriptActionResult
+from cob_script_server.srv import ComposeTrajectory, ComposeTrajectoryResponse
 from simple_script_server import *
-
 sss = simple_script_server()
 
 ## Script server class which inherits from script class.
@@ -42,7 +40,7 @@ class script_server():
 
 #------------------- Service section -------------------#
 	def handle_compose_trajectory(self, req):
-		print "compose trajectory", req.component_name, req.parameter_name
+		print("compose trajectory", req.component_name, req.parameter_name)
 		traj_msg, error_code = sss.compose_trajectory(req.component_name, req.parameter_name)
 		if error_code != 0:
 			return None

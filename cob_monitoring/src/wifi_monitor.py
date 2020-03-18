@@ -15,7 +15,7 @@
 # limitations under the License.
 
 
-from __future__ import with_statement, print_function
+
 
 import threading
 import sys
@@ -107,7 +107,7 @@ if __name__ == '__main__':
     try:
         rospy.init_node('ddwrt_diag')
     except rospy.exceptions.ROSInitException:
-        print('Wifi monitor is unable to initialize node. Master may not be running.', file=sys.stderr)
+        print('Wifi monitor is unable to initialize node. Master may not be running.')
         sys.exit(2)
 
     wifi_monitor = WifiMonitor()
@@ -119,7 +119,7 @@ if __name__ == '__main__':
             wifi_monitor.publish_stats()
     except KeyboardInterrupt:
         pass
-    except Exception, e:
+    except Exception as e:
         import traceback
         traceback.print_exc()
 

@@ -19,6 +19,9 @@ import sys
 import unittest
 
 import rospy
+import actionlib
+from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryResult
+from move_base_msgs.msg import MoveBaseAction, MoveBaseResult
 from simple_script_server import *
 sss = simple_script_server()
 

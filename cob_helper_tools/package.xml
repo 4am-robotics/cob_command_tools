@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>cob_helper_tools</name>
-  <version>0.6.15</version>
+  <version>0.6.16</version>
   <description>Helper scripts for Care-O-bot</description>
 
   <maintainer email="felixmessmer@gmail.com">Felix Messmer</maintainer>
@@ -19,6 +19,7 @@
   <exec_depend>cob_script_server</exec_depend>
   <exec_depend>diagnostic_msgs</exec_depend>
   <exec_depend>rospy</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
   <exec_depend>tf</exec_depend>
   <exec_depend>visualization_msgs</exec_depend>
 

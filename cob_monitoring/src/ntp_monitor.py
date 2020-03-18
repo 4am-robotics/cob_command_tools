@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
+
 
 import sys
 import socket
@@ -83,7 +83,7 @@ class NtpMonitor():
                     st.level = DiagnosticStatus.ERROR
                     st.message = "NTP Offset Too High"
 
-        except Exception, e:
+        except Exception as e:
             stat.level = DiagnosticStatus.ERROR
             stat.message = 'ntpdate Exception'
             stat.values = [ KeyValue(key = 'Exception', value = str(e)) ]
@@ -112,7 +112,7 @@ class NtpMonitor():
 
         if (len(args) != 2):
             parser.error("Invalid arguments. Must have HOSTNAME [args]. %s" % args)
-            print('Invalid arguments.', file=sys.stderr)
+            print('Invalid arguments.')
             sys.exit(0)
 
         try:
@@ -120,7 +120,7 @@ class NtpMonitor():
             error_offset = int(options.error_offset)
         except:
             parser.error("Offsets must be numbers")
-            print('Offsets must be numbers', file=sys.stderr)
+            print('Offsets must be numbers')
             sys.exit(0)
 
         self.ntp_server = args[1]

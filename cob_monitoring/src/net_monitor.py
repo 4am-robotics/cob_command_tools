@@ -40,7 +40,7 @@
 
 # copied from https://github.com/ethz-asl/ros-system-monitor
 
-from __future__ import with_statement
+
 
 import rospy
 
@@ -61,6 +61,7 @@ class NetMonitor(object):
         self._diag_hostname = rospy.get_param('~diag_hostname', "localhost")
         self._net_level_warn = rospy.get_param('~net_level_warn', 0.95)
         self._net_capacity = rospy.get_param('~net_capacity', 128)
+        self._carrier_changes_threshold = rospy.get_param('~carrier_changes_threshold', 20)
         self._usage_stat = DiagnosticStatus()
         self._usage_stat.name = '%s Network Usage' % self._diag_hostname
         self._usage_stat.hardware_id = self._diag_hostname
@@ -94,8 +95,9 @@ class NetMonitor(object):
             return -1, None
 
     def check_network(self):
+        level = DiagnosticStatus.OK
+        net_msg = 'OK'
         values = []
-        net_dict = {0: 'OK', 1: 'High Network Usage', 2: 'Network Down', 3: 'Call Error'}
         try:
             p = subprocess.Popen('ifstat -q -S 1 1',
                                  stdout=subprocess.PIPE,
@@ -105,7 +107,7 @@ class NetMonitor(object):
             if ret_code != 0:
                 values.append(KeyValue(key="\"ifstat -q -S 1 1\" Call Error",
                                        value=str(ret_code)))
-                return DiagnosticStatus.ERROR, net_dict[3], values
+                return DiagnosticStatus.ERROR, 'Call Error', values
             rows = stdout.split('\n')
             data = rows[0].split()
             ifaces = []
@@ -128,6 +130,7 @@ class NetMonitor(object):
                     ifacematch = re.match('eth[0-9]+', ifaces[i]) or re.match('eno[0-9]+', ifaces[i])
                     if ifacematch and (cmd_out == 'down' or cmd_out == 'dormant'):
                         level = DiagnosticStatus.ERROR
+                        net_msg = 'Network Down'
                 values.append(KeyValue(key='Input Traffic',
                                        value=str(float(kb_in[i]) / 1024) + " (MB/s)")) if kb_in[i] != 'n/a' else 0
                 values.append(KeyValue(key='Output Traffic',
@@ -137,6 +140,7 @@ class NetMonitor(object):
                 if net_usage_in > self._net_level_warn or \
                         net_usage_out > self._net_level_warn:
                     level = DiagnosticStatus.WARN
+                    net_msg = 'High Network Usage (net_usage_in: {}, net_usage_out: {}, threshold: {})'.format(net_usage_in, net_usage_out, self._net_level_warn)
                 (ret_code, cmd_out) = self.get_sys_net(ifaces[i], 'mtu')
                 if ret_code == 0:
                     values.append(KeyValue(key='MTU', value=cmd_out))
@@ -225,6 +229,9 @@ class NetMonitor(object):
                 (ret_code, cmd_out) = self.get_sys_net(ifaces[i], 'carrier_changes')
                 if ret_code == 0:
                     values.append(KeyValue(key='carrier_changes', value=cmd_out))
+                    if int(cmd_out) > self._carrier_changes_threshold:
+                        level = DiagnosticStatus.WARN
+                        net_msg = 'Network unstable (carrier_changes: {}, threshold: {})'.format(cmd_out, self._carrier_changes_threshold)
                 (ret_code, cmd_out) = self.get_sys_net(ifaces[i], 'carrier_up_count')
                 if ret_code == 0:
                     values.append(KeyValue(key='carrier_up_count', value=cmd_out))
@@ -237,12 +244,12 @@ class NetMonitor(object):
                 (ret_code, cmd_out) = self.get_sys_net(ifaces[i], 'tx_queue_len')
                 if ret_code == 0:
                     values.append(KeyValue(key='tx_queue_len', value=cmd_out))
-        except Exception, e:
+        except Exception as e:
             rospy.logerr(traceback.format_exc())
-            msg = 'Network Usage Check Error'
-            values.append(KeyValue(key=msg, value=str(e)))
+            net_msg = 'Network Usage Check Error'
+            values.append(KeyValue(key=net_msg, value=str(e)))
             level = DiagnosticStatus.ERROR
-        return level, net_dict[level], values
+        return level, net_msg, values
 
     def check_usage(self, _):
         diag_level = DiagnosticStatus.OK

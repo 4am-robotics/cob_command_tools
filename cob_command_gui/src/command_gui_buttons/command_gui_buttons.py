@@ -120,11 +120,14 @@ class command_gui_buttons:
 		#	print "values = ", dictionary[key]
 		return [[key,dictionary[key]] for key in keys]
 
+	def idfun(self,x):
+		return x
+
 	## Uniqifies a list to not have double entries
 	def uniqify_list(self,seq, idfun=None):
 		# order preserving
 		if idfun is None:
-			def idfun(x): return x
+			idfun=self.idfun
 		seen = {}
 		result = []
 		for item in seq:

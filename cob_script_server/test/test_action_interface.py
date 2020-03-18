@@ -21,6 +21,9 @@ import unittest
 import rospy
 import actionlib
 from simple_script_server import *
+from cob_script_server.msg import ScriptAction, ScriptGoal
+from std_srvs.srv import Trigger, TriggerResponse
+from move_base_msgs.msg import MoveBaseAction, MoveBaseResult
 
 ## This test checks the correct call to commands from the cob_script_server. This does not cover the execution of the commands (this shoud be checked in the package where the calls refer to).
 class TestActionInterface(unittest.TestCase):

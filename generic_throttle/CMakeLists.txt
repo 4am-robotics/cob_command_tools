@@ -7,5 +7,5 @@ catkin_python_setup()
 
 catkin_package()
 
-install(PROGRAMS scripts/generic_throttle_node.py
+catkin_install_python(PROGRAMS scripts/${PROJECT_NAME}_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

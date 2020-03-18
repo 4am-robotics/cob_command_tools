@@ -8,8 +8,8 @@ catkin_python_setup()
 catkin_package()
 
 ### Install ###
-install(PROGRAMS scripts/cob_dashboard scripts/cob_dashboard_aggregator.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}/scripts
+catkin_install_python(PROGRAMS scripts/${PROJECT_NAME} scripts/${PROJECT_NAME}_aggregator.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 install(FILES plugin.xml
