@@ -2,8 +2,8 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.16 (2020-03-18)
+-------------------
 * Merge pull request `#280 <https://github.com/ipa320/cob_command_tools/issues/280>`_ from fmessmer/fix/init_urdf_structure
   initialize urdf structure only once during init
 * initialize urdf structure only once during init

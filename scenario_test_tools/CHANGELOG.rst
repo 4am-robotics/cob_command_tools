@@ -2,8 +2,8 @@
 Changelog for package scenario_test_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.16 (2020-03-18)
+-------------------
 * Merge pull request `#277 <https://github.com/ipa320/cob_command_tools/issues/277>`_ from LoyVanBeek/feature/document_move_base
   Document move base
 * Sort CMakelist

@@ -2,8 +2,8 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.16 (2020-03-18)
+-------------------
 * Merge pull request `#278 <https://github.com/ipa320/cob_command_tools/issues/278>`_ from fmessmer/fix_net_monitor
   fix int conversion for carrier_changes
 * fix int conversion for carrier_changes

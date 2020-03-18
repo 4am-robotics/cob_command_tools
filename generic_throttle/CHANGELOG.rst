@@ -2,8 +2,8 @@
 Changelog for package generic_throttle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.16 (2020-03-18)
+-------------------
 * Merge pull request `#270 <https://github.com/ipa320/cob_command_tools/issues/270>`_ from LoyVanBeek/feature/python3_compatibility
   [ci_updates] pylint + Python3 compatibility
 * fix more pylint errors
