@@ -2,6 +2,35 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#278 <https://github.com/ipa320/cob_command_tools/issues/278>`_ from fmessmer/fix_net_monitor
+  fix int conversion for carrier_changes
+* fix int conversion for carrier_changes
+* Merge pull request `#275 <https://github.com/ipa320/cob_command_tools/issues/275>`_ from fmessmer/refactor_hz_monitor
+  refactor hz monitor
+* allow min_duration until setting no_messages_anymore
+* explicit sleep
+* make hz and hzerror mandatory parameters
+* refactor hz_monitor
+* use format for log strings
+* Merge pull request `#270 <https://github.com/ipa320/cob_command_tools/issues/270>`_ from LoyVanBeek/feature/python3_compatibility
+  [ci_updates] pylint + Python3 compatibility
+* fix isnumeric
+* fix more pylint errors
+* fix pylint errors
+* python3 compatibility via 2to3
+* Merge pull request `#271 <https://github.com/ipa320/cob_command_tools/issues/271>`_ from fmessmer/ci_updates
+  [travis] ci updates
+* catkin_lint fixes
+* Merge pull request `#268 <https://github.com/ipa320/cob_command_tools/issues/268>`_ from fmessmer/carrier_changes_diag_warn
+  diag warn for carrier changes
+* diag warn for carrier changes
+* Merge pull request `#267 <https://github.com/ipa320/cob_command_tools/issues/267>`_ from HannesBachter/fix/network_error_message
+  [wlan monitor] print executing user for wlan monitor error message
+* print executing user for wlan monitor error message
+* Contributors: Felix Messmer, Loy van Beek, fmessmer, hyb
+
 0.6.15 (2019-11-07)
 -------------------
 * Merge pull request `#255 <https://github.com/ipa320/cob_command_tools/issues/255>`_ from floweisshardt/fix/wlan_monitor

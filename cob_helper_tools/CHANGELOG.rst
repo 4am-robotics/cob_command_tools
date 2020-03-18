@@ -2,6 +2,20 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#270 <https://github.com/ipa320/cob_command_tools/issues/270>`_ from LoyVanBeek/feature/python3_compatibility
+  [ci_updates] pylint + Python3 compatibility
+* python3 compatibility via 2to3
+* Merge pull request `#271 <https://github.com/ipa320/cob_command_tools/issues/271>`_ from fmessmer/ci_updates
+  [travis] ci updates
+* catkin_lint fixes
+* Merge pull request `#265 <https://github.com/ipa320/cob_command_tools/issues/265>`_ from HannesBachter/feature/recover_service
+  add services to en- and disable auto recover
+* add services to en- and disable auto recover
+  add services to en- and disable auto recover
+* Contributors: Felix Messmer, Loy van Beek, fmessmer, hyb
+
 0.6.15 (2019-11-07)
 -------------------
 * Merge pull request `#253 <https://github.com/ipa320/cob_command_tools/issues/253>`_ from benmaidel/fix/visualize_nav_goals

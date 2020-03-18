@@ -2,6 +2,73 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#280 <https://github.com/ipa320/cob_command_tools/issues/280>`_ from fmessmer/fix/init_urdf_structure
+  initialize urdf structure only once during init
+* initialize urdf structure only once during init
+* Merge pull request `#270 <https://github.com/ipa320/cob_command_tools/issues/270>`_ from LoyVanBeek/feature/python3_compatibility
+  [ci_updates] pylint + Python3 compatibility
+* Use six to handle input vs raw_input
+* cleanup cob_script_server
+* fix more pylint errors
+* use threading
+* fix pylint errors
+* python3 compatibility via 2to3
+* Merge pull request `#273 <https://github.com/ipa320/cob_command_tools/issues/273>`_ from floweisshardt/fix/move_base_without_global_map
+  publish move_base goal without global /map
+* publish move_base goal without global /map
+* Merge pull request `#271 <https://github.com/ipa320/cob_command_tools/issues/271>`_ from fmessmer/ci_updates
+  [travis] ci updates
+* catkin_lint fixes
+* Merge pull request `#260 <https://github.com/ipa320/cob_command_tools/issues/260>`_ from fmessmer/feature/calculate_traj_point_velocities
+  proper traj velocity calculation
+* add opt-out stop_at_waypoints
+* use logdebug for debug output
+* fix trajectory point velocity calculation
+* drop start after time calculation
+* filter duplicate or close configs in trajectory
+* fix array type
+* set accelerations to 0.0
+* not use min_point_time 0.4
+* drop first traj point if close to start_pos
+* improve debug output
+* remove hardcoded point velocities and accelerations
+* add debug output
+* epsilon check and elementwise zero-velocity
+* proper traj velocity calculation
+* Merge pull request `#264 <https://github.com/ipa320/cob_command_tools/issues/264>`_ from fmessmer/fix/robot_description_ns
+  fix robot_description namespace handling
+* fix robot_description namespace handling
+* Merge pull request `#259 <https://github.com/ipa320/cob_command_tools/issues/259>`_ from LoyVanBeek/feature/faster_sss_trajectories
+  Feature/faster sss trajectories
+* fix log formatting
+* explicit robot_description key
+* Move all code to determine the desired velocity to a private method
+  Code to determine this got too big to contain all the various branches and edge cases
+* Fix undeclared variable
+* feature/calculate traj point velocities (`#1 <https://github.com/ipa320/cob_command_tools/issues/1>`_)
+  feature/calculate traj point velocities
+* fix error case velocities zero or negative
+* fixup acc default value
+* fixup variable name
+* fixup limit_vel and add debug output
+* add vel_limit check
+* return failure on invalid arguments
+* expose arguments to move_rel
+* allow to pass default_vel via sss argument
+* allow setting default_vel and default_acc per joint as list of float/int via yaml
+* Rename d_max to dist
+* Optionally use the URDF-derived velocities
+* Extend sss.move with a speed_factor to speed up movements
+* fixup! Iterate over all joints to calculate_point_time and take the  slowest time for all joints
+* Get joint velocity from URDF in compose_trajectory
+* Iterate over all joints to calculate_point_time and take the  slowest time for all joints
+  Earlier only 1 joint velocity and acceleration was used.
+  TOOD: Read velocity (and acceleration?) from URDF
+* Explicitly import numpy. This was implicitly imported via at least tf.transformations and possibly others
+* Contributors: Felix Messmer, Florian Weisshardt, Loy, Loy van Beek, floweisshardt, fmessmer
+
 0.6.15 (2019-11-07)
 -------------------
 * Merge pull request `#261 <https://github.com/ipa320/cob_command_tools/issues/261>`_ from fmessmer/fix/travis
