@@ -34,6 +34,7 @@ import rospy
 import actionlib
 from actionlib.action_client import GoalStatus
 from actionlib.msg import TestAction, TestGoal
+from actionlib_msgs.msg import GoalStatus
 
 from urdf_parser_py.urdf import URDF
 
@@ -560,7 +561,7 @@ class simple_script_server:
 
 		if (numpy.any(desired_vel <= numpy.zeros_like(desired_vel))):
 			raise ValueError("desired velocities {} cannot be zero or negative,...aborting".format(desired_vel))
-		rospy.loginfo("Velocities are: {}".format(desired_vel))
+		rospy.logdebug("Velocities are: {}".format(desired_vel))
 		return desired_vel
 
 	## Parse and compose trajectory message
@@ -1500,7 +1501,7 @@ class action_handle:
 		if self.client_mode != "": # not processing an actionlib client
 			return self.client_state
 		elif self.client == None:
-			return None
+			return GoalStatus.LOST
 		else:
 			return self.client.get_state()
 
