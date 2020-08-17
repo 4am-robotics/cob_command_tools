@@ -37,6 +37,9 @@ class ScriptableServiceServer(ScriptableBase):
 
         self._srv = rospy.Service(name, service_type, self._execute_cb)
 
+    def __repr__(self):
+        return "ScriptableServiceServer('{}')".format(self._name)
+
     def stop(self):
         super(ScriptableServiceServer, self).stop()
 
