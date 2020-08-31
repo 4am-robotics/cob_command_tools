@@ -70,6 +70,10 @@ class ScriptableBase(object):
 
         self._pre_reply_callbacks = []
 
+    @property
+    def name(self):
+        return self._name
+
     def stop(self):
         """
         If the process is blocked by waiting for some Events to be set, stop sets those Events.
