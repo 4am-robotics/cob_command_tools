@@ -32,7 +32,6 @@ import pygraphviz as pgv
 # ROS imports
 import rospy
 import actionlib
-from actionlib.action_client import GoalStatus
 from actionlib.msg import TestAction, TestGoal
 from actionlib_msgs.msg import GoalStatus
 
