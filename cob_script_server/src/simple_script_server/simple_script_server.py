@@ -1439,7 +1439,7 @@ class action_handle:
 		self.state_pub = rospy.Publisher("/script_server/state", ScriptState, queue_size=1)
 		self.AppendNode(blocking)
 		self.client = None
-		self.client_state = 9
+		self.client_state = GoalStatus.LOST
 		self.client_mode = ""
 
 	## Sets the actionlib client.
@@ -1450,7 +1450,7 @@ class action_handle:
 	def set_active(self,mode=""):
 		if mode != "": # not processing an actionlib client
 			self.client_mode = mode
-			self.client_state = 1
+			self.client_state = GoalStatus.ACTIVE
 		self.check_pause()
 		self.state = ScriptState.ACTIVE
 		self.error_code = -1
@@ -1473,7 +1473,7 @@ class action_handle:
 	## Sets the execution state to succeeded.
 	def set_succeeded(self,message=""):
 		if self.client_mode != "": # not processing an actionlib client
-			self.client_state = 3
+			self.client_state = GoalStatus.SUCCEEDED
 		self.state = ScriptState.SUCCEEDED
 		self.error_code = 0
 		self.success = True
@@ -1486,7 +1486,7 @@ class action_handle:
 	## Sets the execution state to failed.
 	def set_failed(self,error_code,message=""):
 		if self.client_mode != "": # not processing an actionlib client
-			self.client_state = 4
+			self.client_state = GoalStatus.ABORTED
 		self.state = ScriptState.FAILED
 		self.error_code = error_code
 		self.success = False
@@ -1620,7 +1620,7 @@ class action_handle:
 					return
 			# check state of action server
 			#print self.client.get_state()
-			if self.client.get_state() != 3:
+			if self.client.get_state() != GoalStatus.SUCCEEDED:
 				message = "...<<%s>> could not reach <<%s>>, aborting..."%(self.component_name, self.parameter_name)
 				if logging:
 					rospy.logerr(message)
