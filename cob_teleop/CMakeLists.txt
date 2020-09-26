@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(cob_teleop)
 
 find_package(catkin REQUIRED COMPONENTS actionlib cob_actions cob_light cob_script_server cob_sound geometry_msgs roscpp sensor_msgs std_msgs std_srvs)
