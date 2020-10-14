@@ -13,7 +13,7 @@ env:
     - CATKIN_LINT_ARGS='--ignore description_boilerplate --ignore target_name_collision'
     - CMAKE_ARGS=-DCMAKE_BUILD_TYPE=Release
     - NOT_TEST_DOWNSTREAM=true
-    - PYLINT_ARGS="--output-format=parseable --errors-only --ignored-modules=catkin_pkg,cv2,itertools,gtk,gtk.gdk,mechanize,numpy,paramiko,psutil,pygraphviz,pygtk,python_qt_binding,python_qt_binding.QtCore,requests"
+    - PYLINT_ARGS="--output-format=parseable --errors-only --ignored-modules=catkin_pkg,cv2,itertools,gtk,gtk.gdk,mechanize,numpy,paramiko,psutil,pygraphviz,pygtk,python_qt_binding,python_qt_binding.QtCore,requests,setuptools"
     - PYLINT2_CHECK=true
     - PYLINT3_CHECK=true
     - ROS_REPO=ros
