@@ -1,4 +1,8 @@
-<package format="2">
+<?xml version="1.0"?>
+<?xml-model
+  href="http://download.ros.org/schema/package_format3.xsd"
+  schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>cob_monitoring</name>
   <version>0.6.16</version>
   <description>cob_monitoring</description>
@@ -26,7 +30,8 @@
   <exec_depend>ifstat</exec_depend>
   <exec_depend>ipmitool</exec_depend>
   <exec_depend>ntpdate</exec_depend>
-  <exec_depend>paramiko</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-paramiko</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-paramiko</exec_depend>
   <exec_depend>python-mechanize</exec_depend>
   <exec_depend>python-psutil</exec_depend>
   <exec_depend>python-requests</exec_depend>
