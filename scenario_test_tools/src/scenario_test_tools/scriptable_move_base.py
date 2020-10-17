@@ -23,6 +23,16 @@ from scenario_test_tools.scriptable_action_server import ScriptableActionServer
 from scenario_test_tools.util import countdown_sleep, round_tuple
 
 
+def format_move_base_goal(mbg):
+    roll, pitch, yaw = tf.transformations.euler_from_quaternion(
+        [mbg.target_pose.pose.orientation.x, mbg.target_pose.pose.orientation.y, mbg.target_pose.pose.orientation.z,
+         mbg.target_pose.pose.orientation.w])
+    return "MoveBase to: (x={x}, y={y}, yaw={yaw})".format(
+        x=mbg.target_pose.pose.position.x,
+        y=mbg.target_pose.pose.position.y,
+        yaw=yaw)
+
+
 class ScriptableMoveBase(ScriptableActionServer):
     def __init__(self, name, action_type, goal_formatter=format, result_formatter=format, default_result=None, default_result_delay=0, pub_transform=True):
         ScriptableActionServer.__init__(self,

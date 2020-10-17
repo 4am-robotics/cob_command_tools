@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(cob_script_server)
 
 find_package(catkin REQUIRED COMPONENTS actionlib actionlib_msgs message_generation rostest trajectory_msgs)

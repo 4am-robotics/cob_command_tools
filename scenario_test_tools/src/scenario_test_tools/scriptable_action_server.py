@@ -58,6 +58,13 @@ class ScriptableActionServer(ScriptableBase):
         self._as.register_goal_callback(self._execute_cb)
         self._as.register_preempt_callback(self._preempt_cb)
 
+    def __repr__(self):
+        return "ScriptableActionServer('{}')".format(self._name)
+
+    @property
+    def connected(self):
+        return self._as.action_server.goal_sub.get_num_connections() >= 1
+
     def start(self):
         """
         Start the action server and thus listen to goals
