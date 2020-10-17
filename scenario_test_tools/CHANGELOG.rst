@@ -2,6 +2,17 @@
 Changelog for package scenario_test_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#284 <https://github.com/ipa320/cob_command_tools/issues/284>`_ from fmessmer/test_noetic
+  test noetic
+* use setuptools instead of distutils
+* Bump CMake version to avoid CMP0048 warning
+* Merge pull request `#283 <https://github.com/ipa320/cob_command_tools/issues/283>`_ from LoyVanBeek/feature/await_connections
+  Allow scripts to await for ScriptableActionServers to be connected
+* Allow scripts to await for ScriptableActionSeervers to be connected
+* Contributors: Felix Messmer, Loy van Beek, fmessmer
+
 0.6.16 (2020-03-18)
 -------------------
 * Merge pull request `#277 <https://github.com/ipa320/cob_command_tools/issues/277>`_ from LoyVanBeek/feature/document_move_base

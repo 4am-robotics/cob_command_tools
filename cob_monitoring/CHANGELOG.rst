@@ -2,6 +2,14 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#284 <https://github.com/ipa320/cob_command_tools/issues/284>`_ from fmessmer/test_noetic
+  test noetic
+* ROS_PYTHON_VERSION conditional dependency for paramiko
+* Bump CMake version to avoid CMP0048 warning
+* Contributors: Felix Messmer, fmessmer
+
 0.6.16 (2020-03-18)
 -------------------
 * Merge pull request `#278 <https://github.com/ipa320/cob_command_tools/issues/278>`_ from fmessmer/fix_net_monitor

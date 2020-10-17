@@ -2,6 +2,19 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#284 <https://github.com/ipa320/cob_command_tools/issues/284>`_ from fmessmer/test_noetic
+  test noetic
+* use setuptools instead of distutils
+* Bump CMake version to avoid CMP0048 warning
+* Merge pull request `#282 <https://github.com/ipa320/cob_command_tools/issues/282>`_ from floweisshardt/fix/actionlib_state
+  fix actionlib state handling for non initialized action clients
+* use GoalStatus message import only
+* use GoalStatus enum explicitly
+* fix actionlib state handling for non initialized action clients
+* Contributors: Felix Messmer, floweisshardt, fmessmer
+
 0.6.16 (2020-03-18)
 -------------------
 * Merge pull request `#280 <https://github.com/ipa320/cob_command_tools/issues/280>`_ from fmessmer/fix/init_urdf_structure
