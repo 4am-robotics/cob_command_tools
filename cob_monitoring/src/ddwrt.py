@@ -50,7 +50,8 @@ class WifiAP:
   def fetchSiteSurvey(self):
     url = "http://%s/Site_Survey.asp" % self.hostname
 
-    response = self.newBrowser().open(url)
+    browser = self.newBrowser()
+    response = browser.open(url)  # pylint: disable=assignment-from-none
 
     body = response.read()
 
@@ -90,7 +91,9 @@ class WifiAP:
 
   def fetchBandwidthStats(self, interface):
     url = "http://%s/fetchif.cgi?%s" % (self.hostname, interface)
-    response = self.newBrowser().open(url)
+
+    browser = self.newBrowser()
+    response = browser.open(url)  # pylint: disable=assignment-from-none
     body = response.read()
 
     lines = body.split("\n")
@@ -104,7 +107,9 @@ class WifiAP:
 
   def fetchCurrentAP(self):
     url = "http://%s/Status_Wireless.live.asp" % self.hostname
-    response = self.newBrowser().open(url)
+
+    browser = self.newBrowser()
+    response = browser.open(url)  # pylint: disable=assignment-from-none
     body = response.read()
 
     line = None
