@@ -2,8 +2,8 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.18 (2020-10-21)
+-------------------
 * Merge pull request `#286 <https://github.com/ipa320/cob_command_tools/issues/286>`_ from fmessmer/fix_noetic
   fix noetic
 * ignore pylint assignment-from-none
