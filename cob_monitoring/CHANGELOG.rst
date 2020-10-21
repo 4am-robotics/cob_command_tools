@@ -2,6 +2,16 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.18 (2020-10-21)
+-------------------
+* Merge pull request `#286 <https://github.com/ipa320/cob_command_tools/issues/286>`_ from fmessmer/fix_noetic
+  fix noetic
+* ignore pylint assignment-from-none
+* ROS_PYTHON_VERSION conditional dependency for psutil
+* ROS_PYTHON_VERSION conditional dependency for requests
+* ROS_PYTHON_VERSION conditional dependency for mechanize
+* Contributors: Felix Messmer, fmessmer
+
 0.6.17 (2020-10-17)
 -------------------
 * Merge pull request `#284 <https://github.com/ipa320/cob_command_tools/issues/284>`_ from fmessmer/test_noetic

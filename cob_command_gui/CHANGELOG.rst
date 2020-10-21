@@ -2,6 +2,9 @@
 Changelog for package cob_command_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.18 (2020-10-21)
+-------------------
+
 0.6.17 (2020-10-17)
 -------------------
 * Merge pull request `#284 <https://github.com/ipa320/cob_command_tools/issues/284>`_ from fmessmer/test_noetic
