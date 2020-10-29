@@ -7,7 +7,9 @@ generate_dynamic_reconfigure_options(
   cfg/HelperTools.cfg
 )
 
-catkin_package()
+catkin_package(
+  CATKIN_DEPENDS dynamic_reconfigure
+)
 
 #############
 ## Install ##
