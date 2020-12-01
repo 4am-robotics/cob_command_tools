@@ -16,8 +16,10 @@
 
 
 from threading import Thread
-import pygtk
-pygtk.require('2.0')
+from gi import pygtkcompat
+pygtkcompat.enable()
+pygtkcompat.enable_gtk(version='3.0')
+
 import gtk
 import os
 import sys
@@ -162,18 +164,18 @@ class GtkGeneralPanel(gtk.Frame):
   def setEMStop(self, em):
     if(em):
       #print("Emergency Stop Active")
-      gtk.threads_enter()
+      gtk.gdk.threads_enter()
       self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/error.png")
       self.status_label.set_text("EM Stop !")
-      gtk.threads_leave()
+      gtk.gdk.threads_leave()
       if(self.em_stop == False):
         self.em_stop = True
     else:
       #print("Status OK")
       self.status_image.set_from_file(roslib.packages.get_pkg_dir("cob_command_gui") + "/common/files/icons/ok.png")
-      gtk.threads_enter()
+      gtk.gdk.threads_enter()
       self.status_label.set_text("Status OK")
-      gtk.threads_leave()
+      gtk.gdk.threads_leave()
       if(self.em_stop == True):
         self.em_stop = False
 
