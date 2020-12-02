@@ -4,7 +4,7 @@
   schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>scenario_test_tools</name>
-  <version>0.6.18</version>
+  <version>0.6.19</version>
   <description>The scenario_test_tools package implements helpers for scriptable scenario testing.
     It allows to set up a test harness for eg. a state machine or other high level behavior by
     providing mocked implementations for various action servers and services that work together</description>

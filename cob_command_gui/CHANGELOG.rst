@@ -2,8 +2,8 @@
 Changelog for package cob_command_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.19 (2020-12-02)
+-------------------
 * Merge pull request `#288 <https://github.com/ipa320/cob_command_tools/issues/288>`_ from benmaidel/noetic_migration
   [noetic] cob_command_gui migration
 * switch from pygtk to pygobject's pygtkcompat compatibility layer
