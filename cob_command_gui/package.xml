@@ -22,8 +22,8 @@
 
   <exec_depend>cob_msgs</exec_depend>
   <exec_depend>cob_script_server</exec_depend>
-  <exec_depend>python-gtk2</exec_depend>
-  <exec_depend>python-pygraphviz</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-gi</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-gi</exec_depend>
   <exec_depend>roslib</exec_depend>
   <exec_depend>rospy</exec_depend>
 
