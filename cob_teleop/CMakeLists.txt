@@ -4,7 +4,7 @@ project(cob_teleop)
 find_package(catkin REQUIRED COMPONENTS actionlib cob_actions cob_light cob_script_server cob_sound geometry_msgs roscpp sensor_msgs std_msgs std_srvs)
 
 catkin_package(
-  CATKIN_DEPENDS geometry_msgs sensor_msgs std_msgs
+  CATKIN_DEPENDS actionlib cob_actions cob_light cob_script_server cob_sound geometry_msgs roscpp sensor_msgs std_msgs std_srvs
 )
 
 ### Build ###
