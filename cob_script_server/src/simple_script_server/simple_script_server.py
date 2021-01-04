@@ -26,6 +26,11 @@ import itertools
 import six
 from threading import Thread
 
+try: # izip is only available in 2.x
+    from itertools import izip as zip
+except ImportError: 
+    pass
+
 # graph includes
 import pygraphviz as pgv
 
@@ -736,7 +741,7 @@ class simple_script_server:
 		prevs, items, nexts = itertools.tee(traj_msg.points, 3)
 		prevs = itertools.chain([None], prevs)
 		nexts = itertools.chain(itertools.islice(nexts, 1, None), [None])
-		for idx, (pre, curr, post) in enumerate(itertools.izip(prevs, items, nexts)):
+		for idx, (pre, curr, post) in enumerate(zip(prevs, items, nexts)):
 			traj_msg.points[idx].velocities = self.calculate_point_velocities(pre, curr, post, stop_at_waypoints)
 			traj_msg.points[idx].accelerations = self.calculate_point_accelerations(pre, curr, post)
 
