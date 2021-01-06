@@ -34,10 +34,12 @@ class GenericThrottle:
         topics_param_name = '~topics'
         if not rospy.has_param(topics_param_name):
             rospy.logerr('Parameter ' + topics_param_name + ' not available')
-        topics_list = rospy.get_param(topics_param_name, [])
+
+        # See README for format
+        topics_list = rospy.get_param(topics_param_name, [])  # type: List[Mapping]
 
         # create dictionary out of the topic list
-        self.topics = {item.keys()[0]: item.values()[0] for item in topics_list}
+        self.topics = {next(iter(item.keys())): next(iter(item.values())) for item in topics_list}
 
         # Check if each entry of topics has the mandatory parameters
         mandatory_flag = all(set(mandatory_parameters) <=
