@@ -44,7 +44,7 @@ class GenericThrottle:
         # Check if each entry of topics has the mandatory parameters
         mandatory_flag = all(set(mandatory_parameters) <=
                              set(element) for key, element in
-                             self.topics.iteritems())
+                             self.topics.items())
 
         if(not(mandatory_flag)):
             rospy.logerr('Each throttled topic needs 3 parameters ' +
@@ -153,7 +153,7 @@ class GenericThrottle:
         # {topic_id: {topic_rate, lazy, latched, subscriber,
         # publisher, lock, timer, last_message}
 
-        for key, element in self.topics.iteritems():
+        for key, element in self.topics.items():
             element['lock'] = Lock()
             element['lock'].acquire_lock()
             element['publisher'] = None
