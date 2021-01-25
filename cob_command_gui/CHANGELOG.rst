@@ -2,6 +2,13 @@
 Changelog for package cob_command_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.20 (2021-01-25)
+-------------------
+* Merge pull request `#291 <https://github.com/ipa320/cob_command_tools/issues/291>`_ from fmessmer/fix_python3
+  fix python3
+* use keys vs iterkeys for python3-compatibility
+* Contributors: Felix Messmer, fmessmer
+
 0.6.19 (2020-12-02)
 -------------------
 * Merge pull request `#288 <https://github.com/ipa320/cob_command_tools/issues/288>`_ from benmaidel/noetic_migration

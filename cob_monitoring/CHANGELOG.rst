@@ -2,6 +2,13 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.20 (2021-01-25)
+-------------------
+* Merge pull request `#295 <https://github.com/ipa320/cob_command_tools/issues/295>`_ from fmessmer/cob_monitoring_comment_dependency_python-mechanize
+  commenting dependency python3-mechanize
+* commenting dependency python3-mechanize
+* Contributors: Felix Messmer, fmessmer
+
 0.6.19 (2020-12-02)
 -------------------
 * Merge pull request `#287 <https://github.com/ipa320/cob_command_tools/issues/287>`_ from fmessmer/fix_catkin_lint

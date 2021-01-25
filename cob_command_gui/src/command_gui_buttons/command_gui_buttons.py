@@ -113,7 +113,7 @@ class command_gui_buttons:
 
 	## Sorts a dictionary alphabetically
 	def SortDict(self,dictionary):
-		keys = sorted(dictionary.iterkeys())
+		keys = sorted(dictionary.keys())
 		k=[]
 		#print "keys = ", keys
 		#for key in keys:

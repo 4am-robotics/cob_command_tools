@@ -2,6 +2,18 @@
 Changelog for package generic_throttle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.20 (2021-01-25)
+-------------------
+* Merge pull request `#294 <https://github.com/ipa320/cob_command_tools/issues/294>`_ from fmessmer/fix_python3
+  fix python3
+* fix python3
+* Merge pull request `#291 <https://github.com/ipa320/cob_command_tools/issues/291>`_ from fmessmer/fix_python3
+  fix python3
+* Merge pull request `#3 <https://github.com/ipa320/cob_command_tools/issues/3>`_ from LoyVanBeek/fix_python3
+  Get first key and value compatible with both Python 2 & 3
+* Get first key and value compatible with both Python 2 & 3
+* Contributors: Felix Messmer, Loy van Beek, fmessmer
+
 0.6.19 (2020-12-02)
 -------------------
 
