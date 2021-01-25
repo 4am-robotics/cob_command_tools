@@ -2,8 +2,8 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.20 (2021-01-25)
+-------------------
 * Merge pull request `#291 <https://github.com/ipa320/cob_command_tools/issues/291>`_ from fmessmer/fix_python3
   fix python3
 * import itertools.izip as zip for python3-compatibility

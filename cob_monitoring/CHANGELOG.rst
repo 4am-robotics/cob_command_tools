@@ -2,8 +2,8 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.20 (2021-01-25)
+-------------------
 * Merge pull request `#295 <https://github.com/ipa320/cob_command_tools/issues/295>`_ from fmessmer/cob_monitoring_comment_dependency_python-mechanize
   commenting dependency python3-mechanize
 * commenting dependency python3-mechanize
