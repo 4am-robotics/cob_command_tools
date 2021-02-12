@@ -16,9 +16,12 @@
 
 
 from threading import Thread
+import gi
 from gi import pygtkcompat
 pygtkcompat.enable()
 pygtkcompat.enable_gtk(version='3.0')
+gi.require_version('Gdk', '3.0')
+gi.require_version('Gtk', '3.0')
 
 import gtk
 import os
