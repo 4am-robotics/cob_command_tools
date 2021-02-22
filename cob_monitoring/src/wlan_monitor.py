@@ -173,6 +173,10 @@ class IwConfigLocal(IwConfigParser):
             p = Popen("iw dev | awk '$1==\"Interface\"{print $2}'", stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
             res = p.wait()
             (stdout,stderr) = p.communicate()
+            try:
+                stdout = stdout.decode()  #python3
+            except (UnicodeDecodeError, AttributeError):
+                pass
             self.interfaces = sorted(os.linesep.join([s for s in stdout.splitlines() if s]).split('\n'))
         except Exception as e:
             rospy.logerr("IwConfigLocal init exception: %s" %e)
@@ -187,6 +191,10 @@ class IwConfigLocal(IwConfigParser):
                 p = Popen(["iwconfig", interface], stdout=PIPE, stdin=PIPE, stderr=PIPE)
                 res = p.wait()
                 (stdout,stderr) = p.communicate()
+                try:
+                    stdout = stdout.decode()  #python3
+                except (UnicodeDecodeError, AttributeError):
+                    pass
 
                 if res != 0:
                     self.stat.values.append(KeyValue(key = 'iwconfig stderr', value = stderr))
