@@ -24,11 +24,19 @@ import rospy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 class IwConfigParser(object):
+    def _decode_values(self, values):
+        for value in values:
+            try:
+                value.value = value.value.decode()  #python3
+            except (UnicodeDecodeError, AttributeError):
+                pass
+        return values
+
     def _parse_info(self, info):
         if 'ESSID' in info:
-           return self._parse_client(info)
+           return self._decode_values(self._parse_client(info))
         else:
-           return self._parse_ap(info)
+           return self._decode_values(self._parse_ap(info))
 
     def _parse_ap(self, info):
         values = []

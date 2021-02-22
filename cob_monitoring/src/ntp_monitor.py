@@ -59,6 +59,10 @@ class NtpMonitor():
                 p = Popen(["ntpdate", "-q", host], stdout=PIPE, stdin=PIPE, stderr=PIPE)
                 retcode = p.wait()
                 stdout, stderr = p.communicate()
+                try:
+                    stdout = stdout.decode()  #python3
+                except (UnicodeDecodeError, AttributeError):
+                    pass
 
                 if retcode != 0:
                     st.level = DiagnosticStatus.ERROR
