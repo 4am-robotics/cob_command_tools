@@ -104,6 +104,11 @@ class NetMonitor(object):
                                  stderr=subprocess.PIPE, shell=True)
             stdout, stderr = p.communicate()
             ret_code = p.returncode
+            try:
+                stdout = stdout.decode()  #python3
+            except (UnicodeDecodeError, AttributeError):
+                pass
+
             if ret_code != 0:
                 values.append(KeyValue(key="\"ifstat -q -S 1 1\" Call Error",
                                        value=str(ret_code)))

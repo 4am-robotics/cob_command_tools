@@ -24,11 +24,19 @@ import rospy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 class IwConfigParser(object):
+    def _decode_values(self, values):
+        for value in values:
+            try:
+                value.value = value.value.decode()  #python3
+            except (UnicodeDecodeError, AttributeError):
+                pass
+        return values
+
     def _parse_info(self, info):
         if 'ESSID' in info:
-           return self._parse_client(info)
+           return self._decode_values(self._parse_client(info))
         else:
-           return self._parse_ap(info)
+           return self._decode_values(self._parse_ap(info))
 
     def _parse_ap(self, info):
         values = []
@@ -48,7 +56,7 @@ class IwConfigParser(object):
                 split = split[1].split('RTS thr:',1)
             if split[1].find('RTS thr=') != -1:
                 split = split[1].split('RTS thr=',1)
-            retry_short_limit = split[0].encode('utf8').strip()
+            retry_short_limit = int(split[0].strip())
             values.append(KeyValue("Retry short limit", str(retry_short_limit)))
             if split[1].find('Fragment thr:') != -1:
                 split = split[1].split('Fragment thr:',1)
@@ -108,7 +116,7 @@ class IwConfigParser(object):
                 split = split[1].split('RTS thr:',1)
             if split[1].find('RTS thr=') != -1:
                 split = split[1].split('RTS thr=',1)
-            retry_short_limit = split[0].encode('utf8').strip()
+            retry_short_limit = int(split[0].strip())
             values.append(KeyValue("Retry short limit", str(retry_short_limit)))
             if split[1].find('Fragment thr:') != -1:
                 split = split[1].split('Fragment thr:',1)
@@ -173,6 +181,10 @@ class IwConfigLocal(IwConfigParser):
             p = Popen("iw dev | awk '$1==\"Interface\"{print $2}'", stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
             res = p.wait()
             (stdout,stderr) = p.communicate()
+            try:
+                stdout = stdout.decode()  #python3
+            except (UnicodeDecodeError, AttributeError):
+                pass
             self.interfaces = sorted(os.linesep.join([s for s in stdout.splitlines() if s]).split('\n'))
         except Exception as e:
             rospy.logerr("IwConfigLocal init exception: %s" %e)
@@ -187,6 +199,10 @@ class IwConfigLocal(IwConfigParser):
                 p = Popen(["iwconfig", interface], stdout=PIPE, stdin=PIPE, stderr=PIPE)
                 res = p.wait()
                 (stdout,stderr) = p.communicate()
+                try:
+                    stdout = stdout.decode()  #python3
+                except (UnicodeDecodeError, AttributeError):
+                    pass
 
                 if res != 0:
                     self.stat.values.append(KeyValue(key = 'iwconfig stderr', value = stderr))
