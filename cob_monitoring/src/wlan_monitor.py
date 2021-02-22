@@ -56,7 +56,7 @@ class IwConfigParser(object):
                 split = split[1].split('RTS thr:',1)
             if split[1].find('RTS thr=') != -1:
                 split = split[1].split('RTS thr=',1)
-            retry_short_limit = split[0].encode('utf8').strip()
+            retry_short_limit = int(split[0].strip())
             values.append(KeyValue("Retry short limit", str(retry_short_limit)))
             if split[1].find('Fragment thr:') != -1:
                 split = split[1].split('Fragment thr:',1)
@@ -116,7 +116,7 @@ class IwConfigParser(object):
                 split = split[1].split('RTS thr:',1)
             if split[1].find('RTS thr=') != -1:
                 split = split[1].split('RTS thr=',1)
-            retry_short_limit = split[0].encode('utf8').strip()
+            retry_short_limit = int(split[0].strip())
             values.append(KeyValue("Retry short limit", str(retry_short_limit)))
             if split[1].find('Fragment thr:') != -1:
                 split = split[1].split('Fragment thr:',1)
