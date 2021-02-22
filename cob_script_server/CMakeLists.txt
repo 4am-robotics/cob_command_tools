@@ -36,7 +36,10 @@ install(DIRECTORY launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
-catkin_install_python(PROGRAMS src/cob_console src/script_server.py
+install(PROGRAMS src/cob_console
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+catkin_install_python(PROGRAMS src/cob_console_node src/script_server.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
