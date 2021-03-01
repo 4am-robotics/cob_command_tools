@@ -25,14 +25,6 @@ import rospy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 class IwConfigParser(object):
-    def _decode_values(self, values):
-        for value in values:
-            try:
-                value.value = value.value.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
-        return values
-
     def _parse_info(self, info):
         values = []
         # split by either double-space or newline
@@ -40,8 +32,13 @@ class IwConfigParser(object):
             # split by either : or =
             content = re.split(":|=", information)
             if len(content) == 2:
+                try:
+                    content[0] = content[0].decode()  #python3
+                    content[1] = content[1].decode()  #python3
+                except (UnicodeDecodeError, AttributeError):
+                    pass
                 values.append(KeyValue(content[0].lstrip(), content[1].rstrip()))
-        return self._decode_values(values)
+        return values
 
 class IwConfigLocal(IwConfigParser):
     def __init__(self):
