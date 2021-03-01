@@ -75,7 +75,7 @@ class IwConfigParser(object):
         except Exception as e:
             rospy.logerr("IwConfigParser parsing exception: %s" %e)
             values = [ KeyValue(key = 'parsing exception', value = str(e)) ]
-        
+
         return values
 
     def _parse_client(self, info):
@@ -89,12 +89,13 @@ class IwConfigParser(object):
             essid = split[0].encode('utf8').strip()
             values.append(KeyValue("ESSID", essid))
             split = split[1].split('Mode:',1)
-            split = split[1].split('Frequency:',1)
+            if split[1].find('Frequency') != -1:
+                split = split[1].split('Frequency:',1)
+                split = split[1].split(' GHz',1)
+                frequency = float(split[0].strip())
+                values.append(KeyValue("Frequency", str(frequency)))
             mode = split[0].encode('utf8').strip()
             values.append(KeyValue("Mode", mode))
-            split = split[1].split(' GHz',1)
-            frequency = float(split[0].strip())
-            values.append(KeyValue("Frequency", str(frequency)))
             split = split[1].split('Access Point: ',1)
             split = split[1].split('\n',1)
             access_point = split[0].encode('utf8').strip()
@@ -131,41 +132,45 @@ class IwConfigParser(object):
             split = split[1].split('\n',1)
             power_managment = split[0].encode('utf8').strip()
             values.append(KeyValue("Power Managment", power_managment))
-            split = split[1].split('Link Quality=',1)
-            split = split[1].split('Signal level=',1)
-            link_quality = split[0].encode('utf8').strip()
-            values.append(KeyValue("Link Quality", link_quality))
-            link_quality_percent = split[0].split('/')
-            link_quality_percent = int(float(link_quality_percent[0].strip()) / float(link_quality_percent[1].strip())*100.0)
-            values.append(KeyValue("Link Quality %", str(link_quality_percent)))
-            split = split[1].split(' dBm',1)
-            signal_level = float(split[0].strip())
-            values.append(KeyValue("Signal level [dBm]", str(signal_level)))
-            split = split[1].split('Rx invalid nwid:',1)
-            split = split[1].split('Rx invalid crypt:',1)
-            rx_invalid_nwid = int(split[0].strip())
-            values.append(KeyValue("Rx invalid nwid", str(rx_invalid_nwid)))
-            split = split[1].split('Rx invalid frag:',1)
-            rx_invalid_crypt = int(split[0].strip())
-            values.append(KeyValue("Rx invalid crypt", str(rx_invalid_crypt)))
-            split = split[1].split('\n',1)
-            rx_invalid_frag = int(split[0].strip())
-            values.append(KeyValue("Rx invalid frag", str(rx_invalid_frag)))
-            split = split[1].split('Tx excessive retries:',1)
-            split = split[1].split('Invalid misc:',1)
-            tx_excessive_retries = int(split[0].strip())
-            values.append(KeyValue("Tx excessive retries", str(tx_excessive_retries)))
-            split = split[1].split('Missed beacon:',1)
-            invalid_misc = int(split[0].strip())
-            values.append(KeyValue("Invalid misc", str(invalid_misc)))
-            split = split[1].split('\n',1)
-            missed_beacon = int(split[0].strip())
-            values.append(KeyValue("Missed beacon", str(missed_beacon)))
+            # following values are not available when wifi is not connected
+            if split[1].find('Link Quality') != -1 and split[1].find('Signal level') != -1:
+                split = split[1].split('Link Quality=',1)
+                split = split[1].split('Signal level=',1)
+                link_quality = split[0].encode('utf8').strip()
+                values.append(KeyValue("Link Quality", link_quality))
+                link_quality_percent = split[0].split('/')
+                link_quality_percent = int(float(link_quality_percent[0].strip()) / float(link_quality_percent[1].strip())*100.0)
+                values.append(KeyValue("Link Quality %", str(link_quality_percent)))
+                split = split[1].split(' dBm',1)
+                signal_level = float(split[0].strip())
+                values.append(KeyValue("Signal level [dBm]", str(signal_level)))
+            if split[1].find('Rx invalid nwid') != -1 and split[1].find('Rx invalid crypt') != -1 and split[1].find('Rx invalid frag') != -1:
+                split = split[1].split('Rx invalid nwid:',1)
+                split = split[1].split('Rx invalid crypt:',1)
+                rx_invalid_nwid = int(split[0].strip())
+                values.append(KeyValue("Rx invalid nwid", str(rx_invalid_nwid)))
+                split = split[1].split('Rx invalid frag:',1)
+                rx_invalid_crypt = int(split[0].strip())
+                values.append(KeyValue("Rx invalid crypt", str(rx_invalid_crypt)))
+                split = split[1].split('\n',1)
+                rx_invalid_frag = int(split[0].strip())
+                values.append(KeyValue("Rx invalid frag", str(rx_invalid_frag)))
+            if split[1].find('Tx excessive retries') != -1 and split[1].find('Invalid misc') != -1 and split[1].find('Missed beacon') != -1:
+                split = split[1].split('Tx excessive retries:',1)
+                split = split[1].split('Invalid misc:',1)
+                tx_excessive_retries = int(split[0].strip())
+                values.append(KeyValue("Tx excessive retries", str(tx_excessive_retries)))
+                split = split[1].split('Missed beacon:',1)
+                invalid_misc = int(split[0].strip())
+                values.append(KeyValue("Invalid misc", str(invalid_misc)))
+                split = split[1].split('\n',1)
+                missed_beacon = int(split[0].strip())
+                values.append(KeyValue("Missed beacon", str(missed_beacon)))
 
         except Exception as e:
             rospy.logerr("IwConfigParser parsing exception: %s" %e)
             values = [ KeyValue(key = 'parsing exception', value = str(e)) ]
-        
+
         return values
 
 class IwConfigLocal(IwConfigParser):
