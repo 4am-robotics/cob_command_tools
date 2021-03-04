@@ -654,7 +654,8 @@ class simple_script_server:
 		# get current pos
 		timeout = 3.0
 		try:
-			joint_state_message = rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout=timeout)  # type: JointState
+			joint_state_topic = rospy.get_param(self.ns_global_prefix + "/" + component_name + "/joint_state_topic", "/" + component_name + "/joint_states")
+			joint_state_message = rospy.wait_for_message(joint_state_topic, JointState, timeout = timeout)  # type: JointState
 			# make sure we have the same joint order
 			start_pos = []
 			for name in joint_names:
@@ -1052,7 +1053,8 @@ class simple_script_server:
 		# step 1: get current position
 		timeout = 1.0
 		try:
-			joint_state_message = rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout = timeout)
+			joint_state_topic = rospy.get_param(self.ns_global_prefix + "/" + component_name + "/joint_state_topic", "/" + component_name + "/joint_states")
+			joint_state_message = rospy.wait_for_message(joint_state_topic, JointState, timeout = timeout)  # type: JointState
 			# make sure we have the same joint order
 			start_pos = []
 			for name in joint_names:
