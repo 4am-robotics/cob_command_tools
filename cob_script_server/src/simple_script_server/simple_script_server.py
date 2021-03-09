@@ -654,12 +654,13 @@ class simple_script_server:
 		# get current pos
 		timeout = 3.0
 		try:
-			joint_state = rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout=timeout)  # type: JointState
+			joint_state_topic = rospy.get_param(self.ns_global_prefix + "/" + component_name + "/joint_state_topic", "/" + component_name + "/joint_states")
+			joint_state_message = rospy.wait_for_message(joint_state_topic, JointState, timeout = timeout)  # type: JointState
 			# make sure we have the same joint order
 			start_pos = []
 			for name in joint_names:
-				idx = joint_state.name.index(name)
-				start_pos.append(joint_state.position[idx])
+				idx = joint_state_message.name.index(name)
+				start_pos.append(joint_state_message.position[idx])
 		except rospy.ROSException as e:
 			rospy.logwarn("no joint states received from %s within timeout of %ssec. using default point time of 8sec.", component_name, str(timeout))
 			start_pos = []
@@ -1002,6 +1003,34 @@ class simple_script_server:
 
 		rospy.loginfo("Move <<%s>> relatively by <<%s>>", component_name, parameter_name)
 
+		# get joint_names from parameter server
+		param_string = self.ns_global_prefix + "/" + component_name + "/joint_names"
+		if not rospy.has_param(param_string):
+			message = "parameter " + str(param_string) + " does not exist on ROS Parameter Server, aborting move_rel"
+			rospy.logerr(message)
+			ah.set_failed(3, message)
+			return ah
+		joint_names = rospy.get_param(param_string)
+
+		# check joint_names parameter
+		if not type(joint_names) is list: # check list
+			message = "no valid joint_names for " + str(component_name) + ": not a list, aborting move_rel"
+			rospy.logerr(message)
+			print("joint_names are:",joint_names)
+			ah.set_failed(3, message)
+			return ah
+		else:
+			for i in joint_names:
+				#print i,"type1 = ", type(i)
+				if not type(i) is str: # check string
+					message = "no valid joint_names for " + str(component_name) + ": not a list of strings, aborting move_rel"
+					rospy.logerr(message)
+					print("joint_names are:", joint_names)
+					ah.set_failed(3, message)
+					return ah
+				else:
+					rospy.logdebug("accepted joint_names for component %s",component_name)
+
 		# step 0: check validity of parameters:
 		if not isinstance(parameter_name, list):
 			message = "Parameter " + str(parameter_name) + " not formated correctly (not a list), aborting move_rel"
@@ -1024,9 +1053,13 @@ class simple_script_server:
 		# step 1: get current position
 		timeout = 1.0
 		try:
-			joint_state_message = rospy.wait_for_message("/" + component_name + "/joint_states", JointState, timeout = timeout)
-			joint_names = list(joint_state_message.name)
-			start_pos = list(joint_state_message.position)
+			joint_state_topic = rospy.get_param(self.ns_global_prefix + "/" + component_name + "/joint_state_topic", "/" + component_name + "/joint_states")
+			joint_state_message = rospy.wait_for_message(joint_state_topic, JointState, timeout = timeout)  # type: JointState
+			# make sure we have the same joint order
+			start_pos = []
+			for name in joint_names:
+				idx = joint_state_message.name.index(name)
+				start_pos.append(joint_state_message.position[idx])
 		except rospy.ROSException:
 			message = "no joint states received from %s within timeout of %ssec."%(component_name, str(timeout))
 			rospy.logerr(message)
