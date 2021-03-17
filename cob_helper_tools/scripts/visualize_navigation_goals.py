@@ -47,7 +47,7 @@ class VisualizerNavigationGoals():
             # arrow
             marker_arrow = Marker()
             marker_arrow.header.stamp = rospy.Time.now()
-            marker_arrow.header.frame_id = "/map"
+            marker_arrow.header.frame_id = "map"
             marker_arrow.ns = "/"+name
             marker_arrow.id = i
             marker_arrow.type = Marker.ARROW
@@ -72,7 +72,7 @@ class VisualizerNavigationGoals():
             # text
             marker_text = Marker()
             marker_text.header.stamp = rospy.Time.now()
-            marker_text.header.frame_id = "/map"
+            marker_text.header.frame_id = "map"
             marker_text.ns = "/"+name
             marker_text.id = i + 1000000
             marker_text.type = Marker.TEXT_VIEW_FACING
