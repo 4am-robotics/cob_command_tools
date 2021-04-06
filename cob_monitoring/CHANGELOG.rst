@@ -2,6 +2,20 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#299 <https://github.com/ipa320/cob_command_tools/issues/299>`_ from HannesBachter/fix/wlan_monitor
+  Fix/wlan monitor
+* decode values before adding them
+* generically generate key value pairs from iwconfig output
+* handle unconnected WIFI
+* Merge pull request `#297 <https://github.com/ipa320/cob_command_tools/issues/297>`_ from fmessmer/fix/python3_decode
+  python3 decode stdout
+* fix parse info
+* python3 decode bytes
+* python3 decode stdout
+* Contributors: Felix Messmer, HannesBachter, fmessmer, hyb, robot@cob4-12
+
 0.6.20 (2021-01-25)
 -------------------
 * Merge pull request `#295 <https://github.com/ipa320/cob_command_tools/issues/295>`_ from fmessmer/cob_monitoring_comment_dependency_python-mechanize

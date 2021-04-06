@@ -2,6 +2,17 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#300 <https://github.com/ipa320/cob_command_tools/issues/300>`_ from fmessmer/sss_improvements
+  harmonize joint_states subscription
+* configurable joint_state_topic
+* harmonize joint_states subscription
+* Merge pull request `#298 <https://github.com/ipa320/cob_command_tools/issues/298>`_ from fmessmer/fix/python3_cob_console
+  cob_console for dual-distro ipython
+* cob_console for dual-distro ipython
+* Contributors: Felix Messmer, fmessmer
+
 0.6.20 (2021-01-25)
 -------------------
 * Merge pull request `#291 <https://github.com/ipa320/cob_command_tools/issues/291>`_ from fmessmer/fix_python3
