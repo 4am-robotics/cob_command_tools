@@ -2,8 +2,8 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.21 (2021-04-06)
+-------------------
 * Merge pull request `#300 <https://github.com/ipa320/cob_command_tools/issues/300>`_ from fmessmer/sss_improvements
   harmonize joint_states subscription
 * configurable joint_state_topic
