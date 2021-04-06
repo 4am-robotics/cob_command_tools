@@ -2,6 +2,13 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.21 (2021-04-06)
+-------------------
+* Merge pull request `#301 <https://github.com/ipa320/cob_command_tools/issues/301>`_ from HannesBachter/fix/visualize_in_map
+  remove leading / in frame_id
+* remove leading / in frame_id
+* Contributors: Felix Messmer, HannesBachter
+
 0.6.20 (2021-01-25)
 -------------------
 

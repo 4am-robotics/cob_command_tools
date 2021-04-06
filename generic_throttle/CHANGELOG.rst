@@ -2,6 +2,9 @@
 Changelog for package generic_throttle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.21 (2021-04-06)
+-------------------
+
 0.6.20 (2021-01-25)
 -------------------
 * Merge pull request `#294 <https://github.com/ipa320/cob_command_tools/issues/294>`_ from fmessmer/fix_python3

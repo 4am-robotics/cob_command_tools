@@ -66,6 +66,10 @@ class hd_monitor():
                                  stderr = subprocess.PIPE, shell = True)
             stdout, stderr = p.communicate()
             retcode = p.returncode
+            try:
+                stdout = stdout.decode()  #python3
+            except (UnicodeDecodeError, AttributeError):
+                pass
 
             if retcode != 0:
                 diag_level = DiagnosticStatus.ERROR
@@ -116,6 +120,10 @@ class hd_monitor():
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = p.communicate()
             retcode = p.returncode
+            try:
+                stdout = stdout.decode()  #python3
+            except (UnicodeDecodeError, AttributeError):
+                pass
 
             if retcode != 0:
                 diag_level = DiagnosticStatus.ERROR

@@ -2,6 +2,13 @@
 Changelog for package cob_command_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.21 (2021-04-06)
+-------------------
+* Merge pull request `#296 <https://github.com/ipa320/cob_command_tools/issues/296>`_ from fmessmer/fix/pylint_segfault
+  fix pylint segfault
+* specify required version
+* Contributors: Felix Messmer, fmessmer
+
 0.6.20 (2021-01-25)
 -------------------
 * Merge pull request `#291 <https://github.com/ipa320/cob_command_tools/issues/291>`_ from fmessmer/fix_python3
