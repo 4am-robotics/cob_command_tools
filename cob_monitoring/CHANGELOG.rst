@@ -2,6 +2,9 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.21 (2021-04-06)
 -------------------
 * Merge pull request `#299 <https://github.com/ipa320/cob_command_tools/issues/299>`_ from HannesBachter/fix/wlan_monitor

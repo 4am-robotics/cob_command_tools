@@ -2,6 +2,9 @@
 Changelog for package generic_throttle
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.21 (2021-04-06)
 -------------------
 

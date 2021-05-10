@@ -2,6 +2,9 @@
 Changelog for package scenario_test_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.21 (2021-04-06)
 -------------------
 

@@ -2,6 +2,13 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#302 <https://github.com/ipa320/cob_command_tools/issues/302>`_ from mikaelarguedas/python3-six
+  ROS_PYTHON_VERSION conditional dependency for python-six
+* ROS_PYTHON_VERSION conditional dependency for python-six
+* Contributors: Felix Messmer, Mikael Arguedas
+
 0.6.21 (2021-04-06)
 -------------------
 * Merge pull request `#300 <https://github.com/ipa320/cob_command_tools/issues/300>`_ from fmessmer/sss_improvements

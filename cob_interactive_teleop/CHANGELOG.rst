@@ -2,6 +2,9 @@
 Changelog for package cob_interactive_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.21 (2021-04-06)
 -------------------
 
