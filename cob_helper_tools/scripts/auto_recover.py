@@ -45,6 +45,7 @@ class AutoRecover():
   # auto recover based on emergency stop
   def em_cb(self, msg):
     if not self.recover_emergency:
+      rospy.loginfo("auto_recover from emergency state is disabled")
       return
     if msg.emergency_state == EmergencyStopState.EMFREE and self.em_state != EmergencyStopState.EMFREE:
       rospy.loginfo("auto_recover from emergency state")
@@ -54,6 +55,7 @@ class AutoRecover():
   # auto recover based on diagnostics
   def diagnostics_cb(self, msg):
     if not self.recover_diagnostics:
+      rospy.loginfo("auto_recover from diagnostic failure is disabled")
       return
     for status in msg.status:
       for component in list(self.components.keys()):
