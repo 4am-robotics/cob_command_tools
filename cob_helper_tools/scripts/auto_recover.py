@@ -19,7 +19,7 @@ import copy
 import rospy
 
 from cob_msgs.msg import EmergencyStopState
-from diagnostic_msgs.msg import DiagnosticArray
+from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 from std_srvs.srv import Trigger, TriggerResponse
 
 from simple_script_server import *
@@ -29,7 +29,7 @@ class AutoRecover():
 
   def __init__(self):
     now = rospy.Time.now()
-    self.em_state = 0
+    self.em_state = EmergencyStopState.EMFREE
     self.recover_emergency = rospy.get_param('~recover_emergency', True)
     self.recover_diagnostics = rospy.get_param('~recover_diagnostics', True)
     self.components = rospy.get_param('~components', {})
@@ -46,7 +46,7 @@ class AutoRecover():
   def em_cb(self, msg):
     if not self.recover_emergency:
       return
-    if msg.emergency_state == 0 and self.em_state != 0:
+    if msg.emergency_state == EmergencyStopState.EMFREE and self.em_state != EmergencyStopState.EMFREE:
       rospy.loginfo("auto_recover from emergency state")
       self.recover(list(self.components.keys()))
     self.em_state = copy.deepcopy(msg.emergency_state)
@@ -57,10 +57,10 @@ class AutoRecover():
       return
     for status in msg.status:
       for component in list(self.components.keys()):
-        if status.name.lower().startswith(self.components[component].lower()) and status.level > 0 and self.em_state == 0 and (rospy.Time.now() - self.components_recover_time[component] > rospy.Duration(10)):
+        if status.name.lower().startswith(self.components[component].lower()) and status.level > DiagnosticStatus.OK and self.em_state == EmergencyStopState.EMFREE and (rospy.Time.now() - self.components_recover_time[component] > rospy.Duration(10)):
           rospy.loginfo("auto_recover from diagnostic failure")
           self.recover([component])
-  
+
   # callback for enable service
   def enable_cb(self, req):
     self.enabled = True
@@ -76,7 +76,7 @@ class AutoRecover():
   def subscribe(self):
     self.em_stop_state_subscriber = rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.em_cb, queue_size=1)
     self.diagnostics_subscriber = rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.diagnostics_cb, queue_size=1)
-  
+
   def unsubscribe(self):
     self.em_stop_state_subscriber.unregister()
     self.diagnostics_subscriber.unregister()
