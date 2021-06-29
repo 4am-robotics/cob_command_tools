@@ -50,7 +50,7 @@ class AutoInit():
         for component in list(self.components.keys()):
           retries = 0
           while not rospy.is_shutdown():
-            if retries >= self.max_retries:
+            if self.max_retries > 0 and retries >= self.max_retries:
               rospy.logerr("[auto_init]: Could not initialize %s after %s retries", component, str(retries))
               break
             retries += 1
