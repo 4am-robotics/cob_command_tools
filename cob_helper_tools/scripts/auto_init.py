@@ -28,7 +28,8 @@ class AutoInit():
   def __init__(self):
     self.components = rospy.get_param('~components', {})
     self.max_retries = rospy.get_param('~max_retries', 50)
-    self.em_state = 1  # assume EMSTOP
+    self.em_state_ignore = rospy.get_param('~em_state_ignore', False)
+    self.em_state = EmergencyStopState.EMSTOP
     rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.em_cb, queue_size=1)
 
     # wait for all components to start
@@ -38,7 +39,7 @@ class AutoInit():
 
     # wait for emergency_stop to be released
     while not rospy.is_shutdown():
-      if self.em_state == 1: # EMSTOP
+      if not self.em_state_ignore and self.em_state == EmergencyStopState.EMSTOP:
         rospy.loginfo("[auto_init]: Waiting for emergency stop to be released...")
         try:
           rospy.sleep(1)
@@ -50,7 +51,7 @@ class AutoInit():
         for component in list(self.components.keys()):
           retries = 0
           while not rospy.is_shutdown():
-            if retries >= self.max_retries:
+            if self.max_retries > 0 and retries >= self.max_retries:
               rospy.logerr("[auto_init]: Could not initialize %s after %s retries", component, str(retries))
               break
             retries += 1
