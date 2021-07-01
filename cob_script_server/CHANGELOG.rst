@@ -2,6 +2,9 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.22 (2021-05-10)
 -------------------
 * Merge pull request `#302 <https://github.com/ipa320/cob_command_tools/issues/302>`_ from mikaelarguedas/python3-six

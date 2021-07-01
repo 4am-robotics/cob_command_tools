@@ -2,6 +2,16 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#303 <https://github.com/ipa320/cob_command_tools/issues/303>`_ from fmessmer/enhance_auto_tools
+  enhance auto tools
+* tmp: debug logoutput for auto_recover for disabled cases
+* introduce em_state_ignore for auto_init
+* allow infinite auto_init
+* use message enum
+* Contributors: Felix Messmer, fmessmer
+
 0.6.22 (2021-05-10)
 -------------------
 
