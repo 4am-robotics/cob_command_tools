@@ -2,8 +2,8 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.23 (2021-07-01)
+-------------------
 * Merge pull request `#303 <https://github.com/ipa320/cob_command_tools/issues/303>`_ from fmessmer/enhance_auto_tools
   enhance auto tools
 * tmp: debug logoutput for auto_recover for disabled cases
