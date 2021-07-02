@@ -44,24 +44,24 @@ class AutoRecover():
 
   # auto recover based on emergency stop
   def em_cb(self, msg):
-    if not self.recover_emergency:
-      rospy.loginfo("auto_recover from emergency state is disabled")
-      return
     if msg.emergency_state == EmergencyStopState.EMFREE and self.em_state != EmergencyStopState.EMFREE:
-      rospy.loginfo("auto_recover from emergency state")
-      self.recover(list(self.components.keys()))
+      if not self.recover_emergency:
+        rospy.loginfo("auto_recover from emergency state is disabled")
+      else:
+        rospy.loginfo("auto_recover from emergency state")
+        self.recover(list(self.components.keys()))
     self.em_state = copy.deepcopy(msg.emergency_state)
 
   # auto recover based on diagnostics
   def diagnostics_cb(self, msg):
-    if not self.recover_diagnostics:
-      rospy.loginfo("auto_recover from diagnostic failure is disabled")
-      return
     for status in msg.status:
       for component in list(self.components.keys()):
         if status.name.lower().startswith(self.components[component].lower()) and status.level > DiagnosticStatus.OK and self.em_state == EmergencyStopState.EMFREE and (rospy.Time.now() - self.components_recover_time[component] > rospy.Duration(10)):
-          rospy.loginfo("auto_recover from diagnostic failure")
-          self.recover([component])
+          if not self.recover_diagnostics:
+            rospy.loginfo("auto_recover from diagnostic failure is disabled")
+          else:
+            rospy.loginfo("auto_recover from diagnostic failure")
+            self.recover([component])
 
   # callback for enable service
   def enable_cb(self, req):
