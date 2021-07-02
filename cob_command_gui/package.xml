@@ -4,7 +4,7 @@
   schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>cob_command_gui</name>
-  <version>0.6.23</version>
+  <version>0.6.24</version>
   <description>This package provides a simple GUI for operating Care-O-bot.</description>
 
   <license>Apache 2.0</license>

@@ -2,8 +2,8 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.24 (2021-07-02)
+-------------------
 * Merge pull request `#304 <https://github.com/ipa320/cob_command_tools/issues/304>`_ from fmessmer/fixup_auto_tools
   fixup condition in auto_recover
 * fixup condition in auto_recover
