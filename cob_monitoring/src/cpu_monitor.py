@@ -579,7 +579,7 @@ class CPUMonitor():
 
         for idx, label in enumerate(rdata['labels']):
             np_array = np.array(sdata[idx])
-            if np_array.dtype == np.object:
+            if np_array.dtype == object:
                 rospy.logwarn("Data from NetData malformed")
                 return None
             d[label] = np_array
