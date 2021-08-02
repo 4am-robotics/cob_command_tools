@@ -2,8 +2,8 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.25 (2021-08-02)
+-------------------
 * Merge pull request `#305 <https://github.com/ipa320/cob_command_tools/issues/305>`_ from fmessmer/fix_deprecation
   fix deprecation warning
 * fix deprecation warning
