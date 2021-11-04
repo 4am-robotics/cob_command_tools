@@ -18,6 +18,7 @@
 
 
 import sys, os, time
+import traceback
 import subprocess
 import string
 import socket
@@ -553,7 +554,7 @@ class CPUMonitor():
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'CPU Usage Exception'
-            diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
         return diag_vals, diag_msg, diag_level
 
