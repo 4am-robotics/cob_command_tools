@@ -18,6 +18,7 @@
 
 
 import sys, os, time
+import traceback
 import subprocess
 import socket
 
@@ -105,7 +106,7 @@ class hd_monitor():
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'HD IO Exception'
-            diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
         self._io_stat.values = diag_vals
         self._io_stat.message = diag_msg
@@ -181,7 +182,7 @@ class hd_monitor():
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_message = 'HD Usage Exception'
-            diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
         self._usage_stat.values = diag_vals
         self._usage_stat.message = diag_message

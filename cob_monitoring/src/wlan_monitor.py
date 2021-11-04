@@ -18,6 +18,7 @@ import getpass
 import re
 import os
 import sys
+import traceback
 from subprocess import Popen, PIPE
 import paramiko
 
@@ -84,6 +85,7 @@ class IwConfigLocal(IwConfigParser):
             except Exception as e:
                 rospy.logerr("IwConfigLocal update exception: %s" %e)
                 self.stat.values.append(KeyValue(key = 'update exception', value = str(e)))
+                self.stat.values.append(KeyValue(key = 'Traceback', value = str(traceback.format_exc())))
 
 class IwConfigSSH(IwConfigParser):
     def __init__(self, hostname, user, password):
@@ -121,6 +123,7 @@ class IwConfigSSH(IwConfigParser):
             except Exception as e:
                 rospy.logerr("IwConfigSSH update exception: %s" %e)
                 self.stat.values.append(KeyValue(key = 'update exception', value = str(e)))
+                self.stat.values.append(KeyValue(key = 'Traceback', value = str(traceback.format_exc())))
 
 class WlanMonitor():
     def __init__(self):
@@ -150,7 +153,7 @@ class WlanMonitor():
                 rospy.logerr(msg)
                 self._wlan_stat.level = DiagnosticStatus.ERROR
                 self._wlan_stat.message = msg
-                self._wlan_stat.values = [ KeyValue(key = 'Exception', value = str(e)) ]
+                self._wlan_stat.values = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
                 self.msg.status = [self._wlan_stat]
                 return
 

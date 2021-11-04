@@ -203,7 +203,7 @@ class CPUMonitor():
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msgs = [ 'IPMI Exception' ]
-            diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
         return diag_vals, diag_msgs, diag_level
 
@@ -256,7 +256,7 @@ class CPUMonitor():
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msgs = [ 'Core Temp Exception' ]
-            diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
         return diag_vals, diag_msgs, diag_level
 
@@ -341,7 +341,7 @@ class CPUMonitor():
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msgs = [ 'Clock Speed Exception' ]
-            diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
         return diag_vals, diag_msgs, diag_level
 
@@ -393,7 +393,7 @@ class CPUMonitor():
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'Uptime Exception'
-            diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
         return diag_vals, diag_msg, diag_level
 
@@ -463,7 +463,7 @@ class CPUMonitor():
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'Memory Usage Exception'
-            diag_vals = [ KeyValue(key = 'Exception', value = str(e)) ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
         return diag_vals, diag_msg, diag_level
 
@@ -713,6 +713,7 @@ class CPUMonitor():
             return devices
         except Exception as e:
             rospy.logerr('Exception finding temp vals: {}'.format(e))
+            rospy.logerr('Trackeback: \n{}'.format(traceback.format_exc()))
             return []
 
 
