@@ -546,7 +546,7 @@ class CPUMonitor():
             # Check the number of cores if self._num_cores > 0, #4850
             if self._num_cores > 0 and self._num_cores != num_cores:
                 diag_level = DiagnosticStatus.ERROR
-                diag_msg = 'Incorrect number of CPU cores: Expected %d, got %d. Computer may have not booted properly.' % self._num_cores, num_cores
+                diag_msg = 'Incorrect number of CPU cores: Expected {}, got {}. Computer may have not booted properly.'.format(self._num_cores, num_cores)
                 return diag_vals, diag_msg, diag_level
 
             diag_msg = load_dict[diag_level]
