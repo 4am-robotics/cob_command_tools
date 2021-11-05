@@ -253,6 +253,7 @@ class NetMonitor(object):
             rospy.logerr(traceback.format_exc())
             net_msg = 'Network Usage Check Error'
             values.append(KeyValue(key=net_msg, value=str(e)))
+            values.append(KeyValue(key='Traceback', value=str(traceback.format_exc())))
             level = DiagnosticStatus.ERROR
         return level, net_msg, values
 
