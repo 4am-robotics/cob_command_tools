@@ -4,7 +4,7 @@
   schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>cob_script_server</name>
-  <version>0.6.21</version>
+  <version>0.6.26</version>
   <description>The cob_script_server package provides a simple interface to operate Care-O-bot. It can be used via the python API or the actionlib interface.</description>
 
   <license>Apache 2.0</license>
@@ -39,7 +39,8 @@
   <exec_depend>move_base_msgs</exec_depend>
   <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-pygraphviz</exec_depend>
   <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-pygraphviz</exec_depend>
-  <exec_depend>python-six</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-six</exec_depend>
+  <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-six</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>std_srvs</exec_depend>

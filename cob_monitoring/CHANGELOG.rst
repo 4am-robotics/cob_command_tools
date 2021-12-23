@@ -2,6 +2,34 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.26 (2021-11-26)
+-------------------
+* Merge pull request `#307 <https://github.com/ipa320/cob_command_tools/issues/307>`_ from floweisshardt/feature/emergency_monitor
+  add topics for em released info
+* add topics for em released info
+* Merge pull request `#306 <https://github.com/ipa320/cob_command_tools/issues/306>`_ from fmessmer/fix_cob_monitoring
+  fix cob_monitoring
+* add traceback to all cob_monitoring exceptions
+* fix string format
+* add exception traceback
+* Contributors: Felix Messmer, fmessmer, robot@mrk-4
+
+0.6.25 (2021-08-02)
+-------------------
+* Merge pull request `#305 <https://github.com/ipa320/cob_command_tools/issues/305>`_ from fmessmer/fix_deprecation
+  fix deprecation warning
+* fix deprecation warning
+* Contributors: Felix Messmer, fmessmer
+
+0.6.24 (2021-07-02)
+-------------------
+
+0.6.23 (2021-07-01)
+-------------------
+
+0.6.22 (2021-05-10)
+-------------------
+
 0.6.21 (2021-04-06)
 -------------------
 * Merge pull request `#299 <https://github.com/ipa320/cob_command_tools/issues/299>`_ from HannesBachter/fix/wlan_monitor

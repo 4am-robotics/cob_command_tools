@@ -20,6 +20,7 @@ import copy
 from enum import IntEnum
 
 import rospy
+from std_msgs.msg import Empty
 from sensor_msgs.msg import JointState
 from diagnostic_msgs.msg import DiagnosticStatus, DiagnosticArray
 
@@ -94,6 +95,13 @@ class emergency_stop_monitor():
 			rospy.Subscriber("/joint_states", JointState, self.jointstate_callback, queue_size=1)
 			self.last_vel = rospy.get_rostime()
 
+		self.pub_em_button_released   = rospy.Publisher('em_button_released'  , Empty, queue_size=1)
+		self.pub_brake_released       = rospy.Publisher('brake_released'      , Empty, queue_size=1)
+		self.pub_em_laser_released    = rospy.Publisher('em_laser_released'   , Empty, queue_size=1)
+		self.pub_em_wireless_released = rospy.Publisher('em_wireless_released', Empty, queue_size=1)
+		self.pub_em_fall_released     = rospy.Publisher('em_fall_released'    , Empty, queue_size=1)
+		self.pub_em_internal_released = rospy.Publisher('em_internal_released', Empty, queue_size=1)
+
 	def diagnostics_agg_callback(self, msg):
 		diagnostics_errors = []
 		diagnostics_errors_detail = []
@@ -114,16 +122,22 @@ class emergency_stop_monitor():
 			if self.em_state > EMState.EM_FREE:
 				self.stop_light()
 				if self.em_state == EMState.EM_BUTTON:
+					self.pub_em_button_released.publish(Empty())
 					self.say(self.sound_em_button_released)
 				elif self.em_state == EMState.EM_BRAKE:
+					self.pub_brake_released.publish(Empty())
 					self.say(self.sound_em_brake_released)
 				elif self.em_state == EMState.EM_LASER:
+					self.pub_em_laser_released.publish(Empty())
 					self.say(self.sound_em_laser_released)
 				elif self.em_state == EMState.EM_WIRELESS:
+					self.pub_em_wireless_released.publish(Empty())
 					self.say(self.sound_em_wireless_released)
 				elif self.em_state == EMState.EM_FALL:
+					self.pub_em_fall_released.publish(Empty())
 					self.say(self.sound_em_fall_released)
 				elif self.em_state == EMState.EM_INTERNAL:
+					self.pub_em_internal_released.publish(Empty())
 					self.say(self.sound_em_internal_released)
 			self.em_state = EMState.EM_FREE
 

@@ -17,6 +17,7 @@
 
 
 import sys
+import traceback
 import socket
 from subprocess import Popen, PIPE
 import time
@@ -90,7 +91,7 @@ class NtpMonitor():
         except Exception as e:
             stat.level = DiagnosticStatus.ERROR
             stat.message = 'ntpdate Exception'
-            stat.values = [ KeyValue(key = 'Exception', value = str(e)) ]
+            stat.values = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
         self.msg = DiagnosticArray()
         self.msg.header.stamp = rospy.get_rostime()
