@@ -65,14 +65,16 @@ class AutoRecover():
 
   # callback for enable service
   def enable_cb(self, req):
-    self.enabled = True
-    self.subscribe()
+    if not self.enabled:
+      self.enabled = True
+      self.subscribe()
     return TriggerResponse(True, "auto recover enabled")
 
   # callback for disable service
   def disable_cb(self, req):
-    self.enabled = False
-    self.unsubscribe()
+    if self.enabled:
+      self.enabled = False
+      self.unsubscribe()
     return TriggerResponse(True, "auto recover disabled")
 
   def subscribe(self):
