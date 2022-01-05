@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS dynamic_reconfigure message_generation)
 catkin_python_setup()
 
 generate_dynamic_reconfigure_options(
-  cfg/HelperTools.cfg
+  src/${PROJECT_NAME}/cfg/HelperTools.cfg
 )
 
 catkin_package(
