@@ -16,7 +16,7 @@
 
 
 import rospy
-from cob_helper_tools.auto_init import AutoInit
+from cob_auto_tools.auto_init import AutoInit
 
 
 if __name__ == "__main__":

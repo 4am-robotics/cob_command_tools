@@ -18,7 +18,7 @@
 import copy
 import rospy
 
-from cob_helper_tools.auto_recover import AutoRecover
+from cob_auto_tools.auto_recover import AutoRecover
 
 if __name__ == "__main__":
   rospy.init_node("auto_recover")
