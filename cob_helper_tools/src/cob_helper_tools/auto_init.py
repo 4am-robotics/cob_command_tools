@@ -16,7 +16,6 @@
 
 
 import rospy
-import tf
 
 from cob_msgs.msg import EmergencyStopState
 
@@ -65,9 +64,4 @@ class AutoInit():
 
   def em_cb(self, msg):
     self.em_state = msg.emergency_state
-
-if __name__ == "__main__":
-  rospy.init_node("auto_init")
-  rospy.loginfo("auto init running")
-  AI = AutoInit()
-  rospy.loginfo("auto init finished")
+    

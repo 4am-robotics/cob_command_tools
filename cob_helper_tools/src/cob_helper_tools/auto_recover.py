@@ -92,9 +92,4 @@ class AutoRecover():
         else:
           rospy.loginfo("[auto_recover]: Component %s recovered successfully", component)
           self.components_recover_time[component] = rospy.Time.now()
-
-if __name__ == "__main__":
-  rospy.init_node("auto_recover")
-  AR = AutoRecover()
-  rospy.loginfo("auto recover running")
-  rospy.spin()
+          

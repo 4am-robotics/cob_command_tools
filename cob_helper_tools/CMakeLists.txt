@@ -19,6 +19,8 @@ catkin_package(
 
 catkin_install_python(PROGRAMS
   scripts/auto_tools.py
+  scripts/auto_init.py
+  scripts/auto_recover.py
   scripts/fake_diagnostics.py
   scripts/fake_driver.py
   scripts/visualize_navigation_goals.py
