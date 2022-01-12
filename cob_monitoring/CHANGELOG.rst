@@ -2,6 +2,9 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.27 (2022-01-12)
+-------------------
+
 0.6.26 (2021-11-26)
 -------------------
 * Merge pull request `#307 <https://github.com/ipa320/cob_command_tools/issues/307>`_ from floweisshardt/feature/emergency_monitor

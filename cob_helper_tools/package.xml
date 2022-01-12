@@ -1,7 +1,10 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model
+  href="http://download.ros.org/schema/package_format3.xsd"
+  schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>cob_helper_tools</name>
-  <version>0.6.26</version>
+  <version>0.6.27</version>
   <description>Helper scripts for Care-O-bot</description>
 
   <maintainer email="felixmessmer@gmail.com">Felix Messmer</maintainer>
@@ -10,6 +13,8 @@
   <license>Apache 2.0</license>
 
   <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend condition="$ROS_PYTHON_VERSION == 2">python-setuptools</buildtool_depend>
+  <buildtool_depend condition="$ROS_PYTHON_VERSION == 3">python3-setuptools</buildtool_depend>
 
   <depend>dynamic_reconfigure</depend>
   <build_depend>message_generation</build_depend>
