@@ -2,6 +2,23 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#309 <https://github.com/ipa320/cob_command_tools/issues/309>`_ from pgehring/feature/auto_tools
+  combine auto_init and auto_recover
+* check enable state for subscribing and unsubscribing
+* fix imports
+* fix package name conflict
+* Revert "move dynamic reconfigure to python module"
+  This reverts commit ce13c73a7638b44a8dcf23f75c82d86a83431ad4.
+* move dynamic reconfigure to python module
+* preserve auto_init and auto_recover nodes
+* use params from server to enable init or recover
+* setup auto_tools node
+* add auto_tools node
+* move auto_init and auto_recover to python module
+* Contributors: Felix Messmer, pgehring
+
 0.6.26 (2021-11-26)
 -------------------
 
