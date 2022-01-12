@@ -2,8 +2,8 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.27 (2022-01-12)
+-------------------
 * Merge pull request `#309 <https://github.com/ipa320/cob_command_tools/issues/309>`_ from pgehring/feature/auto_tools
   combine auto_init and auto_recover
 * check enable state for subscribing and unsubscribing
