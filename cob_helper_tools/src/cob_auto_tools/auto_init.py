@@ -57,6 +57,7 @@ class AutoInit():
             handle = sss.init(component)
             if not (handle.get_error_code() == 0):
               rospy.logerr("[auto_init]: Could not initialize %s. Retrying...(%s of %s)", component, str(retries), str(self.max_retries))
+              rospy.sleep(1.0)
             else:
               rospy.loginfo("[auto_init]: Component %s initialized successfully", component)
               break
