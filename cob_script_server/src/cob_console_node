@@ -20,4 +20,4 @@ from simple_script_server import simple_script_server
 sss = simple_script_server()
 
 if __name__ == "__main__":
-    rospy.init_node("cob_console")
+    rospy.init_node("cob_console", anonymous=True)
