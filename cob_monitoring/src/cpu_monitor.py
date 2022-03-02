@@ -23,12 +23,13 @@ import subprocess
 import string
 import socket
 import psutil
-import requests
 import numpy as np
 import math
 
 import rospy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
+
+from netdata_tools.netdata_tools import query_netdata_info, query_netdata
 
 stat_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'Warning', DiagnosticStatus.ERROR: 'Error', DiagnosticStatus.STALE: 'Stale' }
 
@@ -214,7 +215,7 @@ class CPUMonitor():
         diag_level = DiagnosticStatus.OK
 
         try:
-            netdata_core_temp = self.query_netdata('sensors.coretemp_isa_0000_temperature', interval)
+            netdata_core_temp = query_netdata('sensors.coretemp_isa_0000_temperature', interval)
             if netdata_core_temp:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msgs = [ 'Core Temp Error' ]
@@ -461,9 +462,9 @@ class CPUMonitor():
 
         num_cores = psutil.cpu_count()
         try:
-            netdata_system_cpu = self.query_netdata('system.cpu', interval)
-            netdata_cpu_util = [self.query_netdata('cpu.cpu%d' % i for i in range(num_cores))]
-            netdata_cpu_idle = [self.query_netdata('cpu.cpu%d_cpuidle' % i for i in range(num_cores))]
+            netdata_system_cpu = query_netdata('system.cpu', interval)
+            netdata_cpu_util = [query_netdata('cpu.cpu%d' % i for i in range(num_cores))]
+            netdata_cpu_idle = [query_netdata('cpu.cpu%d_cpuidle' % i for i in range(num_cores))]
 
             if any([netdata_system_cpu, netdata_cpu_util, netdata_cpu_idle] == None):
                 diag_level = DiagnosticStatus.ERROR
@@ -509,35 +510,6 @@ class CPUMonitor():
         return diag_vals, diag_msg, diag_level
 
 
-    def query_netdata(self, chart, after):
-        NETDATA_URI = 'http://127.0.0.1:19999/api/v1/data?chart=%s&format=json&after=-%d'
-        url = NETDATA_URI % (chart, int(after))
-
-        try:
-            r = requests.get(url)
-        except requests.ConnectionError as ex:
-            rospy.logerr("NetData ConnectionError %r", ex)
-            return None
-
-        if r.status_code != 200:
-            rospy.logerr("NetData request not successful with status_code %d", r.status_code)
-            return None
-
-        rdata = r.json()
-
-        sdata = list(zip(*rdata['data']))
-        d = dict()
-
-        for idx, label in enumerate(rdata['labels']):
-            np_array = np.array(sdata[idx])
-            if np_array.dtype == object:
-                rospy.logwarn("Data from NetData malformed")
-                return None
-            d[label] = np_array
-
-        return d
-
-
     def check_core_throttling(self, interval=1):
         throt_dict = {DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'High Thermal Throttling Events',
                       DiagnosticStatus.ERROR: 'No valid Data from NetData'}
@@ -546,7 +518,7 @@ class CPUMonitor():
 
         vals = []
 
-        netdata = self.query_netdata('cpu.core_throttling', interval)
+        netdata = query_netdata('cpu.core_throttling', interval)
 
         for i in range(self._num_cores):
             lbl = 'CPU %d Thermal Throttling Events' % i
@@ -579,7 +551,7 @@ class CPUMonitor():
 
         vals = []
 
-        netdata = self.query_netdata('system.idlejitter', interval)
+        netdata = query_netdata('system.idlejitter', interval)
 
         metric_list = [
             ('IDLE Jitter Min', 'min', self._idlejitter_min_threshold, np.min),
