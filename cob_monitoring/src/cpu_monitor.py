@@ -208,50 +208,34 @@ class CPUMonitor():
         return diag_vals, diag_msgs, diag_level
 
     ##\brief Check CPU core temps
-    ##
-    ## Read from every core, divide by 1000
-    def check_core_temps(self):
+    def check_core_temps(self, interval=1):
         diag_vals = []
         diag_msgs = []
         diag_level = DiagnosticStatus.OK
 
         try:
-            for device_type, devices in list(self._temp_vals.items()):
-                for dev in devices:
-                    cmd = 'cat %s' % dev[1]
-                    p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
-                                         stderr = subprocess.PIPE, shell = True)
-                    stdout, stderr = p.communicate()
-                    retcode = p.returncode
-                    try:
-                        stdout = stdout.decode()  #python3
-                    except (UnicodeDecodeError, AttributeError):
-                        pass
+            netdata_core_temp = self.query_netdata('sensors.coretemp_isa_0000_temperature', interval)
+            if netdata_core_temp:
+                diag_level = DiagnosticStatus.ERROR
+                diag_msgs = [ 'Core Temp Error' ]
+                diag_vals = [ KeyValue(key = 'Core Temp Error', value = 'Could not fetch data from netdata'),
+                                KeyValue(key = 'Output', value = str(netdata_core_temp)) ]
+                return diag_vals, diag_msgs, diag_level
 
-                    if retcode != 0:
-                        diag_level = DiagnosticStatus.ERROR
-                        diag_msgs = [ 'Core Temp Error' ]
-                        diag_vals = [ KeyValue(key = 'Core Temp Error', value = stderr),
-                                      KeyValue(key = 'Output', value = stdout) ]
-                        return diag_vals, diag_msgs, diag_level
+            for i, temp in enumerate(netdata_core_temp[1:]):
+            
+                try:
+                    diag_vals.append(KeyValue(key = 'Temp %d' % i, value = str(temp)))
 
-                    tmp = stdout.strip()
-                    if device_type == 'platform':
-                        try:
-                            temp = float(tmp) / 1000
-                            diag_vals.append(KeyValue(key = 'Temp '+dev[0], value = str(temp)))
-
-                            if temp >= self._core_temp_error:
-                                diag_level = max(diag_level, DiagnosticStatus.OK) #do not set ERROR
-                                diag_msgs.append('CPU Hot')
-                            elif temp >= self._core_temp_warn:
-                                diag_level = max(diag_level, DiagnosticStatus.OK) #do not set WARN
-                                diag_msgs.append('CPU Warm')
-                        except ValueError:
-                            diag_level = max(diag_level, DiagnosticStatus.ERROR) # Error if not numeric value
-                            diag_vals.append(KeyValue(key = 'Temp '+dev[0], value = tmp))
-                    else: # device_type == `virtual`
-                        diag_vals.append(KeyValue(key = 'Temp '+dev[0], value = tmp))
+                    if temp >= self._core_temp_error:
+                        diag_level = max(diag_level, DiagnosticStatus.OK) #do not set ERROR
+                        diag_msgs.append('CPU Hot')
+                    elif temp >= self._core_temp_warn:
+                        diag_level = max(diag_level, DiagnosticStatus.OK) #do not set WARN
+                        diag_msgs.append('CPU Warm')
+                except ValueError:
+                    diag_level = max(diag_level, DiagnosticStatus.ERROR) # Error if not numeric value
+                    diag_vals.append(KeyValue(key = 'Temp %d' % i, value = temp))
 
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
