@@ -467,61 +467,35 @@ class CPUMonitor():
 
         return diag_vals, diag_msg, diag_level
 
-    ##\brief Use mpstat to find CPU usage
-    def check_mpstat(self):
+
+    def check_cpu_util(self, interval=1):
         diag_vals = []
         diag_msg = ''
         diag_level = DiagnosticStatus.OK
 
         load_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'High Load', DiagnosticStatus.ERROR: 'Error' }
 
+        num_cores = psutil.cpu_count()
         try:
-            p = subprocess.Popen('mpstat -P ALL 1 1',
-                                 stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
+            netdata_system_cpu = self.query_netdata('system.cpu', interval)
+            netdata_cpu_util = [self.query_netdata('cpu.cpu%d' % i for i in range(num_cores))]
+            netdata_cpu_idle = [self.query_netdata('cpu.cpu%d_cpuidle' % i for i in range(num_cores))]
 
-            if retcode != 0:
+            if any([netdata_system_cpu, netdata_cpu_util, netdata_cpu_idle] == None):
                 diag_level = DiagnosticStatus.ERROR
                 diag_msg = 'CPU Usage Error'
-                diag_vals = [ KeyValue(key = 'CPU Usage Error', value = stderr),
-                              KeyValue(key = 'Output', value = stdout) ]
+                diag_vals = [ KeyValue(key = 'CPU Usage Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = [netdata_system_cpu, netdata_cpu_util, netdata_cpu_idle]) ]
                 return (diag_vals, diag_msg, diag_level)
 
-            # Check which column '%idle' is, #4539
-            # mpstat output changed between 8.06 and 8.1
-            rows = stdout.split('\n')
-            col_names = rows[2].split()
-            idle_col = -1 if (len(col_names) > 2 and col_names[-1] == '%idle') else -2
-
-            num_cores = 0
             cores_loaded = 0
-            for index, row in enumerate(stdout.split('\n')):
-                if index < 3:
-                    continue
-
-                # Skip row containing 'all' data
-                if row.find('all') > -1:
-                    continue
-
-                lst = row.split()
-                if len(lst) < 8:
-                    continue
-
-                ## Ignore 'Average: ...' data
-                if lst[0].startswith('Average'):
-                    continue
-
-                cpu_name = '%d' % (num_cores)
-                idle = lst[idle_col].replace(',', '.')
-                user = lst[3].replace(',', '.')
-                nice = lst[4].replace(',', '.')
-                system = lst[5].replace(',', '.')
+            for i_cpu in range(num_cores):
+                
+                cpu_name = '%d' % (i_cpu)
+                idle = 100 - netdata_cpu_idle[i_cpu][1]
+                user = netdata_cpu_util[i_cpu][6]
+                nice = netdata_cpu_util[i_cpu][8]
+                system = netdata_cpu_util[i_cpu][7]
 
                 core_level = DiagnosticStatus.OK
                 usage = float(user) + float(nice)
@@ -537,17 +511,9 @@ class CPUMonitor():
                 diag_vals.append(KeyValue(key = 'CPU %s System' % cpu_name, value = system))
                 diag_vals.append(KeyValue(key = 'CPU %s Idle' % cpu_name, value = idle))
 
-                num_cores += 1
-
             # Warn for high load only if we have <= 2 cores that aren't loaded
             if num_cores - cores_loaded <= 2 and num_cores > 2:
                 diag_level = DiagnosticStatus.WARN
-
-            # Check the number of cores if self._num_cores > 0, #4850
-            if self._num_cores > 0 and self._num_cores != num_cores:
-                diag_level = DiagnosticStatus.ERROR
-                diag_msg = 'Incorrect number of CPU cores: Expected {}, got {}. Computer may have not booted properly.'.format(self._num_cores, num_cores)
-                return diag_vals, diag_msg, diag_level
 
             diag_msg = load_dict[diag_level]
 
@@ -755,7 +721,7 @@ class CPUMonitor():
         diag_level = DiagnosticStatus.OK
 
         # Check mpstat
-        mp_vals, mp_msg, mp_level = self.check_mpstat()
+        mp_vals, mp_msg, mp_level = self.check_cpu_util()
         diag_vals.extend(mp_vals)
         if mp_level > DiagnosticStatus.OK:
             diag_msgs.append(mp_msg)
