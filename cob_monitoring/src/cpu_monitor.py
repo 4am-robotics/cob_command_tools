@@ -246,42 +246,23 @@ class CPUMonitor():
         return diag_vals, diag_msgs, diag_level
 
     ##\brief Checks clock speed from reading from CPU info
-    def check_clock_speed(self):
+    def check_clock_speed(self, interval=1):
         diag_vals = []
         diag_msgs = []
         diag_level = DiagnosticStatus.OK
 
         try:
-            # get current freq
-            p = subprocess.Popen('cat /proc/cpuinfo | grep MHz',
-                                 stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
+            netdata_cpu_freq = query_netdata('cpu.cpufreq', interval)
 
-            if retcode != 0:
+            if not netdata_cpu_freq:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msgs = [ 'Clock Speed Error' ]
-                diag_vals = [ KeyValue(key = 'Clock Speed Error', value = stderr),
-                              KeyValue(key = 'Output', value = stdout) ]
+                diag_vals = [ KeyValue(key = 'Clock Speed Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = str(netdata_cpu_freq)) ]
                 return (diag_vals, diag_msgs, diag_level)
 
-            for index, ln in enumerate(stdout.split('\n')):
-                words = ln.split(':')
-                if len(words) < 2:
-                    continue
-
-                speed = words[1].strip().split('.')[0] # Conversion to float doesn't work with decimal
-                diag_vals.append(KeyValue(key = 'Core %d MHz' % index, value = speed))
-                try:
-                    _ = float(speed)
-                except ValueError:
-                    diag_level = max(diag_level, DiagnosticStatus.ERROR)
-                    diag_msgs = [ 'Clock speed not numeric' ]
+            for index, freq in enumerate(netdata_cpu_freq[1:]):
+                diag_vals.append(KeyValue(key = 'Core %d (MHz)' % index, value = freq))
 
             # get max freq
             p = subprocess.Popen('lscpu | grep "max MHz"',
