@@ -684,6 +684,8 @@ class simple_script_server:
 			rospy.logerr(val_err)
 			return (JointTrajectory(), 3)
 
+		rospy.logerr(desired_vel)
+
 		# get default_acc
 		param_string = self.ns_global_prefix + "/" + component_name + "/default_acc"
 		if not rospy.has_param(param_string):
@@ -699,6 +701,8 @@ class simple_script_server:
 			else:
 				default_acc = numpy.array([1.0 for _ in start_pos]) # rad^2/s
 				rospy.logwarn("parameter '{}' {} has wrong format (must be float/int or list of float/int), using default_acc {} [rad^2/sec].".format(param_string,param_acc,default_acc))
+
+		rospy.logerr(default_acc)
 
 		# filter duplicates
 		def is_close(a,b):
@@ -743,11 +747,11 @@ class simple_script_server:
 		prevs = itertools.chain([None], prevs)
 		nexts = itertools.chain(itertools.islice(nexts, 1, None), [None])
 		for idx, (pre, curr, post) in enumerate(zip(prevs, items, nexts)):
-			traj_msg.points[idx].velocities = self.calculate_point_velocities(pre, curr, post, stop_at_waypoints)
-			traj_msg.points[idx].accelerations = self.calculate_point_accelerations(pre, curr, post)
+			traj_msg.points[idx].velocities = self.calculate_point_velocities(pre, curr, post, desired_vel, stop_at_waypoints)
+			traj_msg.points[idx].accelerations = self.calculate_point_accelerations(pre, curr, post, default_acc, stop_at_waypoints)
 
 		# drop first trajectory point because it is equal to start_pos
-		traj_msg.points = traj_msg.points[1:]
+		# traj_msg.points = traj_msg.points[1:]
 
 		return (traj_msg, 0)
 
@@ -803,7 +807,7 @@ class simple_script_server:
 			point_time = 3.0  # use default point_time
 		return point_time
 
-	def calculate_point_velocities(self, prev, curr, post, stop_at_waypoints=False):
+	def calculate_point_velocities(self, prev, curr, post, default_vel, stop_at_waypoints=False):
 		rospy.logdebug("calculate_point_velocities")
 		rospy.logdebug("prev: {}".format(prev))
 		rospy.logdebug("curr: {}".format(curr))
@@ -822,6 +826,7 @@ class simple_script_server:
 			rospy.logdebug("has prev, has post")
 			# calculate based on difference quotient post-curr
 			point_velocities = numpy.divide(numpy.subtract(numpy.array(post.positions), numpy.array(prev.positions)), numpy.array([(post.time_from_start-prev.time_from_start).to_sec()]*len(curr.positions)))
+			point_velocities = numpy.minimum(point_velocities, default_vel)
 			rospy.logdebug("point_velocities diff quot: {}".format(point_velocities))
 
 			# check sign change or consecutive points too close
@@ -851,8 +856,10 @@ class simple_script_server:
 		rospy.logdebug("point_velocities: {}".format(point_velocities))
 		return list(point_velocities)
 
-	def calculate_point_accelerations(self, prev, curr, post):
-		return [0]*len(curr.positions)
+	def calculate_point_accelerations(self, prev, curr, post, default_acc, stop_at_waypoints=False):
+		point_accelerations = numpy.zeros(len(curr.positions))
+		rospy.logdebug("point_accelerations: {}".format(point_accelerations))
+		return list(point_accelerations)
 
 	## Deals with all kind of trajectory movements for different components.
 	#
