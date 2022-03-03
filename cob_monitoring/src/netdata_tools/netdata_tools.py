@@ -1,5 +1,6 @@
 import rospy
 import requests
+import numpy
 
 def query_netdata_info():
 
@@ -35,7 +36,7 @@ def query_netdata(chart, after):
     d = dict()
 
     for idx, label in enumerate(rdata['labels']):
-        np_array = np.array(sdata[idx])
+        np_array = numpy.array(sdata[idx])
         if np_array.dtype == object:
             rospy.logwarn("Data from NetData malformed")
             return None
