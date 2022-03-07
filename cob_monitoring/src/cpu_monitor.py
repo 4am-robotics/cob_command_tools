@@ -312,7 +312,7 @@ class CPUMonitor():
         return diag_vals, diag_msgs, diag_level
 
     ##\brief Uses 'uptime' to see load average
-    def check_uptime(self):
+    def check_uptime(self, interval=1):
         diag_vals = []
         diag_msg = ''
         diag_level = DiagnosticStatus.OK
@@ -320,27 +320,28 @@ class CPUMonitor():
         load_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'High Load', DiagnosticStatus.ERROR: 'Very High Load' }
 
         try:
-            p = subprocess.Popen('uptime', stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
+            netdata_uptime = query_netdata('system.uptime', interval=interval)
 
-            if retcode != 0:
+            if not netdata_uptime:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msg = 'Uptime Error'
-                diag_vals = [ KeyValue(key = 'Uptime Error', value = stderr),
-                              KeyValue(key = 'Output', value = stdout) ]
+                diag_vals = [ KeyValue(key = 'Uptime Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = str(netdata_uptime)) ]
+                return (diag_vals, diag_msg, diag_level)
+            
+
+            netdata_cpu_load = query_netdata('system.load', interval=interval)
+
+            if not netdata_cpu_load:
+                diag_level = DiagnosticStatus.ERROR
+                diag_msg = 'Load Error'
+                diag_vals = [ KeyValue(key = 'Load Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = str(netdata_cpu_load)) ]
                 return (diag_vals, diag_msg, diag_level)
 
-            upvals = stdout.split()
-            load1 = upvals[-3].rstrip(',').replace(',', '.')
-            load5 = upvals[-2].rstrip(',').replace(',', '.')
-            load15 = upvals[-1].replace(',', '.')
-            num_users = upvals[-7]
+            load1 = netdata_cpu_load[-3]
+            load5 = netdata_cpu_load[-2]
+            load15 = netdata_cpu_load[-1]
 
             # Give warning if we go over load limit
             if float(load1) > self._load1_threshold or float(load5) > self._load5_threshold:
@@ -352,7 +353,6 @@ class CPUMonitor():
             diag_vals.append(KeyValue(key = '5 min Load Average', value = load5))
             diag_vals.append(KeyValue(key = '5 min Load Average Threshold', value = str(self._load5_threshold)))
             diag_vals.append(KeyValue(key = '15 min Load Average', value = load15))
-            diag_vals.append(KeyValue(key = 'Number of Users', value = num_users))
 
             diag_msg = load_dict[diag_level]
 
@@ -364,7 +364,7 @@ class CPUMonitor():
         return diag_vals, diag_msg, diag_level
 
     ##\brief Uses 'free -m' to check free memory
-    def check_free_memory(self):
+    def check_free_memory(self, interval=1):
         diag_vals = []
         diag_msg = ''
         diag_level = DiagnosticStatus.OK
@@ -372,33 +372,21 @@ class CPUMonitor():
         mem_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'Low Memory', DiagnosticStatus.ERROR: 'Very Low Memory' }
 
         try:
-            p = subprocess.Popen('free -m',
-                                 stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
+            netdata_mem = query_netdata('system.ram', interval=interval)
 
-            if retcode != 0:
+            if not netdata_mem:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msg = 'Memory Usage Error'
-                diag_vals = [ KeyValue(key = 'Memory Usage Error', value = stderr),
-                              KeyValue(key = 'Output', value = stdout) ]
+                diag_vals = [ KeyValue(key = 'Memory Usage Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = str(netdata_mem)) ]
                 return (diag_vals, diag_msg, diag_level)
 
-            rows = stdout.split('\n')
-
             # Mem
-            data = rows[1].split()
-            total_mem = data[1]
-            used_mem = data[2]
-            free_mem = data[3]
-            shared_mem = data[4]
-            cache_mem = data[5]
-            available_mem = data[6]
+            memory_vals = [float(f) for f in netdata_mem[1:]]
+            total_mem = sum(memory_vals)
+            free_mem = memory_vals[0]
+            used_mem = memory_vals[1]
+            cache_mem = memory_vals[2] + memory_vals[3]
 
             diag_level = DiagnosticStatus.OK
             if float(free_mem) < self._mem_warn:
@@ -410,19 +398,26 @@ class CPUMonitor():
             diag_vals.append(KeyValue(key = 'Mem Total', value = total_mem))
             diag_vals.append(KeyValue(key = 'Mem Used', value = used_mem))
             diag_vals.append(KeyValue(key = 'Mem Free', value = free_mem))
-            diag_vals.append(KeyValue(key = 'Mem Shared', value = shared_mem))
             diag_vals.append(KeyValue(key = 'Mem Buff/Cache', value = cache_mem))
-            diag_vals.append(KeyValue(key = 'Mem Available', value = available_mem))
+
+            netdata_swp = query_netdata('system.swap', interval=interval)
 
             # Swap
-            data = rows[2].split()
-            total_mem = data[1]
-            used_mem = data[2]
-            free_mem = data[3]
+            if not netdata_swp:
+                diag_level = DiagnosticStatus.ERROR
+                diag_msg = 'Swap Usage Error'
+                diag_vals = [ KeyValue(key = 'Swap Usage Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = str(netdata_swp)) ]
+                return (diag_vals, diag_msg, diag_level)
 
-            diag_vals.append(KeyValue(key = 'Swap Total', value = total_mem))
-            diag_vals.append(KeyValue(key = 'Swap Used', value = used_mem))
-            diag_vals.append(KeyValue(key = 'Swap Free', value = free_mem))
+            swap_vals = [float(f) for f in netdata_swp[1:]]
+            free_swp = swap_vals[0]
+            used_swp = swap_vals[1]
+            total_swp = sum(swap_vals)
+
+            diag_vals.append(KeyValue(key = 'Swap Total', value = total_swp))
+            diag_vals.append(KeyValue(key = 'Swap Used', value = used_swp))
+            diag_vals.append(KeyValue(key = 'Swap Free', value = free_swp))
 
             diag_msg = mem_dict[diag_level]
 
