@@ -316,7 +316,7 @@ class CPUMonitor():
         load_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'High Load', DiagnosticStatus.ERROR: 'Very High Load' }
 
         try:
-            netdata_uptime = query_netdata('system.uptime', interval=interval)
+            netdata_uptime = query_netdata('system.uptime', interval)
 
             if not netdata_uptime:
                 diag_level = DiagnosticStatus.ERROR
@@ -326,7 +326,7 @@ class CPUMonitor():
                 return (diag_vals, diag_msg, diag_level)
             
 
-            netdata_cpu_load = query_netdata('system.load', interval=interval)
+            netdata_cpu_load = query_netdata('system.load', interval)
 
             if not netdata_cpu_load:
                 diag_level = DiagnosticStatus.ERROR
