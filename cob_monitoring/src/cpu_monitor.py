@@ -17,10 +17,9 @@
 
 
 
-import sys, os, time
+import sys
 import traceback
 import subprocess
-import string
 import socket
 import psutil
 import numpy as np
@@ -56,9 +55,6 @@ class CPUMonitor():
         self._idlejitter_average_threshold = rospy.get_param('~idlejitter_average_threshold', 200000)
 
         self._num_cores = rospy.get_param('~num_cores', psutil.cpu_count())
-
-        # Get temp_input files
-        self._temp_vals = self.get_core_temp_names()
 
         # CPU stats
         self._info_stat = DiagnosticStatus()
@@ -555,66 +551,6 @@ class CPUMonitor():
         vals.insert(0, KeyValue(key='IDLE Jitter Status', value=jitter_dict[jitter_level]))
 
         return jitter_level, jitter_dict[jitter_level], vals
-
-
-    ##\brief Returns names for core temperature files
-    def get_core_temp_names(self):
-        devices = {}
-        platform_vals = []
-        virtual_vals = []
-        try:
-            #platform devices
-            p = subprocess.Popen('find /sys/devices/platform -name temp*_input',
-                                 stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
-
-            if retcode != 0:
-                rospy.logerr('Error find core temp locations: %s' % stderr)
-                return []
-
-            for ln in stdout.split('\n'):
-                if ln:
-                    device_path, device_file = os.path.split(ln.strip())
-                    device_label = device_path+'/'+device_file.split('_')[0]+'_label'
-                    name = open(device_label, 'r').read()
-                    pair = (name.strip(), ln.strip())
-                    platform_vals.append(pair)
-
-            #virtual devices
-            p = subprocess.Popen('find /sys/devices/virtual -name temp*_input',
-                                 stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
-
-            if retcode != 0:
-                rospy.logerr('Error find core temp locations: %s' % stderr)
-                return []
-
-            for ln in stdout.split('\n'):
-                if ln:
-                    device_path, device_file = os.path.split(ln.strip())
-                    name = open(device_path+'/name', 'r').read()
-                    pair = (name.strip(), ln.strip())
-                    virtual_vals.append(pair)
-
-            devices['platform'] = platform_vals
-            devices['virtual'] = virtual_vals
-            return devices
-        except Exception as e:
-            rospy.logerr('Exception finding temp vals: {}'.format(e))
-            rospy.logerr('Trackeback: \n{}'.format(traceback.format_exc()))
-            return []
 
 
     def check_info(self, event):
