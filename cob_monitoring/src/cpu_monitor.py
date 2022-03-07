@@ -436,17 +436,19 @@ class CPUMonitor():
 
         load_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'High Load', DiagnosticStatus.ERROR: 'Error' }
 
-        num_cores = psutil.cpu_count()
         try:
+            netdata_info = query_netdata_info()
             netdata_system_cpu = query_netdata('system.cpu', interval)
             netdata_cpu_util = [query_netdata('cpu.cpu%d' % i for i in range(num_cores))]
             netdata_cpu_idle = [query_netdata('cpu.cpu%d_cpuidle' % i for i in range(num_cores))]
+
+            num_cores = netdata_info['cores_total']
 
             if any([netdata_system_cpu, netdata_cpu_util, netdata_cpu_idle] == None):
                 diag_level = DiagnosticStatus.ERROR
                 diag_msg = 'CPU Usage Error'
                 diag_vals = [ KeyValue(key = 'CPU Usage Error', value = 'Could not fetch data from netdata'),
-                              KeyValue(key = 'Output', value = [netdata_system_cpu, netdata_cpu_util, netdata_cpu_idle]) ]
+                              KeyValue(key = 'Output', value = str([netdata_system_cpu, netdata_cpu_util, netdata_cpu_idle])) ]
                 return (diag_vals, diag_msg, diag_level)
 
             cores_loaded = 0
