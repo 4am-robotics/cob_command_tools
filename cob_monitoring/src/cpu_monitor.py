@@ -434,7 +434,7 @@ class CPUMonitor():
 
         try:
             netdata_info = query_netdata_info()
-            num_cores = netdata_info['cores_total']
+            num_cores = int(netdata_info['cores_total'])
 
             netdata_system_cpu = query_netdata('system.cpu', interval)
             netdata_cpu_util = [query_netdata('cpu.cpu%d' % i for i in range(num_cores))]
