@@ -216,7 +216,7 @@ class CPUMonitor():
 
         try:
             netdata_core_temp = query_netdata('sensors.coretemp_isa_0000_temperature', interval)
-            if netdata_core_temp:
+            if not netdata_core_temp:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msgs = [ 'Core Temp Error' ]
                 diag_vals = [ KeyValue(key = 'Core Temp Error', value = 'Could not fetch data from netdata'),
