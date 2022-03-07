@@ -317,6 +317,7 @@ class CPUMonitor():
 
         try:
             netdata_uptime = query_netdata('system.uptime', interval)
+            del netdata_uptime['time']
 
             if not netdata_uptime:
                 diag_level = DiagnosticStatus.ERROR
@@ -325,8 +326,10 @@ class CPUMonitor():
                               KeyValue(key = 'Output', value = str(netdata_uptime)) ]
                 return (diag_vals, diag_msg, diag_level)
             
+            diag_vals.append(KeyValue(key = 'Uptime', value = np.max(netdata_uptime['uptime'].astype(float))))
 
             netdata_cpu_load = query_netdata('system.load', interval)
+            del netdata_cpu_load['time']
 
             if not netdata_cpu_load:
                 diag_level = DiagnosticStatus.ERROR
@@ -335,9 +338,9 @@ class CPUMonitor():
                               KeyValue(key = 'Output', value = str(netdata_cpu_load)) ]
                 return (diag_vals, diag_msg, diag_level)
 
-            load1 = netdata_cpu_load[-3]
-            load5 = netdata_cpu_load[-2]
-            load15 = netdata_cpu_load[-1]
+            load1 = np.mean(netdata_cpu_load['load1'].astype(float))
+            load5 = np.mean(netdata_cpu_load['load5'].astype(float))
+            load15 = np.mean(netdata_cpu_load['load15'].astype(float))
 
             # Give warning if we go over load limit
             if float(load1) > self._load1_threshold or float(load5) > self._load5_threshold:
