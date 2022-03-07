@@ -451,11 +451,11 @@ class CPUMonitor():
             cores_loaded = 0
             for i_cpu in range(num_cores):
                 
-                cpu_name = '%d' % (i_cpu)
-                idle = 100 - netdata_cpu_idle[i_cpu][1]
-                user = netdata_cpu_util[i_cpu][6]
-                nice = netdata_cpu_util[i_cpu][8]
-                system = netdata_cpu_util[i_cpu][7]
+                cpu_name = 'Core %d' % (i_cpu)
+                idle = 100 - np.mean(netdata_cpu_idle[i_cpu]['C0 (active)'])
+                user = np.mean(netdata_cpu_util[i_cpu][cpu_name]['user'])
+                nice = np.mean(netdata_cpu_util[i_cpu][cpu_name]['nice'])
+                system = np.mean(netdata_cpu_util[i_cpu][cpu_name]['system'])
 
                 core_level = DiagnosticStatus.OK
                 usage = float(user) + float(nice)
