@@ -368,7 +368,7 @@ class CPUMonitor():
         mem_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'Low Memory', DiagnosticStatus.ERROR: 'Very Low Memory' }
 
         try:
-            netdata_mem = query_netdata('system.ram', interval=interval)
+            netdata_mem = query_netdata('system.ram', interval)
 
             if not netdata_mem:
                 diag_level = DiagnosticStatus.ERROR
@@ -396,7 +396,7 @@ class CPUMonitor():
             diag_vals.append(KeyValue(key = 'Mem Free', value = free_mem))
             diag_vals.append(KeyValue(key = 'Mem Buff/Cache', value = cache_mem))
 
-            netdata_swp = query_netdata('system.swap', interval=interval)
+            netdata_swp = query_netdata('system.swap', interval)
 
             # Swap
             if not netdata_swp:
@@ -434,11 +434,12 @@ class CPUMonitor():
 
         try:
             netdata_info = query_netdata_info()
+            num_cores = netdata_info['cores_total']
+
             netdata_system_cpu = query_netdata('system.cpu', interval)
             netdata_cpu_util = [query_netdata('cpu.cpu%d' % i for i in range(num_cores))]
             netdata_cpu_idle = [query_netdata('cpu.cpu%d_cpuidle' % i for i in range(num_cores))]
 
-            num_cores = netdata_info['cores_total']
 
             if any([netdata_system_cpu, netdata_cpu_util, netdata_cpu_idle] == None):
                 diag_level = DiagnosticStatus.ERROR
@@ -565,7 +566,8 @@ class CPUMonitor():
             diag_level = max(diag_level, ipmi_level)
 
         if self._check_core_temps:
-            core_vals, core_msgs, core_level = self.check_core_temps()
+            interval = math.ceil(self._usage_timer._period.to_sec())
+            core_vals, core_msgs, core_level = self.check_core_temps(interval=interval)
             diag_vals.extend(core_vals)
             diag_msgs.extend(core_msgs)
             diag_level = max(diag_level, core_level)
@@ -590,8 +592,10 @@ class CPUMonitor():
         diag_msgs = []
         diag_level = DiagnosticStatus.OK
 
+        interval = math.ceil(self._usage_timer._period.to_sec())
+
         # Check mpstat
-        mp_vals, mp_msg, mp_level = self.check_cpu_util()
+        mp_vals, mp_msg, mp_level = self.check_cpu_util(interval=interval)
         diag_vals.extend(mp_vals)
         if mp_level > DiagnosticStatus.OK:
             diag_msgs.append(mp_msg)
@@ -599,7 +603,6 @@ class CPUMonitor():
 
         # Check NetData cpu.core_throttling
         if self._check_thermal_throttling_events:
-            interval = math.ceil(self._usage_timer._period.to_sec())
             throt_level, throt_msg, throt_vals = self.check_core_throttling(interval=interval)
             diag_vals.extend(throt_vals)
             if throt_level > 0:
@@ -608,7 +611,6 @@ class CPUMonitor():
 
         # Check NetData system.idlejitter
         if self._check_idlejitter:
-            interval = math.ceil(self._usage_timer._period.to_sec())
             jitter_level, jitter_msg, jitter_vals = self.check_idlejitter(interval=interval)
             diag_vals.extend(jitter_vals)
             if jitter_level > 0:
@@ -616,7 +618,7 @@ class CPUMonitor():
             diag_level = max(diag_level, jitter_level)
 
         # Check uptime
-        up_vals, up_msg, up_level = self.check_uptime()
+        up_vals, up_msg, up_level = self.check_uptime(interval=interval)
         diag_vals.extend(up_vals)
         if up_level > DiagnosticStatus.OK:
             diag_msgs.append(up_msg)
@@ -637,7 +639,8 @@ class CPUMonitor():
         diag_level = DiagnosticStatus.OK
 
         # Check memory
-        mem_vals, mem_msg, mem_level = self.check_free_memory()
+        interval = math.ceil(self._memory_timer._period.to_sec())
+        mem_vals, mem_msg, mem_level = self.check_free_memory(interval=interval)
         diag_vals.extend(mem_vals)
         if mem_level > DiagnosticStatus.OK:
             diag_msgs.append(mem_msg)
