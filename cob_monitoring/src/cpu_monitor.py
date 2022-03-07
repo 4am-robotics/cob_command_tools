@@ -369,6 +369,7 @@ class CPUMonitor():
 
         try:
             netdata_mem = query_netdata('system.ram', interval)
+            del netdata_mem['time']
 
             if not netdata_mem:
                 diag_level = DiagnosticStatus.ERROR
@@ -378,11 +379,11 @@ class CPUMonitor():
                 return (diag_vals, diag_msg, diag_level)
 
             # Mem
-            memory_vals = [float(f) for f in netdata_mem[1:]]
-            total_mem = sum(memory_vals)
-            free_mem = memory_vals[0]
-            used_mem = memory_vals[1]
-            cache_mem = memory_vals[2] + memory_vals[3]
+            memory_vals = {k: np.mean(v.astype(float)) for k, v in netdata_mem.items()}
+            total_mem = sum([val for val in memory_vals.values()])
+            free_mem = memory_vals['free']
+            used_mem = memory_vals['used']
+            cache_mem = memory_vals['cached'] + memory_vals['buffers']
 
             diag_level = DiagnosticStatus.OK
             if float(free_mem) < self._mem_warn:
@@ -396,9 +397,10 @@ class CPUMonitor():
             diag_vals.append(KeyValue(key = 'Mem Free', value = free_mem))
             diag_vals.append(KeyValue(key = 'Mem Buff/Cache', value = cache_mem))
 
-            netdata_swp = query_netdata('system.swap', interval)
 
-            # Swap
+            netdata_swp = query_netdata('system.swap', interval)
+            del netdata_swp['time']
+
             if not netdata_swp:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msg = 'Swap Usage Error'
@@ -406,10 +408,11 @@ class CPUMonitor():
                               KeyValue(key = 'Output', value = str(netdata_swp)) ]
                 return (diag_vals, diag_msg, diag_level)
 
-            swap_vals = [float(f) for f in netdata_swp[1:]]
-            free_swp = swap_vals[0]
-            used_swp = swap_vals[1]
-            total_swp = sum(swap_vals)
+            # Swap
+            swap_vals = {k: np.mean(v.astype(float)) for k, v in netdata_swp.items()}
+            total_swp = sum([val for val in swap_vals.values()])
+            free_swp = swap_vals['free']
+            used_swp = swap_vals['used']
 
             diag_vals.append(KeyValue(key = 'Swap Total', value = total_swp))
             diag_vals.append(KeyValue(key = 'Swap Used', value = used_swp))
