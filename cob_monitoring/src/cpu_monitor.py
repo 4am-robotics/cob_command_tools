@@ -443,8 +443,8 @@ class CPUMonitor():
             num_cores = int(netdata_info['cores_total'])
 
             netdata_system_cpu = query_netdata('system.cpu', interval)
-            netdata_cpu_util = [query_netdata('cpu.cpu%d' % i for i in range(num_cores))]
-            netdata_cpu_idle = [query_netdata('cpu.cpu%d_cpuidle' % i for i in range(num_cores))]
+            netdata_cpu_util = [query_netdata('cpu.cpu%d' % i, interval) for i in range(num_cores))]
+            netdata_cpu_idle = [query_netdata('cpu.cpu%d_cpuidle' % i, interval) for i in range(num_cores))]
 
 
             if any([netdata_system_cpu, netdata_cpu_util, netdata_cpu_idle] == None):
