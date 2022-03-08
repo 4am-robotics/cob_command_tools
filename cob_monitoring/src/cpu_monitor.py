@@ -326,7 +326,7 @@ class CPUMonitor():
                               KeyValue(key = 'Output', value = str(netdata_uptime)) ]
                 return (diag_vals, diag_msg, diag_level)
             
-            diag_vals.append(KeyValue(key = 'Uptime', value = np.max(netdata_uptime['uptime'].astype(float))))
+            diag_vals.append(KeyValue(key = 'Uptime', value = str(np.max(netdata_uptime['uptime'].astype(float)))))
 
             netdata_cpu_load = query_netdata('system.load', interval)
             del netdata_cpu_load['time']
@@ -347,11 +347,11 @@ class CPUMonitor():
                 diag_level = DiagnosticStatus.WARN
 
             diag_vals.append(KeyValue(key = 'Load Average Status', value = load_dict[diag_level]))
-            diag_vals.append(KeyValue(key = '1 min Load Average', value = load1))
+            diag_vals.append(KeyValue(key = '1 min Load Average', value = str(load1)))
             diag_vals.append(KeyValue(key = '1 min Load Average Threshold', value = str(self._load1_threshold)))
-            diag_vals.append(KeyValue(key = '5 min Load Average', value = load5))
+            diag_vals.append(KeyValue(key = '5 min Load Average', value = str(load5)))
             diag_vals.append(KeyValue(key = '5 min Load Average Threshold', value = str(self._load5_threshold)))
-            diag_vals.append(KeyValue(key = '15 min Load Average', value = load15))
+            diag_vals.append(KeyValue(key = '15 min Load Average', value = str(load15)))
 
             diag_msg = load_dict[diag_level]
 
@@ -395,10 +395,10 @@ class CPUMonitor():
                 diag_level = DiagnosticStatus.ERROR
 
             diag_vals.append(KeyValue(key = 'Mem Status', value = mem_dict[diag_level]))
-            diag_vals.append(KeyValue(key = 'Mem Total', value = total_mem))
-            diag_vals.append(KeyValue(key = 'Mem Used', value = used_mem))
-            diag_vals.append(KeyValue(key = 'Mem Free', value = free_mem))
-            diag_vals.append(KeyValue(key = 'Mem Buff/Cache', value = cache_mem))
+            diag_vals.append(KeyValue(key = 'Mem Total', value = str(total_mem)))
+            diag_vals.append(KeyValue(key = 'Mem Used', value = str(used_mem)))
+            diag_vals.append(KeyValue(key = 'Mem Free', value = str(free_mem)))
+            diag_vals.append(KeyValue(key = 'Mem Buff/Cache', value = str(cache_mem)))
 
 
             netdata_swp = query_netdata('system.swap', interval)
@@ -417,9 +417,9 @@ class CPUMonitor():
             free_swp = swap_vals['free']
             used_swp = swap_vals['used']
 
-            diag_vals.append(KeyValue(key = 'Swap Total', value = total_swp))
-            diag_vals.append(KeyValue(key = 'Swap Used', value = used_swp))
-            diag_vals.append(KeyValue(key = 'Swap Free', value = free_swp))
+            diag_vals.append(KeyValue(key = 'Swap Total', value = str(total_swp)))
+            diag_vals.append(KeyValue(key = 'Swap Used', value = str(used_swp)))
+            diag_vals.append(KeyValue(key = 'Swap Free', value = str(free_swp)))
 
             diag_msg = mem_dict[diag_level]
 
@@ -472,10 +472,10 @@ class CPUMonitor():
                     core_level = DiagnosticStatus.ERROR
 
                 diag_vals.append(KeyValue(key = 'CPU %s Status' % cpu_name, value = load_dict[core_level]))
-                diag_vals.append(KeyValue(key = 'CPU %s User' % cpu_name, value = user))
-                diag_vals.append(KeyValue(key = 'CPU %s Nice' % cpu_name, value = nice))
-                diag_vals.append(KeyValue(key = 'CPU %s System' % cpu_name, value = system))
-                diag_vals.append(KeyValue(key = 'CPU %s Idle' % cpu_name, value = idle))
+                diag_vals.append(KeyValue(key = 'CPU %s User' % cpu_name, value = str(user)))
+                diag_vals.append(KeyValue(key = 'CPU %s Nice' % cpu_name, value = str(nice)))
+                diag_vals.append(KeyValue(key = 'CPU %s System' % cpu_name, value = str(system)))
+                diag_vals.append(KeyValue(key = 'CPU %s Idle' % cpu_name, value = str(idle)))
 
             # Warn for high load only if we have <= 2 cores that aren't loaded
             if num_cores - cores_loaded <= 2 and num_cores > 2:
