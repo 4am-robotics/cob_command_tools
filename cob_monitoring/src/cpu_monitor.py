@@ -34,7 +34,6 @@ stat_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'Warning', Diagn
 
 class CPUMonitor():
     def __init__(self, hostname, diag_hostname):
-        self._check_ipmi = rospy.get_param('~check_ipmi_tool', False)
         self._check_core_temps = rospy.get_param('~check_core_temps', False)
 
         self._core_load_warn = rospy.get_param('~core_load_warn', 90)
@@ -83,126 +82,6 @@ class CPUMonitor():
         self._info_timer = rospy.Timer(rospy.Duration(5.0), self.check_info)
         self._usage_timer = rospy.Timer(rospy.Duration(5.0), self.check_usage)
         self._memory_timer = rospy.Timer(rospy.Duration(5.0), self.check_memory)
-
-    ##\brief Output entire IPMI data set
-    def check_ipmi(self):
-        diag_vals = []
-        diag_msgs = []
-        diag_level = DiagnosticStatus.OK
-
-        try:
-            p = subprocess.Popen('sudo ipmitool sdr',
-                                 stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
-
-            if retcode != 0:
-                diag_level = DiagnosticStatus.ERROR
-                diag_msgs = [ 'ipmitool Error' ]
-                diag_vals = [ KeyValue(key = 'IPMI Error', value = stderr) ,
-                              KeyValue(key = 'Output', value = stdout) ]
-                return diag_vals, diag_msgs, diag_level
-
-            lines = stdout.split('\n')
-            if len(lines) < 2:
-                diag_vals = [ KeyValue(key = 'ipmitool status', value = 'No output') ]
-
-                diag_msgs = [ 'No ipmitool response' ]
-                diag_level = DiagnosticStatus.ERROR
-
-                return diag_vals, diag_msgs, diag_level
-
-            for ln in lines:
-                if len(ln) < 3:
-                    continue
-
-                words = ln.split('|')
-                if len(words) < 3:
-                    continue
-
-                name = words[0].strip()
-                ipmi_val = words[1].strip()
-                #stat_byte = words[2].strip()
-
-                # CPU temps
-                if words[0].startswith('CPU') and words[0].strip().endswith('Temp'):
-                    if words[1].strip().endswith('degrees C'):
-                        tmp = ipmi_val.rstrip(' degrees C').lstrip()
-                        try:
-                            temperature = float(tmp)
-                            diag_vals.append(KeyValue(key = name + ' (C)', value = tmp))
-
-                            #cpu_name = name.split()[0]
-                            if temperature >= self._core_temp_error: # CPU should shut down here
-                                diag_level = max(diag_level, DiagnosticStatus.ERROR)
-                                diag_msgs.append('CPU Hot')
-                            elif temperature >= self._core_temp_warn:
-                                diag_level = max(diag_level, DiagnosticStatus.WARN)
-                                diag_msgs.append('CPU Warm')
-                        except ValueError:
-                            diag_level = max(diag_level, DiagnosticStatus.ERROR)
-                            diag_msgs.append('Error: temperature not numeric')
-                    else:
-                        diag_vals.append(KeyValue(key = name, value = words[1]))
-
-
-                # MP, BP, FP temps
-                if name == 'MB Temp' or name == 'BP Temp' or name == 'FP Temp':
-                    if ipmi_val.endswith('degrees C'):
-                        tmp = ipmi_val.rstrip(' degrees C').lstrip()
-                        diag_vals.append(KeyValue(key = name + ' (C)', value = tmp))
-                        # Give temp warning
-                        dev_name = name.split()[0]
-                        try:
-                            temperature = float(tmp)
-
-                            if temperature >= 60 and temperature < 75:
-                                diag_level = max(diag_level, DiagnosticStatus.WARN)
-                                diag_msgs.append('%s Warm' % dev_name)
-
-                            if temperature >= 75:
-                                diag_level = max(diag_level, DiagnosticStatus.ERROR)
-                                diag_msgs.append('%s Hot' % dev_name)
-                        except ValueError:
-                            diag_level = max(diag_level, DiagnosticStatus.ERROR)
-                            diag_msgs.append('%s Error: temperature not numeric' % dev_name)
-                    else:
-                        diag_vals.append(KeyValue(key = name, value = ipmi_val))
-
-                # CPU fan speeds
-                if (name.startswith('CPU') and name.endswith('Fan')) or name == 'MB Fan':
-                    if ipmi_val.endswith('RPM'):
-                        rpm = ipmi_val.rstrip(' RPM').lstrip()
-                        try:
-                            if int(rpm) == 0:
-                                diag_level = max(diag_level, DiagnosticStatus.ERROR)
-                                diag_msgs.append('CPU Fan Off')
-
-                            diag_vals.append(KeyValue(key = name + ' RPM', value = rpm))
-                        except ValueError:
-                            diag_vals.append(KeyValue(key = name, value = ipmi_val))
-
-                # If CPU is hot we get an alarm from ipmitool, report that too
-                # CPU should shut down if we get a hot alarm, so report as error
-                if name.startswith('CPU') and name.endswith('hot'):
-                    if ipmi_val == '0x01':
-                        diag_vals.append(KeyValue(key = name, value = 'OK'))
-                    else:
-                        diag_vals.append(KeyValue(key = name, value = 'Hot'))
-                        diag_level = max(diag_level, DiagnosticStatus.ERROR)
-                        diag_msgs.append('CPU Hot Alarm')
-
-        except Exception as e:
-            diag_level = DiagnosticStatus.ERROR
-            diag_msgs = [ 'IPMI Exception' ]
-            diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
-
-        return diag_vals, diag_msgs, diag_level
 
     ##\brief Check CPU core temps
     def check_core_temps(self, interval=1):
@@ -542,12 +421,6 @@ class CPUMonitor():
         diag_vals = []
         diag_msgs = []
         diag_level = DiagnosticStatus.OK
-
-        if self._check_ipmi:
-            ipmi_vals, ipmi_msgs, ipmi_level = self.check_ipmi()
-            diag_vals.extend(ipmi_vals)
-            diag_msgs.extend(ipmi_msgs)
-            diag_level = max(diag_level, ipmi_level)
 
         if self._check_core_temps:
             interval = math.ceil(self._usage_timer._period.to_sec())
