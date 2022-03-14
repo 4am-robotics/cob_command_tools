@@ -213,6 +213,7 @@ class CPUMonitor():
         try:
             netdata_core_temp = query_netdata('sensors.coretemp_isa_0000_temperature', interval)
             del netdata_core_temp['time']
+            del netdata_core_temp['Package id 0']
             
             if not netdata_core_temp:
                 diag_level = DiagnosticStatus.ERROR
@@ -265,44 +266,17 @@ class CPUMonitor():
                 diag_vals.append(KeyValue(key = 'Core %d (MHz)' % int(cpu_name[-1]), value = str(np.mean(values))))
 
             # get max freq
-            p = subprocess.Popen('lscpu | grep "max MHz"',
-                                 stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
+            netdata_max_cpu_freq = query_netdata_info()
 
-            if retcode != 0:
+            if not netdata_max_cpu_freq:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msgs = [ 'Clock Speed Error' ]
-                diag_vals = [ KeyValue(key = 'Clock Speed Error', value = stderr),
-                              KeyValue(key = 'Output', value = stdout) ]
+                diag_vals = [ KeyValue(key = 'Clock Speed Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = netdata_max_cpu_freq) ]
                 return (diag_vals, diag_msgs, diag_level)
 
-            diag_vals.append(KeyValue(key = stdout.split(':')[0].strip(), value = str(stdout.split(':')[1].strip())))
-
-            # get min freq
-            p = subprocess.Popen('lscpu | grep "min MHz"',
-                                 stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
-
-            if retcode != 0:
-                diag_level = DiagnosticStatus.ERROR
-                diag_msgs = [ 'Clock Speed Error' ]
-                diag_vals = [ KeyValue(key = 'Clock Speed Error', value = stderr),
-                              KeyValue(key = 'Output', value = stdout) ]
-                return (diag_vals, diag_msgs, diag_level)
-
-            diag_vals.append(KeyValue(key = stdout.split(':')[0].strip(), value = str(stdout.split(':')[1].strip())))
+            max_cpu_freq = float(netdata_max_cpu_freq['cpu_freq'])/1e6
+            diag_vals.append(KeyValue(key = 'Maximum Frequency (MHz)', value = str(max_cpu_freq)))
 
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
