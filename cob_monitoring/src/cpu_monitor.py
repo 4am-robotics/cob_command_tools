@@ -212,6 +212,8 @@ class CPUMonitor():
 
         try:
             netdata_core_temp = query_netdata('sensors.coretemp_isa_0000_temperature', interval)
+            del netdata_core_temp['time']
+            
             if not netdata_core_temp:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msgs = [ 'Core Temp Error' ]
@@ -219,20 +221,21 @@ class CPUMonitor():
                                 KeyValue(key = 'Output', value = str(netdata_core_temp)) ]
                 return diag_vals, diag_msgs, diag_level
 
-            for i, temp in enumerate(netdata_core_temp[1:]):
-            
-                try:
-                    diag_vals.append(KeyValue(key = 'Temp %d' % i, value = str(temp)))
+            for core_no, values in netdata_core_temp.items():
 
-                    if temp >= self._core_temp_error:
+                mean_temp = np.mean(values)
+                try:
+                    diag_vals.append(KeyValue(key = 'Temp %s' % core_no, value = str(mean_temp)))
+
+                    if mean_temp >= self._core_temp_error:
                         diag_level = max(diag_level, DiagnosticStatus.OK) #do not set ERROR
                         diag_msgs.append('CPU Hot')
-                    elif temp >= self._core_temp_warn:
+                    elif mean_temp >= self._core_temp_warn:
                         diag_level = max(diag_level, DiagnosticStatus.OK) #do not set WARN
                         diag_msgs.append('CPU Warm')
                 except ValueError:
                     diag_level = max(diag_level, DiagnosticStatus.ERROR) # Error if not numeric value
-                    diag_vals.append(KeyValue(key = 'Temp %d' % i, value = temp))
+                    diag_vals.append(KeyValue(key = 'Temp %s' % core_no, value = str(mean_temp)))
 
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
@@ -249,6 +252,7 @@ class CPUMonitor():
 
         try:
             netdata_cpu_freq = query_netdata('cpu.cpufreq', interval)
+            del netdata_cpu_freq["time"]
 
             if not netdata_cpu_freq:
                 diag_level = DiagnosticStatus.ERROR
@@ -257,8 +261,8 @@ class CPUMonitor():
                               KeyValue(key = 'Output', value = str(netdata_cpu_freq)) ]
                 return (diag_vals, diag_msgs, diag_level)
 
-            for index, freq in enumerate(netdata_cpu_freq[1:]):
-                diag_vals.append(KeyValue(key = 'Core %d (MHz)' % index, value = freq))
+            for cpu_name, values in netdata_cpu_freq.items():
+                diag_vals.append(KeyValue(key = 'Core %d (MHz)' % int(cpu_name[-1]), value = str(np.mean(values))))
 
             # get max freq
             p = subprocess.Popen('lscpu | grep "max MHz"',
@@ -447,7 +451,7 @@ class CPUMonitor():
             netdata_cpu_idle = [query_netdata('cpu.cpu%d_cpuidle' % i, interval) for i in range(num_cores)]
 
 
-            if any([netdata_system_cpu, netdata_cpu_util, netdata_cpu_idle] == None):
+            if any([i == None for i in [netdata_system_cpu, netdata_cpu_util, netdata_cpu_idle]]):
                 diag_level = DiagnosticStatus.ERROR
                 diag_msg = 'CPU Usage Error'
                 diag_vals = [ KeyValue(key = 'CPU Usage Error', value = 'Could not fetch data from netdata'),
@@ -456,12 +460,12 @@ class CPUMonitor():
 
             cores_loaded = 0
             for i_cpu in range(num_cores):
-                
+
                 cpu_name = 'Core %d' % (i_cpu)
                 idle = 100 - np.mean(netdata_cpu_idle[i_cpu]['C0 (active)'])
-                user = np.mean(netdata_cpu_util[i_cpu][cpu_name]['user'])
-                nice = np.mean(netdata_cpu_util[i_cpu][cpu_name]['nice'])
-                system = np.mean(netdata_cpu_util[i_cpu][cpu_name]['system'])
+                user = np.mean(netdata_cpu_util[i_cpu]['user'])
+                nice = np.mean(netdata_cpu_util[i_cpu]['nice'])
+                system = np.mean(netdata_cpu_util[i_cpu]['system'])
 
                 core_level = DiagnosticStatus.OK
                 usage = float(user) + float(nice)
