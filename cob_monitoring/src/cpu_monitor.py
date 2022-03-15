@@ -17,24 +17,22 @@
 
 
 
-import sys, os, time
+import sys
 import traceback
-import subprocess
-import string
 import socket
 import psutil
-import requests
 import numpy as np
 import math
 
 import rospy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
+from netdata_tools.netdata_tools import query_netdata_info, query_netdata
+
 stat_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'Warning', DiagnosticStatus.ERROR: 'Error', DiagnosticStatus.STALE: 'Stale' }
 
 class CPUMonitor():
     def __init__(self, hostname, diag_hostname):
-        self._check_ipmi = rospy.get_param('~check_ipmi_tool', False)
         self._check_core_temps = rospy.get_param('~check_core_temps', False)
 
         self._core_load_warn = rospy.get_param('~core_load_warn', 90)
@@ -55,9 +53,6 @@ class CPUMonitor():
         self._idlejitter_average_threshold = rospy.get_param('~idlejitter_average_threshold', 200000)
 
         self._num_cores = rospy.get_param('~num_cores', psutil.cpu_count())
-
-        # Get temp_input files
-        self._temp_vals = self.get_core_temp_names()
 
         # CPU stats
         self._info_stat = DiagnosticStatus()
@@ -87,171 +82,39 @@ class CPUMonitor():
         self._usage_timer = rospy.Timer(rospy.Duration(5.0), self.check_usage)
         self._memory_timer = rospy.Timer(rospy.Duration(5.0), self.check_memory)
 
-    ##\brief Output entire IPMI data set
-    def check_ipmi(self):
-        diag_vals = []
-        diag_msgs = []
-        diag_level = DiagnosticStatus.OK
-
-        try:
-            p = subprocess.Popen('sudo ipmitool sdr',
-                                 stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
-
-            if retcode != 0:
-                diag_level = DiagnosticStatus.ERROR
-                diag_msgs = [ 'ipmitool Error' ]
-                diag_vals = [ KeyValue(key = 'IPMI Error', value = stderr) ,
-                              KeyValue(key = 'Output', value = stdout) ]
-                return diag_vals, diag_msgs, diag_level
-
-            lines = stdout.split('\n')
-            if len(lines) < 2:
-                diag_vals = [ KeyValue(key = 'ipmitool status', value = 'No output') ]
-
-                diag_msgs = [ 'No ipmitool response' ]
-                diag_level = DiagnosticStatus.ERROR
-
-                return diag_vals, diag_msgs, diag_level
-
-            for ln in lines:
-                if len(ln) < 3:
-                    continue
-
-                words = ln.split('|')
-                if len(words) < 3:
-                    continue
-
-                name = words[0].strip()
-                ipmi_val = words[1].strip()
-                #stat_byte = words[2].strip()
-
-                # CPU temps
-                if words[0].startswith('CPU') and words[0].strip().endswith('Temp'):
-                    if words[1].strip().endswith('degrees C'):
-                        tmp = ipmi_val.rstrip(' degrees C').lstrip()
-                        try:
-                            temperature = float(tmp)
-                            diag_vals.append(KeyValue(key = name + ' (C)', value = tmp))
-
-                            #cpu_name = name.split()[0]
-                            if temperature >= self._core_temp_error: # CPU should shut down here
-                                diag_level = max(diag_level, DiagnosticStatus.ERROR)
-                                diag_msgs.append('CPU Hot')
-                            elif temperature >= self._core_temp_warn:
-                                diag_level = max(diag_level, DiagnosticStatus.WARN)
-                                diag_msgs.append('CPU Warm')
-                        except ValueError:
-                            diag_level = max(diag_level, DiagnosticStatus.ERROR)
-                            diag_msgs.append('Error: temperature not numeric')
-                    else:
-                        diag_vals.append(KeyValue(key = name, value = words[1]))
-
-
-                # MP, BP, FP temps
-                if name == 'MB Temp' or name == 'BP Temp' or name == 'FP Temp':
-                    if ipmi_val.endswith('degrees C'):
-                        tmp = ipmi_val.rstrip(' degrees C').lstrip()
-                        diag_vals.append(KeyValue(key = name + ' (C)', value = tmp))
-                        # Give temp warning
-                        dev_name = name.split()[0]
-                        try:
-                            temperature = float(tmp)
-
-                            if temperature >= 60 and temperature < 75:
-                                diag_level = max(diag_level, DiagnosticStatus.WARN)
-                                diag_msgs.append('%s Warm' % dev_name)
-
-                            if temperature >= 75:
-                                diag_level = max(diag_level, DiagnosticStatus.ERROR)
-                                diag_msgs.append('%s Hot' % dev_name)
-                        except ValueError:
-                            diag_level = max(diag_level, DiagnosticStatus.ERROR)
-                            diag_msgs.append('%s Error: temperature not numeric' % dev_name)
-                    else:
-                        diag_vals.append(KeyValue(key = name, value = ipmi_val))
-
-                # CPU fan speeds
-                if (name.startswith('CPU') and name.endswith('Fan')) or name == 'MB Fan':
-                    if ipmi_val.endswith('RPM'):
-                        rpm = ipmi_val.rstrip(' RPM').lstrip()
-                        try:
-                            if int(rpm) == 0:
-                                diag_level = max(diag_level, DiagnosticStatus.ERROR)
-                                diag_msgs.append('CPU Fan Off')
-
-                            diag_vals.append(KeyValue(key = name + ' RPM', value = rpm))
-                        except ValueError:
-                            diag_vals.append(KeyValue(key = name, value = ipmi_val))
-
-                # If CPU is hot we get an alarm from ipmitool, report that too
-                # CPU should shut down if we get a hot alarm, so report as error
-                if name.startswith('CPU') and name.endswith('hot'):
-                    if ipmi_val == '0x01':
-                        diag_vals.append(KeyValue(key = name, value = 'OK'))
-                    else:
-                        diag_vals.append(KeyValue(key = name, value = 'Hot'))
-                        diag_level = max(diag_level, DiagnosticStatus.ERROR)
-                        diag_msgs.append('CPU Hot Alarm')
-
-        except Exception as e:
-            diag_level = DiagnosticStatus.ERROR
-            diag_msgs = [ 'IPMI Exception' ]
-            diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
-
-        return diag_vals, diag_msgs, diag_level
-
     ##\brief Check CPU core temps
-    ##
-    ## Read from every core, divide by 1000
-    def check_core_temps(self):
+    def check_core_temps(self, interval=1):
         diag_vals = []
         diag_msgs = []
         diag_level = DiagnosticStatus.OK
 
         try:
-            for device_type, devices in list(self._temp_vals.items()):
-                for dev in devices:
-                    cmd = 'cat %s' % dev[1]
-                    p = subprocess.Popen(cmd, stdout = subprocess.PIPE,
-                                         stderr = subprocess.PIPE, shell = True)
-                    stdout, stderr = p.communicate()
-                    retcode = p.returncode
-                    try:
-                        stdout = stdout.decode()  #python3
-                    except (UnicodeDecodeError, AttributeError):
-                        pass
+            netdata_core_temp, error = query_netdata('sensors.coretemp_isa_0000_temperature', interval)
+            if not netdata_core_temp:
+                diag_level = DiagnosticStatus.ERROR
+                diag_msgs = [ 'Core Temp Error' ]
+                diag_vals = [ KeyValue(key = 'Core Temp Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = netdata_core_temp),
+                              KeyValue(key = 'Error', value= error) ]
+                return (diag_vals, diag_msgs, diag_level)
 
-                    if retcode != 0:
-                        diag_level = DiagnosticStatus.ERROR
-                        diag_msgs = [ 'Core Temp Error' ]
-                        diag_vals = [ KeyValue(key = 'Core Temp Error', value = stderr),
-                                      KeyValue(key = 'Output', value = stdout) ]
-                        return diag_vals, diag_msgs, diag_level
+            del netdata_core_temp['time']
+            del netdata_core_temp['Package id 0']
 
-                    tmp = stdout.strip()
-                    if device_type == 'platform':
-                        try:
-                            temp = float(tmp) / 1000
-                            diag_vals.append(KeyValue(key = 'Temp '+dev[0], value = str(temp)))
+            for core_no, values in netdata_core_temp.items():
+                mean_temp = np.mean(values)
+                try:
+                    diag_vals.append(KeyValue(key = 'Temp %s' % core_no, value = str(mean_temp)))
 
-                            if temp >= self._core_temp_error:
-                                diag_level = max(diag_level, DiagnosticStatus.OK) #do not set ERROR
-                                diag_msgs.append('CPU Hot')
-                            elif temp >= self._core_temp_warn:
-                                diag_level = max(diag_level, DiagnosticStatus.OK) #do not set WARN
-                                diag_msgs.append('CPU Warm')
-                        except ValueError:
-                            diag_level = max(diag_level, DiagnosticStatus.ERROR) # Error if not numeric value
-                            diag_vals.append(KeyValue(key = 'Temp '+dev[0], value = tmp))
-                    else: # device_type == `virtual`
-                        diag_vals.append(KeyValue(key = 'Temp '+dev[0], value = tmp))
+                    if mean_temp >= self._core_temp_error:
+                        diag_level = max(diag_level, DiagnosticStatus.OK) #do not set ERROR
+                        diag_msgs.append('CPU Hot')
+                    elif mean_temp >= self._core_temp_warn:
+                        diag_level = max(diag_level, DiagnosticStatus.OK) #do not set WARN
+                        diag_msgs.append('CPU Warm')
+                except ValueError:
+                    diag_level = max(diag_level, DiagnosticStatus.ERROR) # Error if not numeric value
+                    diag_vals.append(KeyValue(key = 'Temp %s' % core_no, value = str(mean_temp)))
 
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
@@ -261,82 +124,38 @@ class CPUMonitor():
         return diag_vals, diag_msgs, diag_level
 
     ##\brief Checks clock speed from reading from CPU info
-    def check_clock_speed(self):
+    def check_clock_speed(self, interval=1):
         diag_vals = []
         diag_msgs = []
         diag_level = DiagnosticStatus.OK
 
         try:
-            # get current freq
-            p = subprocess.Popen('cat /proc/cpuinfo | grep MHz',
-                                 stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
-
-            if retcode != 0:
+            netdata_cpu_freq, error = query_netdata('cpu.cpufreq', interval)
+            if not netdata_cpu_freq:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msgs = [ 'Clock Speed Error' ]
-                diag_vals = [ KeyValue(key = 'Clock Speed Error', value = stderr),
-                              KeyValue(key = 'Output', value = stdout) ]
+                diag_vals = [ KeyValue(key = 'Clock Speed Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = netdata_cpu_freq),
+                              KeyValue(key = 'Error', value= error) ]
                 return (diag_vals, diag_msgs, diag_level)
 
-            for index, ln in enumerate(stdout.split('\n')):
-                words = ln.split(':')
-                if len(words) < 2:
-                    continue
+            del netdata_cpu_freq["time"]
 
-                speed = words[1].strip().split('.')[0] # Conversion to float doesn't work with decimal
-                diag_vals.append(KeyValue(key = 'Core %d MHz' % index, value = speed))
-                try:
-                    _ = float(speed)
-                except ValueError:
-                    diag_level = max(diag_level, DiagnosticStatus.ERROR)
-                    diag_msgs = [ 'Clock speed not numeric' ]
+            for cpu_name, values in netdata_cpu_freq.items():
+                diag_vals.append(KeyValue(key = 'Core %d (MHz)' % int(cpu_name[-1]), value = str(np.mean(values))))
 
             # get max freq
-            p = subprocess.Popen('lscpu | grep "max MHz"',
-                                 stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
-
-            if retcode != 0:
+            netdata_info, error = query_netdata_info()
+            if not netdata_info:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msgs = [ 'Clock Speed Error' ]
-                diag_vals = [ KeyValue(key = 'Clock Speed Error', value = stderr),
-                              KeyValue(key = 'Output', value = stdout) ]
+                diag_vals = [ KeyValue(key = 'Clock Speed Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = netdata_info),
+                              KeyValue(key = 'Error', value= error) ]
                 return (diag_vals, diag_msgs, diag_level)
 
-            diag_vals.append(KeyValue(key = stdout.split(':')[0].strip(), value = str(stdout.split(':')[1].strip())))
-
-            # get min freq
-            p = subprocess.Popen('lscpu | grep "min MHz"',
-                                 stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
-
-            if retcode != 0:
-                diag_level = DiagnosticStatus.ERROR
-                diag_msgs = [ 'Clock Speed Error' ]
-                diag_vals = [ KeyValue(key = 'Clock Speed Error', value = stderr),
-                              KeyValue(key = 'Output', value = stdout) ]
-                return (diag_vals, diag_msgs, diag_level)
-
-            diag_vals.append(KeyValue(key = stdout.split(':')[0].strip(), value = str(stdout.split(':')[1].strip())))
+            max_cpu_freq = float(netdata_info['cpu_freq'])/1e6
+            diag_vals.append(KeyValue(key = 'Maximum Frequency (MHz)', value = str(max_cpu_freq)))
 
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
@@ -346,7 +165,7 @@ class CPUMonitor():
         return diag_vals, diag_msgs, diag_level
 
     ##\brief Uses 'uptime' to see load average
-    def check_uptime(self):
+    def check_uptime(self, interval=1):
         diag_vals = []
         diag_msg = ''
         diag_level = DiagnosticStatus.OK
@@ -354,39 +173,44 @@ class CPUMonitor():
         load_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'High Load', DiagnosticStatus.ERROR: 'Very High Load' }
 
         try:
-            p = subprocess.Popen('uptime', stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
-
-            if retcode != 0:
+            netdata_uptime, error = query_netdata('system.uptime', interval)
+            if not netdata_uptime:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msg = 'Uptime Error'
-                diag_vals = [ KeyValue(key = 'Uptime Error', value = stderr),
-                              KeyValue(key = 'Output', value = stdout) ]
+                diag_vals = [ KeyValue(key = 'Uptime Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = netdata_uptime),
+                              KeyValue(key = 'Error', value= error) ]
                 return (diag_vals, diag_msg, diag_level)
 
-            upvals = stdout.split()
-            load1 = upvals[-3].rstrip(',').replace(',', '.')
-            load5 = upvals[-2].rstrip(',').replace(',', '.')
-            load15 = upvals[-1].replace(',', '.')
-            num_users = upvals[-7]
+            del netdata_uptime['time']
+
+            diag_vals.append(KeyValue(key = 'Uptime', value = str(np.max(netdata_uptime['uptime'].astype(float)))))
+
+            netdata_cpu_load, error = query_netdata('system.load', interval)
+            if not netdata_cpu_load:
+                diag_level = DiagnosticStatus.ERROR
+                diag_msgs = [ 'Load Error' ]
+                diag_vals = [ KeyValue(key = 'Load Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = netdata_cpu_load),
+                              KeyValue(key = 'Error', value= error) ]
+                return (diag_vals, diag_msgs, diag_level)
+
+            del netdata_cpu_load['time']
+
+            load1 = np.mean(netdata_cpu_load['load1'].astype(float))
+            load5 = np.mean(netdata_cpu_load['load5'].astype(float))
+            load15 = np.mean(netdata_cpu_load['load15'].astype(float))
 
             # Give warning if we go over load limit
             if float(load1) > self._load1_threshold or float(load5) > self._load5_threshold:
                 diag_level = DiagnosticStatus.WARN
 
             diag_vals.append(KeyValue(key = 'Load Average Status', value = load_dict[diag_level]))
-            diag_vals.append(KeyValue(key = '1 min Load Average', value = load1))
+            diag_vals.append(KeyValue(key = '1 min Load Average', value = str(load1)))
             diag_vals.append(KeyValue(key = '1 min Load Average Threshold', value = str(self._load1_threshold)))
-            diag_vals.append(KeyValue(key = '5 min Load Average', value = load5))
+            diag_vals.append(KeyValue(key = '5 min Load Average', value = str(load5)))
             diag_vals.append(KeyValue(key = '5 min Load Average Threshold', value = str(self._load5_threshold)))
-            diag_vals.append(KeyValue(key = '15 min Load Average', value = load15))
-            diag_vals.append(KeyValue(key = 'Number of Users', value = num_users))
+            diag_vals.append(KeyValue(key = '15 min Load Average', value = str(load15)))
 
             diag_msg = load_dict[diag_level]
 
@@ -398,7 +222,7 @@ class CPUMonitor():
         return diag_vals, diag_msg, diag_level
 
     ##\brief Uses 'free -m' to check free memory
-    def check_free_memory(self):
+    def check_free_memory(self, interval=1):
         diag_vals = []
         diag_msg = ''
         diag_level = DiagnosticStatus.OK
@@ -406,33 +230,23 @@ class CPUMonitor():
         mem_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'Low Memory', DiagnosticStatus.ERROR: 'Very Low Memory' }
 
         try:
-            p = subprocess.Popen('free -m',
-                                 stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
-
-            if retcode != 0:
+            netdata_mem, error = query_netdata('system.ram', interval)
+            if not netdata_mem:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msg = 'Memory Usage Error'
-                diag_vals = [ KeyValue(key = 'Memory Usage Error', value = stderr),
-                              KeyValue(key = 'Output', value = stdout) ]
+                diag_vals = [ KeyValue(key = 'Memory Usage Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = netdata_mem),
+                              KeyValue(key = 'Error', value= error) ]
                 return (diag_vals, diag_msg, diag_level)
 
-            rows = stdout.split('\n')
+            del netdata_mem['time']
 
             # Mem
-            data = rows[1].split()
-            total_mem = data[1]
-            used_mem = data[2]
-            free_mem = data[3]
-            shared_mem = data[4]
-            cache_mem = data[5]
-            available_mem = data[6]
+            memory_vals = {k: np.mean(v.astype(float)) for k, v in netdata_mem.items()}
+            total_mem = sum([val for val in memory_vals.values()])
+            free_mem = memory_vals['free']
+            used_mem = memory_vals['used']
+            cache_mem = memory_vals['cached'] + memory_vals['buffers']
 
             diag_level = DiagnosticStatus.OK
             if float(free_mem) < self._mem_warn:
@@ -441,22 +255,31 @@ class CPUMonitor():
                 diag_level = DiagnosticStatus.ERROR
 
             diag_vals.append(KeyValue(key = 'Mem Status', value = mem_dict[diag_level]))
-            diag_vals.append(KeyValue(key = 'Mem Total', value = total_mem))
-            diag_vals.append(KeyValue(key = 'Mem Used', value = used_mem))
-            diag_vals.append(KeyValue(key = 'Mem Free', value = free_mem))
-            diag_vals.append(KeyValue(key = 'Mem Shared', value = shared_mem))
-            diag_vals.append(KeyValue(key = 'Mem Buff/Cache', value = cache_mem))
-            diag_vals.append(KeyValue(key = 'Mem Available', value = available_mem))
+            diag_vals.append(KeyValue(key = 'Mem Total', value = str(total_mem)))
+            diag_vals.append(KeyValue(key = 'Mem Used', value = str(used_mem)))
+            diag_vals.append(KeyValue(key = 'Mem Free', value = str(free_mem)))
+            diag_vals.append(KeyValue(key = 'Mem Buff/Cache', value = str(cache_mem)))
+
+            netdata_swp, error = query_netdata('system.swap', interval)
+            if not netdata_swp:
+                diag_level = DiagnosticStatus.ERROR
+                diag_msg = 'Swap Usage Error'
+                diag_vals = [ KeyValue(key = 'Swap Usage Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = netdata_swp),
+                              KeyValue(key = 'Error', value= error) ]
+                return (diag_vals, diag_msg, diag_level)
+
+            del netdata_swp['time']
 
             # Swap
-            data = rows[2].split()
-            total_mem = data[1]
-            used_mem = data[2]
-            free_mem = data[3]
+            swap_vals = {k: np.mean(v.astype(float)) for k, v in netdata_swp.items()}
+            total_swp = sum([val for val in swap_vals.values()])
+            free_swp = swap_vals['free']
+            used_swp = swap_vals['used']
 
-            diag_vals.append(KeyValue(key = 'Swap Total', value = total_mem))
-            diag_vals.append(KeyValue(key = 'Swap Used', value = used_mem))
-            diag_vals.append(KeyValue(key = 'Swap Free', value = free_mem))
+            diag_vals.append(KeyValue(key = 'Swap Total', value = str(total_swp)))
+            diag_vals.append(KeyValue(key = 'Swap Used', value = str(used_swp)))
+            diag_vals.append(KeyValue(key = 'Swap Free', value = str(free_swp)))
 
             diag_msg = mem_dict[diag_level]
 
@@ -467,8 +290,8 @@ class CPUMonitor():
 
         return diag_vals, diag_msg, diag_level
 
-    ##\brief Use mpstat to find CPU usage
-    def check_mpstat(self):
+
+    def check_cpu_util(self, interval=1):
         diag_vals = []
         diag_msg = ''
         diag_level = DiagnosticStatus.OK
@@ -476,52 +299,49 @@ class CPUMonitor():
         load_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'High Load', DiagnosticStatus.ERROR: 'Error' }
 
         try:
-            p = subprocess.Popen('mpstat -P ALL 1 1',
-                                 stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
-
-            if retcode != 0:
+            netdata_info, error = query_netdata_info()
+            if not netdata_info:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msg = 'CPU Usage Error'
-                diag_vals = [ KeyValue(key = 'CPU Usage Error', value = stderr),
-                              KeyValue(key = 'Output', value = stdout) ]
+                diag_vals = [ KeyValue(key = 'CPU Usage Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = netdata_info),
+                              KeyValue(key = 'Error', value= error) ]
                 return (diag_vals, diag_msg, diag_level)
 
-            # Check which column '%idle' is, #4539
-            # mpstat output changed between 8.06 and 8.1
-            rows = stdout.split('\n')
-            col_names = rows[2].split()
-            idle_col = -1 if (len(col_names) > 2 and col_names[-1] == '%idle') else -2
+            num_cores = int(netdata_info['cores_total'])
+            netdata_system_cpu, error = query_netdata('system.cpu', interval)
+            if not netdata_system_cpu:
+                diag_level = DiagnosticStatus.ERROR
+                diag_msg = 'CPU Usage Error'
+                diag_vals = [ KeyValue(key = 'CPU Usage Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = netdata_system_cpu),
+                              KeyValue(key = 'Error', value= error) ]
+                return (diag_vals, diag_msg, diag_level)
 
-            num_cores = 0
+            netdata_cpu_util = [query_netdata('cpu.cpu%d' % i, interval) for i in range(num_cores)]
+            netdata_cpu_idle = [query_netdata('cpu.cpu%d_cpuidle' % i, interval) for i in range(num_cores)]
+
+            if any([data == None for data, error in netdata_cpu_util]):
+                diag_level = DiagnosticStatus.ERROR
+                diag_msg = 'CPU Util Error'
+                diag_vals = [ KeyValue(key = 'CPU Util Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = netdata_cpu_util) ]
+                return (diag_vals, diag_msg, diag_level)
+            if any([data == None for data, error in netdata_cpu_idle]):
+                diag_level = DiagnosticStatus.ERROR
+                diag_msg = 'CPU Idle Error'
+                diag_vals = [ KeyValue(key = 'CPU Idle Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = netdata_cpu_idle) ]
+                return (diag_vals, diag_msg, diag_level)
+
             cores_loaded = 0
-            for index, row in enumerate(stdout.split('\n')):
-                if index < 3:
-                    continue
+            for i_cpu in range(num_cores):
 
-                # Skip row containing 'all' data
-                if row.find('all') > -1:
-                    continue
-
-                lst = row.split()
-                if len(lst) < 8:
-                    continue
-
-                ## Ignore 'Average: ...' data
-                if lst[0].startswith('Average'):
-                    continue
-
-                cpu_name = '%d' % (num_cores)
-                idle = lst[idle_col].replace(',', '.')
-                user = lst[3].replace(',', '.')
-                nice = lst[4].replace(',', '.')
-                system = lst[5].replace(',', '.')
+                cpu_name = 'Core %d' % (i_cpu)
+                idle = 100 - np.mean(netdata_cpu_idle[i_cpu][0]['C0 (active)'])
+                user = np.mean(netdata_cpu_util[i_cpu][0]['user'])
+                nice = np.mean(netdata_cpu_util[i_cpu][0]['nice'])
+                system = np.mean(netdata_cpu_util[i_cpu][0]['system'])
 
                 core_level = DiagnosticStatus.OK
                 usage = float(user) + float(nice)
@@ -532,22 +352,14 @@ class CPUMonitor():
                     core_level = DiagnosticStatus.ERROR
 
                 diag_vals.append(KeyValue(key = 'CPU %s Status' % cpu_name, value = load_dict[core_level]))
-                diag_vals.append(KeyValue(key = 'CPU %s User' % cpu_name, value = user))
-                diag_vals.append(KeyValue(key = 'CPU %s Nice' % cpu_name, value = nice))
-                diag_vals.append(KeyValue(key = 'CPU %s System' % cpu_name, value = system))
-                diag_vals.append(KeyValue(key = 'CPU %s Idle' % cpu_name, value = idle))
-
-                num_cores += 1
+                diag_vals.append(KeyValue(key = 'CPU %s User' % cpu_name, value = str(user)))
+                diag_vals.append(KeyValue(key = 'CPU %s Nice' % cpu_name, value = str(nice)))
+                diag_vals.append(KeyValue(key = 'CPU %s System' % cpu_name, value = str(system)))
+                diag_vals.append(KeyValue(key = 'CPU %s Idle' % cpu_name, value = str(idle)))
 
             # Warn for high load only if we have <= 2 cores that aren't loaded
             if num_cores - cores_loaded <= 2 and num_cores > 2:
                 diag_level = DiagnosticStatus.WARN
-
-            # Check the number of cores if self._num_cores > 0, #4850
-            if self._num_cores > 0 and self._num_cores != num_cores:
-                diag_level = DiagnosticStatus.ERROR
-                diag_msg = 'Incorrect number of CPU cores: Expected {}, got {}. Computer may have not booted properly.'.format(self._num_cores, num_cores)
-                return diag_vals, diag_msg, diag_level
 
             diag_msg = load_dict[diag_level]
 
@@ -559,51 +371,28 @@ class CPUMonitor():
         return diag_vals, diag_msg, diag_level
 
 
-    def query_netdata(self, chart, after):
-        NETDATA_URI = 'http://127.0.0.1:19999/api/v1/data?chart=%s&format=json&after=-%d'
-        url = NETDATA_URI % (chart, int(after))
-
-        try:
-            r = requests.get(url)
-        except requests.ConnectionError as ex:
-            rospy.logerr("NetData ConnectionError %r", ex)
-            return None
-
-        if r.status_code != 200:
-            rospy.logerr("NetData request not successful with status_code %d", r.status_code)
-            return None
-
-        rdata = r.json()
-
-        sdata = list(zip(*rdata['data']))
-        d = dict()
-
-        for idx, label in enumerate(rdata['labels']):
-            np_array = np.array(sdata[idx])
-            if np_array.dtype == object:
-                rospy.logwarn("Data from NetData malformed")
-                return None
-            d[label] = np_array
-
-        return d
-
-
     def check_core_throttling(self, interval=1):
         throt_dict = {DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'High Thermal Throttling Events',
                       DiagnosticStatus.ERROR: 'No valid Data from NetData'}
 
         throt_level = DiagnosticStatus.OK
+        throt_vals = []
 
-        vals = []
-
-        netdata = self.query_netdata('cpu.core_throttling', interval)
+        netdata, error = query_netdata('cpu.core_throttling', interval)
+        if not netdata:
+            diag_level = DiagnosticStatus.ERROR
+            diag_msg = 'Core Throttling Error'
+            diag_vals = [ KeyValue(key = 'Core Throttling Error', value = 'Could not fetch data from netdata'),
+                            KeyValue(key = 'Output', value = netdata),
+                            KeyValue(key = 'Error', value= error) ]
+            return (diag_vals, diag_msg, diag_level)
 
         for i in range(self._num_cores):
             lbl = 'CPU %d Thermal Throttling Events' % i
             netdata_key = 'cpu%d' % i
 
             core_mean = 'N/A'
-            if netdata is not None and netdata_key in netdata:
+            if netdata_key in netdata:
                 core_data = netdata[netdata_key]
                 if core_data is not None:
                     core_mean = np.mean(core_data)
@@ -613,12 +402,12 @@ class CPUMonitor():
             else:
                 throt_level = DiagnosticStatus.ERROR
 
-            vals.append(KeyValue(key=lbl, value='%r' % core_mean))
+            throt_vals.append(KeyValue(key=lbl, value='%r' % core_mean))
 
-        vals.insert(0, KeyValue(key='Thermal Throttling Status', value=throt_dict[throt_level]))
-        vals.append(KeyValue(key='Thermal Throttling Threshold', value=str(self._thermal_throttling_threshold)))
+        throt_vals.insert(0, KeyValue(key='Thermal Throttling Status', value=throt_dict[throt_level]))
+        throt_vals.append(KeyValue(key='Thermal Throttling Threshold', value=str(self._thermal_throttling_threshold)))
 
-        return throt_level, throt_dict[throt_level], vals
+        return throt_vals, throt_dict[throt_level], throt_level
 
 
     def check_idlejitter(self, interval=1):
@@ -626,10 +415,16 @@ class CPUMonitor():
                        DiagnosticStatus.ERROR: 'No valid Data from NetData'}
 
         jitter_level = DiagnosticStatus.OK
+        jitter_vals = []
 
-        vals = []
-
-        netdata = self.query_netdata('system.idlejitter', interval)
+        netdata, error = query_netdata('system.idlejitter', interval)
+        if not netdata:
+            diag_level = DiagnosticStatus.ERROR
+            diag_msg = 'Core Throttling Error'
+            diag_vals = [ KeyValue(key = 'Core Throttling Error', value = 'Could not fetch data from netdata'),
+                            KeyValue(key = 'Output', value = netdata),
+                            KeyValue(key = 'Error', value= error) ]
+            return (diag_vals, diag_msg, diag_level)
 
         metric_list = [
             ('IDLE Jitter Min', 'min', self._idlejitter_min_threshold, np.min),
@@ -649,72 +444,12 @@ class CPUMonitor():
             else:
                 jitter_level = DiagnosticStatus.ERROR
 
-            vals.append(KeyValue(key=metric_label, value=str(metric_aggreagte)))
-            vals.append(KeyValue(key=metric_label + ' Threshold', value=str(metric_threshold)))
+            jitter_vals.append(KeyValue(key=metric_label, value=str(metric_aggreagte)))
+            jitter_vals.append(KeyValue(key=metric_label + ' Threshold', value=str(metric_threshold)))
 
-        vals.insert(0, KeyValue(key='IDLE Jitter Status', value=jitter_dict[jitter_level]))
+        jitter_vals.insert(0, KeyValue(key='IDLE Jitter Status', value=jitter_dict[jitter_level]))
 
-        return jitter_level, jitter_dict[jitter_level], vals
-
-
-    ##\brief Returns names for core temperature files
-    def get_core_temp_names(self):
-        devices = {}
-        platform_vals = []
-        virtual_vals = []
-        try:
-            #platform devices
-            p = subprocess.Popen('find /sys/devices/platform -name temp*_input',
-                                 stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
-
-            if retcode != 0:
-                rospy.logerr('Error find core temp locations: %s' % stderr)
-                return []
-
-            for ln in stdout.split('\n'):
-                if ln:
-                    device_path, device_file = os.path.split(ln.strip())
-                    device_label = device_path+'/'+device_file.split('_')[0]+'_label'
-                    name = open(device_label, 'r').read()
-                    pair = (name.strip(), ln.strip())
-                    platform_vals.append(pair)
-
-            #virtual devices
-            p = subprocess.Popen('find /sys/devices/virtual -name temp*_input',
-                                 stdout = subprocess.PIPE,
-                                 stderr = subprocess.PIPE, shell = True)
-            stdout, stderr = p.communicate()
-            retcode = p.returncode
-            try:
-                stdout = stdout.decode()  #python3
-            except (UnicodeDecodeError, AttributeError):
-                pass
-
-            if retcode != 0:
-                rospy.logerr('Error find core temp locations: %s' % stderr)
-                return []
-
-            for ln in stdout.split('\n'):
-                if ln:
-                    device_path, device_file = os.path.split(ln.strip())
-                    name = open(device_path+'/name', 'r').read()
-                    pair = (name.strip(), ln.strip())
-                    virtual_vals.append(pair)
-
-            devices['platform'] = platform_vals
-            devices['virtual'] = virtual_vals
-            return devices
-        except Exception as e:
-            rospy.logerr('Exception finding temp vals: {}'.format(e))
-            rospy.logerr('Trackeback: \n{}'.format(traceback.format_exc()))
-            return []
+        return jitter_vals, jitter_dict[jitter_level], jitter_level
 
 
     def check_info(self, event):
@@ -722,14 +457,9 @@ class CPUMonitor():
         diag_msgs = []
         diag_level = DiagnosticStatus.OK
 
-        if self._check_ipmi:
-            ipmi_vals, ipmi_msgs, ipmi_level = self.check_ipmi()
-            diag_vals.extend(ipmi_vals)
-            diag_msgs.extend(ipmi_msgs)
-            diag_level = max(diag_level, ipmi_level)
-
         if self._check_core_temps:
-            core_vals, core_msgs, core_level = self.check_core_temps()
+            interval = math.ceil(self._usage_timer._period.to_sec())
+            core_vals, core_msgs, core_level = self.check_core_temps(interval=interval)
             diag_vals.extend(core_vals)
             diag_msgs.extend(core_msgs)
             diag_level = max(diag_level, core_level)
@@ -754,8 +484,10 @@ class CPUMonitor():
         diag_msgs = []
         diag_level = DiagnosticStatus.OK
 
+        interval = math.ceil(self._usage_timer._period.to_sec())
+
         # Check mpstat
-        mp_vals, mp_msg, mp_level = self.check_mpstat()
+        mp_vals, mp_msg, mp_level = self.check_cpu_util(interval=interval)
         diag_vals.extend(mp_vals)
         if mp_level > DiagnosticStatus.OK:
             diag_msgs.append(mp_msg)
@@ -763,8 +495,7 @@ class CPUMonitor():
 
         # Check NetData cpu.core_throttling
         if self._check_thermal_throttling_events:
-            interval = math.ceil(self._usage_timer._period.to_sec())
-            throt_level, throt_msg, throt_vals = self.check_core_throttling(interval=interval)
+            throt_vals, throt_msg, throt_level = self.check_core_throttling(interval=interval)
             diag_vals.extend(throt_vals)
             if throt_level > 0:
                 diag_msgs.append(throt_msg)
@@ -772,15 +503,14 @@ class CPUMonitor():
 
         # Check NetData system.idlejitter
         if self._check_idlejitter:
-            interval = math.ceil(self._usage_timer._period.to_sec())
-            jitter_level, jitter_msg, jitter_vals = self.check_idlejitter(interval=interval)
+            jitter_vals, jitter_msg, jitter_level = self.check_idlejitter(interval=interval)
             diag_vals.extend(jitter_vals)
             if jitter_level > 0:
                 diag_msgs.append(jitter_msg)
             diag_level = max(diag_level, jitter_level)
 
         # Check uptime
-        up_vals, up_msg, up_level = self.check_uptime()
+        up_vals, up_msg, up_level = self.check_uptime(interval=interval)
         diag_vals.extend(up_vals)
         if up_level > DiagnosticStatus.OK:
             diag_msgs.append(up_msg)
@@ -801,7 +531,8 @@ class CPUMonitor():
         diag_level = DiagnosticStatus.OK
 
         # Check memory
-        mem_vals, mem_msg, mem_level = self.check_free_memory()
+        interval = math.ceil(self._memory_timer._period.to_sec())
+        mem_vals, mem_msg, mem_level = self.check_free_memory(interval=interval)
         diag_vals.extend(mem_vals)
         if mem_level > DiagnosticStatus.OK:
             diag_msgs.append(mem_msg)

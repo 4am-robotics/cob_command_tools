@@ -2,6 +2,36 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.28 (2022-03-15)
+-------------------
+* Merge pull request `#314 <https://github.com/ipa320/cob_command_tools/issues/314>`_ from pgehring/feature/netdata_cpu_monitor
+  [diagnostics] aquire all cpu data from netdata
+* compatible format
+* expose netdata_tools errors in diagnostics
+* remove ipmi data aquisition
+* check max clock speed
+* parse netdata dict correctly
+* fix typo
+* pass interval to netdata
+* fix strings in diag_vals
+* parse netdata uptime
+* parse netdata mem and swap util
+* parse netdata cpu_util
+* convert to int
+* fix wrong keyword
+* fix timer interval usage
+* cleanup
+* use cores detected by netdata
+* get memory and swap usage from netdata
+* handle empty netdata reponse correctly
+* fix pylint
+* proper python module for netdata_tools
+* wip
+* move netdata functions to module
+* get core temperature from netdata
+* check cpu utilisation with netdata
+* Contributors: Felix Messmer, fmessmer, pgehring
+
 0.6.27 (2022-01-12)
 -------------------
 
