@@ -19,7 +19,6 @@
 
 import sys
 import traceback
-import subprocess
 import socket
 import psutil
 import numpy as np
@@ -90,19 +89,19 @@ class CPUMonitor():
         diag_level = DiagnosticStatus.OK
 
         try:
-            netdata_core_temp = query_netdata('sensors.coretemp_isa_0000_temperature', interval)
-            del netdata_core_temp['time']
-            del netdata_core_temp['Package id 0']
-            
+            netdata_core_temp, error = query_netdata('sensors.coretemp_isa_0000_temperature', interval)
             if not netdata_core_temp:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msgs = [ 'Core Temp Error' ]
                 diag_vals = [ KeyValue(key = 'Core Temp Error', value = 'Could not fetch data from netdata'),
-                                KeyValue(key = 'Output', value = str(netdata_core_temp)) ]
-                return diag_vals, diag_msgs, diag_level
+                              KeyValue(key = 'Output', value = netdata_core_temp),
+                              KeyValue(key = 'Error', value= error) ]
+                return (diag_vals, diag_msgs, diag_level)
+
+            del netdata_core_temp['time']
+            del netdata_core_temp['Package id 0']
 
             for core_no, values in netdata_core_temp.items():
-
                 mean_temp = np.mean(values)
                 try:
                     diag_vals.append(KeyValue(key = 'Temp %s' % core_no, value = str(mean_temp)))
@@ -131,30 +130,31 @@ class CPUMonitor():
         diag_level = DiagnosticStatus.OK
 
         try:
-            netdata_cpu_freq = query_netdata('cpu.cpufreq', interval)
-            del netdata_cpu_freq["time"]
-
+            netdata_cpu_freq, error = query_netdata('cpu.cpufreq', interval)
             if not netdata_cpu_freq:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msgs = [ 'Clock Speed Error' ]
                 diag_vals = [ KeyValue(key = 'Clock Speed Error', value = 'Could not fetch data from netdata'),
-                              KeyValue(key = 'Output', value = str(netdata_cpu_freq)) ]
+                              KeyValue(key = 'Output', value = netdata_cpu_freq),
+                              KeyValue(key = 'Error', value= error) ]
                 return (diag_vals, diag_msgs, diag_level)
+
+            del netdata_cpu_freq["time"]
 
             for cpu_name, values in netdata_cpu_freq.items():
                 diag_vals.append(KeyValue(key = 'Core %d (MHz)' % int(cpu_name[-1]), value = str(np.mean(values))))
 
             # get max freq
-            netdata_max_cpu_freq = query_netdata_info()
-
-            if not netdata_max_cpu_freq:
+            netdata_info, error = query_netdata_info()
+            if not netdata_info:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msgs = [ 'Clock Speed Error' ]
                 diag_vals = [ KeyValue(key = 'Clock Speed Error', value = 'Could not fetch data from netdata'),
-                              KeyValue(key = 'Output', value = netdata_max_cpu_freq) ]
+                              KeyValue(key = 'Output', value = netdata_info),
+                              KeyValue(key = 'Error', value= error) ]
                 return (diag_vals, diag_msgs, diag_level)
 
-            max_cpu_freq = float(netdata_max_cpu_freq['cpu_freq'])/1e6
+            max_cpu_freq = float(netdata_info['cpu_freq'])/1e6
             diag_vals.append(KeyValue(key = 'Maximum Frequency (MHz)', value = str(max_cpu_freq)))
 
         except Exception as e:
@@ -173,27 +173,29 @@ class CPUMonitor():
         load_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'High Load', DiagnosticStatus.ERROR: 'Very High Load' }
 
         try:
-            netdata_uptime = query_netdata('system.uptime', interval)
-            del netdata_uptime['time']
-
+            netdata_uptime, error = query_netdata('system.uptime', interval)
             if not netdata_uptime:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msg = 'Uptime Error'
                 diag_vals = [ KeyValue(key = 'Uptime Error', value = 'Could not fetch data from netdata'),
-                              KeyValue(key = 'Output', value = str(netdata_uptime)) ]
+                              KeyValue(key = 'Output', value = netdata_uptime),
+                              KeyValue(key = 'Error', value= error) ]
                 return (diag_vals, diag_msg, diag_level)
-            
+
+            del netdata_uptime['time']
+
             diag_vals.append(KeyValue(key = 'Uptime', value = str(np.max(netdata_uptime['uptime'].astype(float)))))
 
-            netdata_cpu_load = query_netdata('system.load', interval)
-            del netdata_cpu_load['time']
-
+            netdata_cpu_load, error = query_netdata('system.load', interval)
             if not netdata_cpu_load:
                 diag_level = DiagnosticStatus.ERROR
-                diag_msg = 'Load Error'
+                diag_msgs = [ 'Load Error' ]
                 diag_vals = [ KeyValue(key = 'Load Error', value = 'Could not fetch data from netdata'),
-                              KeyValue(key = 'Output', value = str(netdata_cpu_load)) ]
-                return (diag_vals, diag_msg, diag_level)
+                              KeyValue(key = 'Output', value = netdata_cpu_load),
+                              KeyValue(key = 'Error', value= error) ]
+                return (diag_vals, diag_msgs, diag_level)
+
+            del netdata_cpu_load['time']
 
             load1 = np.mean(netdata_cpu_load['load1'].astype(float))
             load5 = np.mean(netdata_cpu_load['load5'].astype(float))
@@ -228,15 +230,16 @@ class CPUMonitor():
         mem_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'Low Memory', DiagnosticStatus.ERROR: 'Very Low Memory' }
 
         try:
-            netdata_mem = query_netdata('system.ram', interval)
-            del netdata_mem['time']
-
+            netdata_mem, error = query_netdata('system.ram', interval)
             if not netdata_mem:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msg = 'Memory Usage Error'
                 diag_vals = [ KeyValue(key = 'Memory Usage Error', value = 'Could not fetch data from netdata'),
-                              KeyValue(key = 'Output', value = str(netdata_mem)) ]
+                              KeyValue(key = 'Output', value = netdata_mem),
+                              KeyValue(key = 'Error', value= error) ]
                 return (diag_vals, diag_msg, diag_level)
+
+            del netdata_mem['time']
 
             # Mem
             memory_vals = {k: np.mean(v.astype(float)) for k, v in netdata_mem.items()}
@@ -257,16 +260,16 @@ class CPUMonitor():
             diag_vals.append(KeyValue(key = 'Mem Free', value = str(free_mem)))
             diag_vals.append(KeyValue(key = 'Mem Buff/Cache', value = str(cache_mem)))
 
-
-            netdata_swp = query_netdata('system.swap', interval)
-            del netdata_swp['time']
-
+            netdata_swp, error = query_netdata('system.swap', interval)
             if not netdata_swp:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msg = 'Swap Usage Error'
                 diag_vals = [ KeyValue(key = 'Swap Usage Error', value = 'Could not fetch data from netdata'),
-                              KeyValue(key = 'Output', value = str(netdata_swp)) ]
+                              KeyValue(key = 'Output', value = netdata_swp),
+                              KeyValue(key = 'Error', value= error) ]
                 return (diag_vals, diag_msg, diag_level)
+
+            del netdata_swp['time']
 
             # Swap
             swap_vals = {k: np.mean(v.astype(float)) for k, v in netdata_swp.items()}
@@ -296,29 +299,49 @@ class CPUMonitor():
         load_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'High Load', DiagnosticStatus.ERROR: 'Error' }
 
         try:
-            netdata_info = query_netdata_info()
-            num_cores = int(netdata_info['cores_total'])
-
-            netdata_system_cpu = query_netdata('system.cpu', interval)
-            netdata_cpu_util = [query_netdata('cpu.cpu%d' % i, interval) for i in range(num_cores)]
-            netdata_cpu_idle = [query_netdata('cpu.cpu%d_cpuidle' % i, interval) for i in range(num_cores)]
-
-
-            if any([i == None for i in [netdata_system_cpu, netdata_cpu_util, netdata_cpu_idle]]):
+            netdata_info, error = query_netdata_info()
+            if not netdata_info:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msg = 'CPU Usage Error'
                 diag_vals = [ KeyValue(key = 'CPU Usage Error', value = 'Could not fetch data from netdata'),
-                              KeyValue(key = 'Output', value = str([netdata_system_cpu, netdata_cpu_util, netdata_cpu_idle])) ]
+                              KeyValue(key = 'Output', value = netdata_info),
+                              KeyValue(key = 'Error', value= error) ]
+                return (diag_vals, diag_msg, diag_level)
+
+            num_cores = int(netdata_info['cores_total'])
+            netdata_system_cpu, error = query_netdata('system.cpu', interval)
+            if not netdata_system_cpu:
+                diag_level = DiagnosticStatus.ERROR
+                diag_msg = 'CPU Usage Error'
+                diag_vals = [ KeyValue(key = 'CPU Usage Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = netdata_system_cpu),
+                              KeyValue(key = 'Error', value= error) ]
+                return (diag_vals, diag_msg, diag_level)
+
+            netdata_cpu_util = [query_netdata('cpu.cpu%d' % i, interval) for i in range(num_cores)]
+            netdata_cpu_idle = [query_netdata('cpu.cpu%d_cpuidle' % i, interval) for i in range(num_cores)]
+
+            if any([data == None for data, error in netdata_cpu_util]):
+                diag_level = DiagnosticStatus.ERROR
+                diag_msg = 'CPU Util Error'
+                diag_vals = [ KeyValue(key = 'CPU Util Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = netdata_cpu_util) ]
+                return (diag_vals, diag_msg, diag_level)
+            if any([data == None for data, error in netdata_cpu_idle]):
+                diag_level = DiagnosticStatus.ERROR
+                diag_msg = 'CPU Idle Error'
+                diag_vals = [ KeyValue(key = 'CPU Idle Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Output', value = netdata_cpu_idle) ]
                 return (diag_vals, diag_msg, diag_level)
 
             cores_loaded = 0
             for i_cpu in range(num_cores):
 
                 cpu_name = 'Core %d' % (i_cpu)
-                idle = 100 - np.mean(netdata_cpu_idle[i_cpu]['C0 (active)'])
-                user = np.mean(netdata_cpu_util[i_cpu]['user'])
-                nice = np.mean(netdata_cpu_util[i_cpu]['nice'])
-                system = np.mean(netdata_cpu_util[i_cpu]['system'])
+                idle = 100 - np.mean(netdata_cpu_idle[i_cpu][0]['C0 (active)'])
+                user = np.mean(netdata_cpu_util[i_cpu][0]['user'])
+                nice = np.mean(netdata_cpu_util[i_cpu][0]['nice'])
+                system = np.mean(netdata_cpu_util[i_cpu][0]['system'])
 
                 core_level = DiagnosticStatus.OK
                 usage = float(user) + float(nice)
@@ -353,17 +376,23 @@ class CPUMonitor():
                       DiagnosticStatus.ERROR: 'No valid Data from NetData'}
 
         throt_level = DiagnosticStatus.OK
+        throt_vals = []
 
-        vals = []
-
-        netdata = query_netdata('cpu.core_throttling', interval)
+        netdata, error = query_netdata('cpu.core_throttling', interval)
+        if not netdata:
+            diag_level = DiagnosticStatus.ERROR
+            diag_msg = 'Core Throttling Error'
+            diag_vals = [ KeyValue(key = 'Core Throttling Error', value = 'Could not fetch data from netdata'),
+                            KeyValue(key = 'Output', value = netdata),
+                            KeyValue(key = 'Error', value= error) ]
+            return (diag_vals, diag_msg, diag_level)
 
         for i in range(self._num_cores):
             lbl = 'CPU %d Thermal Throttling Events' % i
             netdata_key = 'cpu%d' % i
 
             core_mean = 'N/A'
-            if netdata is not None and netdata_key in netdata:
+            if netdata_key in netdata:
                 core_data = netdata[netdata_key]
                 if core_data is not None:
                     core_mean = np.mean(core_data)
@@ -373,12 +402,12 @@ class CPUMonitor():
             else:
                 throt_level = DiagnosticStatus.ERROR
 
-            vals.append(KeyValue(key=lbl, value='%r' % core_mean))
+            throt_vals.append(KeyValue(key=lbl, value='%r' % core_mean))
 
-        vals.insert(0, KeyValue(key='Thermal Throttling Status', value=throt_dict[throt_level]))
-        vals.append(KeyValue(key='Thermal Throttling Threshold', value=str(self._thermal_throttling_threshold)))
+        throt_vals.insert(0, KeyValue(key='Thermal Throttling Status', value=throt_dict[throt_level]))
+        throt_vals.append(KeyValue(key='Thermal Throttling Threshold', value=str(self._thermal_throttling_threshold)))
 
-        return throt_level, throt_dict[throt_level], vals
+        return throt_vals, throt_dict[throt_level], throt_level
 
 
     def check_idlejitter(self, interval=1):
@@ -386,10 +415,16 @@ class CPUMonitor():
                        DiagnosticStatus.ERROR: 'No valid Data from NetData'}
 
         jitter_level = DiagnosticStatus.OK
+        jitter_vals = []
 
-        vals = []
-
-        netdata = query_netdata('system.idlejitter', interval)
+        netdata, error = query_netdata('system.idlejitter', interval)
+        if not netdata:
+            diag_level = DiagnosticStatus.ERROR
+            diag_msg = 'Core Throttling Error'
+            diag_vals = [ KeyValue(key = 'Core Throttling Error', value = 'Could not fetch data from netdata'),
+                            KeyValue(key = 'Output', value = netdata),
+                            KeyValue(key = 'Error', value= error) ]
+            return (diag_vals, diag_msg, diag_level)
 
         metric_list = [
             ('IDLE Jitter Min', 'min', self._idlejitter_min_threshold, np.min),
@@ -409,12 +444,12 @@ class CPUMonitor():
             else:
                 jitter_level = DiagnosticStatus.ERROR
 
-            vals.append(KeyValue(key=metric_label, value=str(metric_aggreagte)))
-            vals.append(KeyValue(key=metric_label + ' Threshold', value=str(metric_threshold)))
+            jitter_vals.append(KeyValue(key=metric_label, value=str(metric_aggreagte)))
+            jitter_vals.append(KeyValue(key=metric_label + ' Threshold', value=str(metric_threshold)))
 
-        vals.insert(0, KeyValue(key='IDLE Jitter Status', value=jitter_dict[jitter_level]))
+        jitter_vals.insert(0, KeyValue(key='IDLE Jitter Status', value=jitter_dict[jitter_level]))
 
-        return jitter_level, jitter_dict[jitter_level], vals
+        return jitter_vals, jitter_dict[jitter_level], jitter_level
 
 
     def check_info(self, event):
@@ -460,7 +495,7 @@ class CPUMonitor():
 
         # Check NetData cpu.core_throttling
         if self._check_thermal_throttling_events:
-            throt_level, throt_msg, throt_vals = self.check_core_throttling(interval=interval)
+            throt_vals, throt_msg, throt_level = self.check_core_throttling(interval=interval)
             diag_vals.extend(throt_vals)
             if throt_level > 0:
                 diag_msgs.append(throt_msg)
@@ -468,7 +503,7 @@ class CPUMonitor():
 
         # Check NetData system.idlejitter
         if self._check_idlejitter:
-            jitter_level, jitter_msg, jitter_vals = self.check_idlejitter(interval=interval)
+            jitter_vals, jitter_msg, jitter_level = self.check_idlejitter(interval=interval)
             diag_vals.extend(jitter_vals)
             if jitter_level > 0:
                 diag_msgs.append(jitter_msg)
