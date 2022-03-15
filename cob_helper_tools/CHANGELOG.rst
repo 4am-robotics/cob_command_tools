@@ -2,6 +2,13 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#310 <https://github.com/ipa320/cob_command_tools/issues/310>`_ from HannesBachter/fix/sleep_init
+  sleep for 1 second after unsuccessful try to initialize
+* sleep for 1 second after unsuccessful try to initialize
+* Contributors: Felix Messmer, HannesBachter
+
 0.6.27 (2022-01-12)
 -------------------
 * Merge pull request `#309 <https://github.com/ipa320/cob_command_tools/issues/309>`_ from pgehring/feature/auto_tools

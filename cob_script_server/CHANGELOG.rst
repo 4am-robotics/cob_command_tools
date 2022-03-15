@@ -2,6 +2,19 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#316 <https://github.com/ipa320/cob_command_tools/issues/316>`_ from fmessmer/speedup_sss
+  commenting rospy.logdebug for performance reasons
+* commenting rospy.logdebug for performance reasons
+* Merge pull request `#312 <https://github.com/ipa320/cob_command_tools/issues/312>`_ from fmessmer/tune_close_tolerance
+  tune close tolerance in calculate_point_velocities
+* tune close tolerance in calculate_point_velocities
+* Merge pull request `#311 <https://github.com/ipa320/cob_command_tools/issues/311>`_ from floweisshardt/feature/multiple_cob_consoles
+  allow multiple cob_consoles to run in parallel
+* allow multiple cob_consoles to run in parallel
+* Contributors: Felix Messmer, floweisshardt, fmessmer
+
 0.6.27 (2022-01-12)
 -------------------
 
