@@ -6,12 +6,12 @@ def query_netdata_info():
     try:
         r = requests.get('http://127.0.0.1:19999/api/v1/info')
     except requests.ConnectionError as ex:
-        msg = f"NetData ConnectionError: {ex}"
+        msg = "NetData ConnectionError: {}".format(ex)
         rospy.logerr(msg)
         return None, msg
     
     if r.status_code != 200:
-        msg = f"NetData request not successful with status_code {r.status_code}"
+        msg = "NetData request not successful with status_code {}".format(r.status_code)
         rospy.logerr(msg)
         return None, msg
 
@@ -24,12 +24,12 @@ def query_netdata(chart, after):
     try:
         r = requests.get(url)
     except requests.ConnectionError as ex:
-        msg = f"NetData ConnectionError: {ex}"
+        msg = "NetData ConnectionError: {}".format(ex)
         rospy.logerr(msg)
         return None, msg
 
     if r.status_code != 200:
-        msg = f"NetData request not successful with status_code {r.status_code}"
+        msg = "NetData request not successful with status_code {}".format(r.status_code)
         rospy.logerr(msg)
         return None, msg
 
@@ -41,7 +41,7 @@ def query_netdata(chart, after):
     for idx, label in enumerate(rdata['labels']):
         np_array = numpy.array(sdata[idx])
         if np_array.dtype == object:
-            msg = f"Data from NetData malformed: {label}"
+            msg = "Data from NetData malformed: {}".format(label)
             rospy.logwarn(msg)
             return None, msg
         d[label] = np_array
