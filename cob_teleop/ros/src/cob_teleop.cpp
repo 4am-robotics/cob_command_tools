@@ -55,6 +55,7 @@ public:
 
   //axis
   int axis_vx_, axis_vy_, axis_vz_, axis_roll_, axis_pitch_, axis_yaw_, axis_run_;
+  bool axis_run_updated_;
 
   //buttons
   //mode 1: Base
@@ -437,7 +438,17 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
 
   if(joy_config_switch_.compare("X") == 0)
   {
-    run_factor_ = 1 + ((run_factor_param_ - 1.0) / -2) * (joy_msg->axes[axis_run_] - 1.0);
+    if(!axis_run_updated_)
+    {
+      if(joy_msg->axes[axis_run_] != 0)
+        axis_run_updated_ = true;
+      else
+        run_factor_ = 1.0;
+    }
+    if(axis_run_updated_)
+    {
+      run_factor_ = 1 + ((run_factor_param_ - 1.0) / -2.0) * (joy_msg->axes[axis_run_] - 1.0);
+    }
   }
   else if(run_button_>=0 && run_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[run_button_]>1)
   {
@@ -781,6 +792,7 @@ void CobTeleop::init()
   LEDS_=led_mode_[mode_];
   joy_active_ = false;
   safe_mode_ = true;
+  axis_run_updated_ = false;
 
   cob_light::LightMode light;
   light.mode = cob_light::LightModes::FLASH;
