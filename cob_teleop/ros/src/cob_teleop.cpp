@@ -436,7 +436,7 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
     safe_mode_ = true;
   }
 
-  if(joy_config_switch_.compare("X") == 0)
+  if(joy_config_switch_.compare("X") == 0 && axis_run_ < joy_msg->axes.size())
   {
     if(!axis_run_updated_)
     {
