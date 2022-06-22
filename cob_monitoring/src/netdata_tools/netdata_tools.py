@@ -40,9 +40,10 @@ def query_netdata(chart, after):
 
     for idx, label in enumerate(rdata['labels']):
         np_array = numpy.array(sdata[idx])
-        if np_array.dtype == object:
+        if np_array.dtype == object or (np_array == None).any():
             msg = "Data from NetData malformed: {}".format(label)
             rospy.logwarn(msg)
+            rospy.logwarn('... malformed data for Label <{}>: {}'.format(label, np_array))
             return None, msg
         d[label] = np_array
 

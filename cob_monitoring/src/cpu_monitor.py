@@ -34,6 +34,7 @@ stat_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'Warning', Diagn
 class CPUMonitor():
     def __init__(self, hostname, diag_hostname):
         self._check_core_temps = rospy.get_param('~check_core_temps', False)
+        self._netdata_module_name_core_temps = rospy.get_param('~netdata_module_name_core_temps', 'sensors.coretemp_isa_0000_temperature')
 
         self._core_load_warn = rospy.get_param('~core_load_warn', 90)
         self._core_load_error = rospy.get_param('~core_load_error', 110)
@@ -89,7 +90,7 @@ class CPUMonitor():
         diag_level = DiagnosticStatus.OK
 
         try:
-            netdata_core_temp, error = query_netdata('sensors.coretemp_isa_0000_temperature', interval)
+            netdata_core_temp, error = query_netdata(self._netdata_module_name_core_temps, interval)
             if not netdata_core_temp:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msgs = [ 'Core Temp Error' ]
@@ -189,11 +190,11 @@ class CPUMonitor():
             netdata_cpu_load, error = query_netdata('system.load', interval)
             if not netdata_cpu_load:
                 diag_level = DiagnosticStatus.ERROR
-                diag_msgs = [ 'Load Error' ]
+                diag_msg = 'Load Error'
                 diag_vals = [ KeyValue(key = 'Load Error', value = 'Could not fetch data from netdata'),
                               KeyValue(key = 'Output', value = netdata_cpu_load),
                               KeyValue(key = 'Error', value= error) ]
-                return (diag_vals, diag_msgs, diag_level)
+                return (diag_vals, diag_msg, diag_level)
 
             del netdata_cpu_load['time']
 
