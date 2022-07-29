@@ -2,6 +2,9 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.28 (2022-03-15)
 -------------------
 * Merge pull request `#316 <https://github.com/ipa320/cob_command_tools/issues/316>`_ from fmessmer/speedup_sss
