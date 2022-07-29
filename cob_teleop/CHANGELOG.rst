@@ -2,8 +2,8 @@
 Changelog for package cob_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.29 (2022-07-29)
+-------------------
 * Merge pull request `#317 <https://github.com/ipa320/cob_command_tools/issues/317>`_ from benmaidel/feature/run_factor_axis
   use right trigger axis as an analog signal for the run_factor
 * check vector boundaries
