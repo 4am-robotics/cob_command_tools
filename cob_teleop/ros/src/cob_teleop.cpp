@@ -54,7 +54,8 @@ public:
   std::map<std::string,component_config> component_config_;
 
   //axis
-  int axis_vx_, axis_vy_, axis_vz_, axis_roll_, axis_pitch_, axis_yaw_;
+  int axis_vx_, axis_vy_, axis_vz_, axis_roll_, axis_pitch_, axis_yaw_, axis_run_;
+  bool axis_run_updated_;
 
   //buttons
   //mode 1: Base
@@ -80,6 +81,7 @@ public:
   int joy_num_modes_;
   int mode_switch_button_;
   int mode_;
+  std::string joy_config_switch_;
   XmlRpc::XmlRpcValue LEDS_;
   XmlRpc::XmlRpcValue led_mode_;
 
@@ -239,7 +241,6 @@ void CobTeleop::getConfigurationFromParameters()
   }
 
   sss_client_ = new ScriptClient_("/script_server", true);
-
   n_.param<bool>("enable_sound", enable_sound_, false);
   n_.param<std::string>("sound_action_name", sound_action_name_, "/sound/say");
   say_client_ = new SayClient_(sound_action_name_, true);
@@ -435,7 +436,21 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
     safe_mode_ = true;
   }
 
-  if(run_button_>=0 && run_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[run_button_]==1)
+  if(joy_config_switch_.compare("X") == 0 && axis_run_ < joy_msg->axes.size())
+  {
+    if(!axis_run_updated_)
+    {
+      if(joy_msg->axes[axis_run_] != 0)
+        axis_run_updated_ = true;
+      else
+        run_factor_ = 1.0;
+    }
+    if(axis_run_updated_)
+    {
+      run_factor_ = 1 + ((run_factor_param_ - 1.0) / -2.0) * (joy_msg->axes[axis_run_] - 1.0);
+    }
+  }
+  else if(run_button_>=0 && run_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[run_button_]>1)
   {
     run_factor_ = run_factor_param_;
   }
@@ -729,6 +744,7 @@ void CobTeleop::init()
   // joy config
   n_.param("joy_num_modes",joy_num_modes_,2);
   n_.param("mode_switch_button",mode_switch_button_,0);
+  n_.param("joy_config_switch",joy_config_switch_, std::string("D"));
 
   // assign axis
   n_.param("axis_vx",axis_vx_,17);
@@ -737,6 +753,7 @@ void CobTeleop::init()
   n_.param("axis_roll",axis_roll_,16);
   n_.param("axis_pitch",axis_pitch_,19);
   n_.param("axis_yaw",axis_yaw_,19);
+  n_.param("axis_run",axis_run_,20);
 
   // assign buttons
   n_.param("deadman_button",deadman_button_,11);
@@ -775,6 +792,7 @@ void CobTeleop::init()
   LEDS_=led_mode_[mode_];
   joy_active_ = false;
   safe_mode_ = true;
+  axis_run_updated_ = false;
 
   cob_light::LightMode light;
   light.mode = cob_light::LightModes::FLASH;

@@ -16,16 +16,19 @@
 
 
 import rospy
-from std_srvs.srv import *
-from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
+from std_srvs.srv import Trigger, TriggerResponse
+from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 class FakeDriver():
 
     def __init__(self):
-        self.init_srv = rospy.Service('driver/init', Trigger, self.srv_cb)
-        self.recover_srv = rospy.Service('driver/recover', Trigger, self.srv_cb)
-        self.halt_srv = rospy.Service('driver/halt', Trigger, self.srv_cb)
-        self.shutdown_srv = rospy.Service('driver/shutdown', Trigger, self.srv_cb)
+        self.init_srv = rospy.Service('driver/init', Trigger, self.init_cb)
+        self.recover_srv = rospy.Service('driver/recover', Trigger, self.recover_cb)
+        self.halt_srv = rospy.Service('driver/halt', Trigger, self.halt_cb)
+        self.shutdown_srv = rospy.Service('driver/shutdown', Trigger, self.shutdown_cb)
+
+        self.initialized = False
+        self.active = False
 
         self._fake_diag_pub = rospy.Publisher('/diagnostics', DiagnosticArray, queue_size=1)
         rospy.Timer(rospy.Duration(1.0), self.publish_diagnostics)
@@ -36,17 +39,44 @@ class FakeDriver():
 
         status = DiagnosticStatus()
         status.name = rospy.get_name()
-        status.level = DiagnosticStatus.OK
-        status.message = "fake diagnostics"
+        if self.initialized:
+            if self.active:
+                status.level = DiagnosticStatus.OK
+                status.message = "active"
+            else:
+                status.level = DiagnosticStatus.WARN
+                status.message = "not active"
+        else:
+            status.level = DiagnosticStatus.WARN
+            status.message = "not initialized"
         status.hardware_id = rospy.get_name()
+        status.values.append(KeyValue(key="initialized", value=str(self.initialized)))
+        status.values.append(KeyValue(key="active", value=str(self.active)))
         msg.status.append(status)
 
         self._fake_diag_pub.publish(msg)
 
-    def srv_cb(self, req):
-        resp = TriggerResponse()
-        resp.success = True
-        return resp
+    def init_cb(self, req):
+        rospy.loginfo("init_cb")
+        self.initialized = True
+        self.active = True
+        return TriggerResponse(success=True)
+
+    def recover_cb(self, req):
+        rospy.loginfo("recover_cb")
+        self.active = True
+        return TriggerResponse(success=True)
+
+    def halt_cb(self, req):
+        rospy.loginfo("halt_cb")
+        self.active = False
+        return TriggerResponse(success=True)
+
+    def shutdown_cb(self, req):
+        rospy.loginfo("shutdown_cb")
+        self.initialized = False
+        self.active = False
+        return TriggerResponse(success=True)
 
 
 if __name__ == "__main__":

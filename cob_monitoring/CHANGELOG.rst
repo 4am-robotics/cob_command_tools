@@ -2,6 +2,9 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.29 (2022-07-29)
+-------------------
+
 0.6.28 (2022-03-15)
 -------------------
 * Merge pull request `#314 <https://github.com/ipa320/cob_command_tools/issues/314>`_ from pgehring/feature/netdata_cpu_monitor

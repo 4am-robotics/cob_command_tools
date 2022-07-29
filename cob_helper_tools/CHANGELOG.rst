@@ -2,6 +2,13 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.29 (2022-07-29)
+-------------------
+* Merge pull request `#319 <https://github.com/ipa320/cob_command_tools/issues/319>`_ from fmessmer/feature/extend_fake_driver
+  proper service and diagnostic logic for fake_driver
+* proper service and diagnostic logic for fake_driver
+* Contributors: Felix Messmer, fmessmer
+
 0.6.28 (2022-03-15)
 -------------------
 * Merge pull request `#310 <https://github.com/ipa320/cob_command_tools/issues/310>`_ from HannesBachter/fix/sleep_init
