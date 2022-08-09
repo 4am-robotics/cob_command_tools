@@ -34,8 +34,6 @@ stat_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'Warning', Diagn
 class CPUMonitor():
     def __init__(self, hostname, diag_hostname):
         self._check_core_temps = rospy.get_param('~check_core_temps', False)
-        self._netdata_module_name_core_temps = rospy.get_param('~netdata_module_name_core_temps', 'sensors.coretemp_isa_0000_temperature')
-
         self._core_load_warn = rospy.get_param('~core_load_warn', 90)
         self._core_load_error = rospy.get_param('~core_load_error', 110)
         self._load1_threshold = rospy.get_param('~load1_threshold', 5.0)
@@ -90,7 +88,14 @@ class CPUMonitor():
         diag_level = DiagnosticStatus.OK
 
         try:
-            netdata_core_temp, error = query_netdata(self._netdata_module_name_core_temps, interval)
+            # _ vs -
+            netdata_module_name_core_temps = ['sensors.coretemp_isa_0000_temperature',
+                                              'sensors.coretemp-isa-0000_temperature']
+            for name in netdata_module_name_core_temps:
+                netdata_core_temp, error = query_netdata(name, interval)
+                if netdata_core_temp:
+                    break
+
             if not netdata_core_temp:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msgs = [ 'Core Temp Error' ]
