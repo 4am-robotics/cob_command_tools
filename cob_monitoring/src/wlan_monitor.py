@@ -60,7 +60,9 @@ class IwConfigLocal(IwConfigParser):
                 pass
             self.interfaces = sorted(os.linesep.join([s for s in stdout.splitlines() if s]).split('\n'))
         except Exception as e:
-            rospy.logerr("IwConfigLocal init exception: %s" %e)
+            self.stat.level = DiagnosticStatus.ERROR
+            self.stat.message = "IwConfigLocal init exception: %s" % e
+            rospy.logerr("IwConfigLocal init exception: %s" % e)
 
     def update(self):
         self.stat.level = DiagnosticStatus.OK
@@ -83,7 +85,9 @@ class IwConfigLocal(IwConfigParser):
                 else:
                     self.stat.values += self._parse_info(stdout)
             except Exception as e:
-                rospy.logerr("IwConfigLocal update exception: %s" %e)
+                self.stat.level = DiagnosticStatus.ERROR
+                self.stat.message = "IwConfigLocal update exception: %s" % e
+                rospy.logerr("IwConfigLocal update exception: %s" % e)
                 self.stat.values.append(KeyValue(key = 'update exception', value = str(e)))
                 self.stat.values.append(KeyValue(key = 'Traceback', value = str(traceback.format_exc())))
 
@@ -107,7 +111,9 @@ class IwConfigSSH(IwConfigParser):
             output = ''.join(stdout.readlines())
             self.interfaces = sorted(os.linesep.join([s for s in output.splitlines() if s]).split('\n'))
         except Exception as e:
-            rospy.logerr("IwConfigSSH init exception: %s" %e)
+            self.stat.level = DiagnosticStatus.ERROR
+            self.stat.message = "IwConfigSSH init exception: %s" % e
+            rospy.logerr("IwConfigSSH init exception: %s" % e)
 
     def update(self):
         self.stat.level = DiagnosticStatus.OK
@@ -121,7 +127,9 @@ class IwConfigSSH(IwConfigParser):
                 output = ''.join(stdout.readlines())
                 self.stat.values += self._parse_info(output)
             except Exception as e:
-                rospy.logerr("IwConfigSSH update exception: %s" %e)
+                self.stat.level = DiagnosticStatus.ERROR
+                self.stat.message = "IwConfigSSH update exception: %s" % e
+                rospy.logerr("IwConfigSSH update exception: %s" % e)
                 self.stat.values.append(KeyValue(key = 'update exception', value = str(e)))
                 self.stat.values.append(KeyValue(key = 'Traceback', value = str(traceback.format_exc())))
 
