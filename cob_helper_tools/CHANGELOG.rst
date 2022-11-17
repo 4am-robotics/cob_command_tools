@@ -2,6 +2,9 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.29 (2022-07-29)
 -------------------
 * Merge pull request `#319 <https://github.com/ipa320/cob_command_tools/issues/319>`_ from fmessmer/feature/extend_fake_driver
