@@ -34,7 +34,6 @@ stat_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'Warning', Diagn
 class CPUMonitor():
     def __init__(self, hostname, diag_hostname):
         self._check_core_temps = rospy.get_param('~check_core_temps', False)
-
         self._core_load_warn = rospy.get_param('~core_load_warn', 90)
         self._core_load_error = rospy.get_param('~core_load_error', 110)
         self._load1_threshold = rospy.get_param('~load1_threshold', 5.0)
@@ -89,7 +88,14 @@ class CPUMonitor():
         diag_level = DiagnosticStatus.OK
 
         try:
-            netdata_core_temp, error = query_netdata('sensors.coretemp_isa_0000_temperature', interval)
+            # _ vs -
+            netdata_module_name_core_temps = ['sensors.coretemp_isa_0000_temperature',
+                                              'sensors.coretemp-isa-0000_temperature']
+            for name in netdata_module_name_core_temps:
+                netdata_core_temp, error = query_netdata(name, interval)
+                if netdata_core_temp:
+                    break
+
             if not netdata_core_temp:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msgs = [ 'Core Temp Error' ]
@@ -164,13 +170,11 @@ class CPUMonitor():
 
         return diag_vals, diag_msgs, diag_level
 
-    ##\brief Uses 'uptime' to see load average
+    ##\brief Uses 'uptime' to see system uptime
     def check_uptime(self, interval=1):
         diag_vals = []
         diag_msg = ''
         diag_level = DiagnosticStatus.OK
-
-        load_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'High Load', DiagnosticStatus.ERROR: 'Very High Load' }
 
         try:
             netdata_uptime, error = query_netdata('system.uptime', interval)
@@ -185,15 +189,30 @@ class CPUMonitor():
             del netdata_uptime['time']
 
             diag_vals.append(KeyValue(key = 'Uptime', value = str(np.max(netdata_uptime['uptime'].astype(float)))))
+        except Exception as e:
+            diag_level = DiagnosticStatus.ERROR
+            diag_msg = 'Uptime Exception'
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
+        return diag_vals, diag_msg, diag_level
+
+    ##\brief Uses 'system.load' to see load average
+    def check_load(self, interval=1):
+        diag_vals = []
+        diag_msg = ''
+        diag_level = DiagnosticStatus.OK
+
+        load_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'High Load', DiagnosticStatus.ERROR: 'Very High Load' }
+
+        try:
             netdata_cpu_load, error = query_netdata('system.load', interval)
             if not netdata_cpu_load:
                 diag_level = DiagnosticStatus.ERROR
-                diag_msgs = [ 'Load Error' ]
+                diag_msg = 'Load Error'
                 diag_vals = [ KeyValue(key = 'Load Error', value = 'Could not fetch data from netdata'),
                               KeyValue(key = 'Output', value = netdata_cpu_load),
                               KeyValue(key = 'Error', value= error) ]
-                return (diag_vals, diag_msgs, diag_level)
+                return (diag_vals, diag_msg, diag_level)
 
             del netdata_cpu_load['time']
 
@@ -216,10 +235,11 @@ class CPUMonitor():
 
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
-            diag_msg = 'Uptime Exception'
+            diag_msg = 'Load Exception'
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
         return diag_vals, diag_msg, diag_level
+
 
     ##\brief Uses 'free -m' to check free memory
     def check_free_memory(self, interval=1):
@@ -515,6 +535,13 @@ class CPUMonitor():
         if up_level > DiagnosticStatus.OK:
             diag_msgs.append(up_msg)
         diag_level = max(diag_level, up_level)
+
+        # Check load
+        load_vals, load_msg, load_level = self.check_load(interval=interval)
+        diag_vals.extend(load_vals)
+        if load_level > DiagnosticStatus.OK:
+            diag_msgs.append(load_msg)
+        diag_level = max(diag_level, load_level)
 
         if diag_msgs and diag_level > DiagnosticStatus.OK:
             usage_msg = ', '.join(set(diag_msgs))

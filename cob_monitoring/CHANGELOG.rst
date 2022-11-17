@@ -2,6 +2,19 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.30 (2022-11-17)
+-------------------
+* Merge pull request `#322 <https://github.com/ipa320/cob_command_tools/issues/322>`_ from Deleh/fix/wlan_monitor_diagnostics
+  Set diagnostic level to `ERROR` on exception
+* harmonization
+* set diagnostic level to ERROR on exception
+* Merge pull request `#321 <https://github.com/ipa320/cob_command_tools/issues/321>`_ from LoyVanBeek/fix/netdata_based_diagnostics
+  Fix/netdata based diagnostics
+* Split CPU load diagnostics from uptime stats
+* Try both spellings of core temp module name
+* fixing crashed thread if netdata data was malformed and make netdata module name for core temps in api calls configurable
+* Contributors: Björn Eistel, Denis Lehmann, Felix Messmer, Loy van Beek, fmessmer
+
 0.6.29 (2022-07-29)
 -------------------
 
