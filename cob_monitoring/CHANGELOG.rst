@@ -2,8 +2,8 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.30 (2022-11-17)
+-------------------
 * Merge pull request `#322 <https://github.com/ipa320/cob_command_tools/issues/322>`_ from Deleh/fix/wlan_monitor_diagnostics
   Set diagnostic level to `ERROR` on exception
 * harmonization
