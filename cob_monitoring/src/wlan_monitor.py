@@ -100,7 +100,12 @@ class IwConfigSSH(IwConfigParser):
         self.ssh.load_system_host_keys()
         ssh_key_file   = os.getenv("HOME")+'/.ssh/id_rsa.pub'
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())# no known_hosts error
-        self.ssh.connect(str(hostname), username=user, key_filename=ssh_key_file) # no passwd needed
+        self.ssh.connect(
+            str(hostname),
+            username=user,
+            key_filename=ssh_key_file,
+            disabled_algorithms={"pubkeys": ["rsa-sha2-256", "rsa-sha2-512"]}
+        ) # no passwd needed
         #self.ssh.connect(str(hostname), username=user, password=password)
 
         self.interfaces = []
