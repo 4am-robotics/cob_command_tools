@@ -54,14 +54,14 @@ class AutoRecover():
 
   # auto recover based on diagnostics
   def diagnostics_cb(self, msg):
-    for status in msg.status:
-      for component in list(self.components.keys()):
-        if status.name.lower().startswith(self.components[component].lower()) and status.level > DiagnosticStatus.OK and self.em_state == EmergencyStopState.EMFREE and (rospy.Time.now() - self.components_recover_time[component] > rospy.Duration(10)):
-          if not self.recover_diagnostics:
-            rospy.loginfo_throttle_identical(10, "auto_recover from diagnostic failure is disabled")
-          else:
-            rospy.loginfo_throttle_identical(10, "auto_recover from diagnostic failure")
-            self.recover([component])
+    if self.recover_diagnostics:
+      for status in msg.status:
+        for component in list(self.components.keys()):
+          if status.name.lower().startswith(self.components[component].lower()) and status.level > DiagnosticStatus.OK and self.em_state == EmergencyStopState.EMFREE and (rospy.Time.now() - self.components_recover_time[component] > rospy.Duration(10)):
+              rospy.loginfo("auto_recover from diagnostic failure")
+              self.recover([component])
+    else:
+      rospy.loginfo_once("auto_recover from diagnostic failure is disabled")
 
   # callback for enable service
   def enable_cb(self, req):
