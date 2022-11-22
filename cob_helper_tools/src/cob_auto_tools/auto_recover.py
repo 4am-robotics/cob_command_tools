@@ -58,9 +58,9 @@ class AutoRecover():
       for component in list(self.components.keys()):
         if status.name.lower().startswith(self.components[component].lower()) and status.level > DiagnosticStatus.OK and self.em_state == EmergencyStopState.EMFREE and (rospy.Time.now() - self.components_recover_time[component] > rospy.Duration(10)):
           if not self.recover_diagnostics:
-            rospy.loginfo("auto_recover from diagnostic failure is disabled")
+            rospy.loginfo_throttle_identical(10, "auto_recover from diagnostic failure is disabled")
           else:
-            rospy.loginfo("auto_recover from diagnostic failure")
+            rospy.loginfo_throttle_identical(10, "auto_recover from diagnostic failure")
             self.recover([component])
 
   # callback for enable service
