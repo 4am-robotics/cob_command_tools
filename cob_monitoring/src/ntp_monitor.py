@@ -62,6 +62,7 @@ class NtpMonitor():
                 stdout, stderr = p.communicate()
                 try:
                     stdout = stdout.decode()  #python3
+                    stderr = stderr.decode()  #python3
                 except (UnicodeDecodeError, AttributeError):
                     pass
 
