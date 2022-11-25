@@ -61,7 +61,7 @@ class AutoRecover():
               rospy.loginfo("auto_recover from diagnostic failure")
               self.recover([component])
     else:
-      rospy.loginfo_once("auto_recover from diagnostic failure is disabled")
+      rospy.loginfo_once("auto_recover from diagnostic failure is disabled")  # pylint: disable=no-member
 
   # callback for enable service
   def enable_cb(self, req):
