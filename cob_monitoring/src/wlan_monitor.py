@@ -107,7 +107,7 @@ class IwConfigSSH(IwConfigParser):
                 key_filename=ssh_key_file,
             ) # no passwd needed
         else:
-            self.ssh.connect(
+            self.ssh.connect(  # pylint: disable=unexpected-keyword-arg
                 str(hostname),
                 username=user,
                 key_filename=ssh_key_file,
