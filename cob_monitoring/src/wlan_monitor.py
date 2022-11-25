@@ -14,13 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import getpass
 import re
 import os
-import sys
+import getpass
 import traceback
-from subprocess import Popen, PIPE
 import paramiko
+from subprocess import Popen, PIPE
+from packaging import version
 
 import rospy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
@@ -100,7 +100,19 @@ class IwConfigSSH(IwConfigParser):
         self.ssh.load_system_host_keys()
         ssh_key_file   = os.getenv("HOME")+'/.ssh/id_rsa.pub'
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())# no known_hosts error
-        self.ssh.connect(str(hostname), username=user, key_filename=ssh_key_file) # no passwd needed
+        if version.parse(paramiko.__version__) < version.parse("2.11.0"):
+            self.ssh.connect(
+                str(hostname),
+                username=user,
+                key_filename=ssh_key_file,
+            ) # no passwd needed
+        else:
+            self.ssh.connect(  # pylint: disable=unexpected-keyword-arg
+                str(hostname),
+                username=user,
+                key_filename=ssh_key_file,
+                disabled_algorithms={"pubkeys": ["rsa-sha2-256", "rsa-sha2-512"]}
+            ) # no passwd needed
         #self.ssh.connect(str(hostname), username=user, password=password)
 
         self.interfaces = []
