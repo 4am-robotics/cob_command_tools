@@ -3,15 +3,16 @@ import requests
 import numpy
 
 def query_netdata_info():
+    url = 'http://127.0.0.1:19999/api/v1/info'
     try:
-        r = requests.get('http://127.0.0.1:19999/api/v1/info')
+        r = requests.get(url)
     except requests.ConnectionError as ex:
-        msg = "NetData ConnectionError: {}".format(ex)
+        msg = "NetData ConnectionError (url: '{}'): {}".format(url, ex)
         rospy.logerr(msg)
         return None, msg
     
     if r.status_code != 200:
-        msg = "NetData request not successful with status_code {}".format(r.status_code)
+        msg = "NetData request not successful (url: '{}', status_code {}".format(url, r.status_code)
         rospy.logerr(msg)
         return None, msg
 
@@ -24,12 +25,12 @@ def query_netdata(chart, after):
     try:
         r = requests.get(url)
     except requests.ConnectionError as ex:
-        msg = "NetData ConnectionError: {}".format(ex)
+        msg = "NetData ConnectionError (url: '{}'): {}".format(url, ex)
         rospy.logerr(msg)
         return None, msg
 
     if r.status_code != 200:
-        msg = "NetData request not successful with status_code {}".format(r.status_code)
+        msg = "NetData request not successful (url: '{}', status_code {}".format(url, r.status_code)
         rospy.logerr(msg)
         return None, msg
 
