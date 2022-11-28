@@ -23,6 +23,7 @@ import socket
 import psutil
 import numpy as np
 import math
+import requests
 
 import rospy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
@@ -91,15 +92,29 @@ class CPUMonitor():
             # _ vs -
             netdata_module_name_core_temps = ['sensors.coretemp_isa_0000_temperature',
                                               'sensors.coretemp-isa-0000_temperature']
+            error_count = 0
+            netdata_module_name_err = ''
             for name in netdata_module_name_core_temps:
-                netdata_core_temp, error = query_netdata(name, interval)
+                try:
+                    netdata_core_temp, error = query_netdata(name, interval)
+                except requests.ConnectionError as err:
+                    error_count += 1
+                    netdata_module_name_err += name + ' '
+
+                    netdata_core_temp = None
+                    error = str(err)
+
+
                 if netdata_core_temp:
                     break
+            
+            netdata_module_name_err = f"{error_count} of {len(netdata_module_name_core_temps)} failed: {netdata_module_name_err}"
 
             if not netdata_core_temp:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msgs = [ 'Core Temp Error' ]
                 diag_vals = [ KeyValue(key = 'Core Temp Error', value = 'Could not fetch data from netdata'),
+                              KeyValue(key = 'Failed Chart Names', value = netdata_module_name_err),
                               KeyValue(key = 'Output', value = netdata_core_temp),
                               KeyValue(key = 'Error', value= error) ]
                 return (diag_vals, diag_msgs, diag_level)
@@ -151,7 +166,12 @@ class CPUMonitor():
                 diag_vals.append(KeyValue(key = 'Core %d (MHz)' % int(cpu_name[-1]), value = str(np.mean(values))))
 
             # get max freq
-            netdata_info, error = query_netdata_info()
+            try:
+                netdata_info = query_netdata_info()
+            except requests.ConnectionError as err:
+                netdata_info = None
+                error = str(err)
+
             if not netdata_info:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msgs = [ 'Clock Speed Error' ]
@@ -319,7 +339,7 @@ class CPUMonitor():
         load_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'High Load', DiagnosticStatus.ERROR: 'Error' }
 
         try:
-            netdata_info, error = query_netdata_info()
+            netdata_info = query_netdata_info()
             if not netdata_info:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msg = 'CPU Usage Error'

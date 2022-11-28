@@ -2,39 +2,26 @@ import rospy
 import requests
 import numpy
 
-def query_netdata_info():
-    url = 'http://127.0.0.1:19999/api/v1/info'
-    try:
-        r = requests.get(url)
-    except requests.ConnectionError as ex:
-        msg = "NetData ConnectionError (url: '{}'): {}".format(url, ex)
-        rospy.logerr(msg)
-        return None, msg
+_NETDATA_URL = 'http://127.0.0.1:19999/api/v1/'
+
+def _request_data(url):
+    r = requests.get(url)
     
     if r.status_code != 200:
         msg = "NetData request not successful (url: '{}', status_code {}".format(url, r.status_code)
-        rospy.logerr(msg)
-        return None, msg
+        raise requests.ConnectionError(msg)
 
-    return r.json(), None
+    return r.json()
+
+def query_netdata_info():
+    url = _NETDATA_URL + 'info'
+    r = _request_data(url)
+
+    return r
 
 def query_netdata(chart, after):
-    NETDATA_URI = 'http://127.0.0.1:19999/api/v1/data?chart=%s&format=json&after=-%d'
-    url = NETDATA_URI % (chart, int(after))
-
-    try:
-        r = requests.get(url)
-    except requests.ConnectionError as ex:
-        msg = "NetData ConnectionError (url: '{}'): {}".format(url, ex)
-        rospy.logerr(msg)
-        return None, msg
-
-    if r.status_code != 200:
-        msg = "NetData request not successful (url: '{}', status_code {}".format(url, r.status_code)
-        rospy.logerr(msg)
-        return None, msg
-
-    rdata = r.json()
+    url = _NETDATA_URL + 'data?chart=%s&format=json&after=-%d' % (chart, int(after)) 
+    rdata = _request_data(url)
 
     sdata = list(zip(*rdata['data']))
     d = dict()
@@ -47,5 +34,4 @@ def query_netdata(chart, after):
             rospy.logwarn('... malformed data for Label <{}>: {}'.format(label, np_array))
             return None, msg
         d[label] = np_array
-
     return d, None
