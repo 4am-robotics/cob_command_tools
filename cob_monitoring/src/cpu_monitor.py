@@ -215,7 +215,7 @@ class CPUMonitor():
 
         except requests.ConnectionError as e:
             diag_level = DiagnosticStatus.ERROR
-            diag_msg = [ 'Uptime Connection Error' ]
+            diag_msg = 'Uptime Connection Error'
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
         except Exception as e:
@@ -264,7 +264,7 @@ class CPUMonitor():
 
         except requests.ConnectionError as e:
             diag_level = DiagnosticStatus.ERROR
-            diag_msg = [ 'Load Connection Error' ]
+            diag_msg = 'Load Connection Error'
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
         except Exception as e:
@@ -339,7 +339,7 @@ class CPUMonitor():
 
         except requests.ConnectionError as e:
             diag_level = DiagnosticStatus.ERROR
-            diag_msg = [ 'Memory Usage Error' ]
+            diag_msg = 'Memory Usage Connection Error'
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
         except Exception as e:
@@ -424,7 +424,7 @@ class CPUMonitor():
 
         except requests.ConnectionError as e:
             diag_level = DiagnosticStatus.ERROR
-            diag_msg = [ 'CPU Usage Connection Error' ]
+            diag_msg = 'CPU Usage Connection Error'
             diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
         except Exception as e:
