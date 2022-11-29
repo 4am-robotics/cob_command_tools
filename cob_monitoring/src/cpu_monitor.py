@@ -97,6 +97,8 @@ class CPUMonitor():
             for name in netdata_module_name_core_temps:
                 try:
                     netdata_core_temp, error = query_netdata(name, interval)
+
+                # count individual connection errors for mutliple chart names (different netdata versions)
                 except requests.ConnectionError as err:
                     error_count += 1
                     netdata_module_name_err += name + ' '
@@ -166,11 +168,7 @@ class CPUMonitor():
                 diag_vals.append(KeyValue(key = 'Core %d (MHz)' % int(cpu_name[-1]), value = str(np.mean(values))))
 
             # get max freq
-            try:
-                netdata_info = query_netdata_info()
-            except requests.ConnectionError as err:
-                netdata_info = None
-                error = str(err)
+            netdata_info = query_netdata_info()
 
             if not netdata_info:
                 diag_level = DiagnosticStatus.ERROR
@@ -182,6 +180,11 @@ class CPUMonitor():
 
             max_cpu_freq = float(netdata_info['cpu_freq'])/1e6
             diag_vals.append(KeyValue(key = 'Maximum Frequency (MHz)', value = str(max_cpu_freq)))
+
+        except requests.ConnectionError as e:
+            diag_level = DiagnosticStatus.ERROR
+            diag_msgs = [ 'Clock Speed Connection Error' ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
@@ -209,6 +212,12 @@ class CPUMonitor():
             del netdata_uptime['time']
 
             diag_vals.append(KeyValue(key = 'Uptime', value = str(np.max(netdata_uptime['uptime'].astype(float)))))
+
+        except requests.ConnectionError as e:
+            diag_level = DiagnosticStatus.ERROR
+            diag_msg = [ 'Uptime Connection Error' ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
+
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'Uptime Exception'
@@ -252,6 +261,11 @@ class CPUMonitor():
             diag_vals.append(KeyValue(key = '15 min Load Average', value = str(load15)))
 
             diag_msg = load_dict[diag_level]
+
+        except requests.ConnectionError as e:
+            diag_level = DiagnosticStatus.ERROR
+            diag_msg = [ 'Load Connection Error' ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
@@ -322,6 +336,11 @@ class CPUMonitor():
             diag_vals.append(KeyValue(key = 'Swap Free', value = str(free_swp)))
 
             diag_msg = mem_dict[diag_level]
+
+        except requests.ConnectionError as e:
+            diag_level = DiagnosticStatus.ERROR
+            diag_msg = [ 'Memory Usage Error' ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
 
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
@@ -403,6 +422,11 @@ class CPUMonitor():
 
             diag_msg = load_dict[diag_level]
 
+        except requests.ConnectionError as e:
+            diag_level = DiagnosticStatus.ERROR
+            diag_msg = [ 'CPU Usage Connection Error' ]
+            diag_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
+
         except Exception as e:
             diag_level = DiagnosticStatus.ERROR
             diag_msg = 'CPU Usage Exception'
@@ -416,38 +440,52 @@ class CPUMonitor():
                       DiagnosticStatus.ERROR: 'No valid Data from NetData'}
 
         throt_level = DiagnosticStatus.OK
+        throt_msg = ''
         throt_vals = []
 
-        netdata, error = query_netdata('cpu.core_throttling', interval)
-        if not netdata:
-            diag_level = DiagnosticStatus.ERROR
-            diag_msg = 'Core Throttling Error'
-            diag_vals = [ KeyValue(key = 'Core Throttling Error', value = 'Could not fetch data from netdata'),
-                            KeyValue(key = 'Output', value = netdata),
-                            KeyValue(key = 'Error', value= error) ]
-            return (diag_vals, diag_msg, diag_level)
-
-        for i in range(self._num_cores):
-            lbl = 'CPU %d Thermal Throttling Events' % i
-            netdata_key = 'cpu%d' % i
-
-            core_mean = 'N/A'
-            if netdata_key in netdata:
-                core_data = netdata[netdata_key]
-                if core_data is not None:
-                    core_mean = np.mean(core_data)
-
-                    if core_mean > self._thermal_throttling_threshold:
-                        throt_level = DiagnosticStatus.WARN
-            else:
+        try:
+            netdata, error = query_netdata('cpu.core_throttling', interval)
+            if not netdata:
                 throt_level = DiagnosticStatus.ERROR
+                throt_msg = 'Core Throttling Error'
+                throt_vals = [ KeyValue(key = 'Core Throttling Error', value = 'Could not fetch data from netdata'),
+                                KeyValue(key = 'Output', value = netdata),
+                                KeyValue(key = 'Error', value= error) ]
+                return (throt_vals, throt_msg, throt_level)
 
-            throt_vals.append(KeyValue(key=lbl, value='%r' % core_mean))
+            for i in range(self._num_cores):
+                lbl = 'CPU %d Thermal Throttling Events' % i
+                netdata_key = 'cpu%d' % i
 
-        throt_vals.insert(0, KeyValue(key='Thermal Throttling Status', value=throt_dict[throt_level]))
-        throt_vals.append(KeyValue(key='Thermal Throttling Threshold', value=str(self._thermal_throttling_threshold)))
+                core_mean = 'N/A'
+                if netdata_key in netdata:
+                    core_data = netdata[netdata_key]
+                    if core_data is not None:
+                        core_mean = np.mean(core_data)
 
-        return throt_vals, throt_dict[throt_level], throt_level
+                        if core_mean > self._thermal_throttling_threshold:
+                            throt_level = DiagnosticStatus.WARN
+                else:
+                    throt_level = DiagnosticStatus.ERROR
+
+                throt_vals.append(KeyValue(key=lbl, value='%r' % core_mean))
+            
+            throt_vals.insert(0, KeyValue(key='Thermal Throttling Status', value=throt_msg))
+            throt_vals.append(KeyValue(key='Thermal Throttling Threshold', value=str(self._thermal_throttling_threshold)))
+
+            throt_msg = throt_dict[throt_level]
+
+        except requests.ConnectionError as e:
+            throt_level = DiagnosticStatus.ERROR
+            throt_msg = 'Thermal Throttling Connection Error'
+            throt_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
+
+        except Exception as e:
+            throt_level = DiagnosticStatus.ERROR
+            throt_msg = 'Thermal Throttling Exception'
+            throt_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
+
+        return throt_vals, throt_msg, throt_level
 
 
     def check_idlejitter(self, interval=1):
@@ -455,41 +493,54 @@ class CPUMonitor():
                        DiagnosticStatus.ERROR: 'No valid Data from NetData'}
 
         jitter_level = DiagnosticStatus.OK
+        jitter_msg = ''
         jitter_vals = []
 
-        netdata, error = query_netdata('system.idlejitter', interval)
-        if not netdata:
-            diag_level = DiagnosticStatus.ERROR
-            diag_msg = 'Core Throttling Error'
-            diag_vals = [ KeyValue(key = 'Core Throttling Error', value = 'Could not fetch data from netdata'),
-                            KeyValue(key = 'Output', value = netdata),
-                            KeyValue(key = 'Error', value= error) ]
-            return (diag_vals, diag_msg, diag_level)
-
-        metric_list = [
-            ('IDLE Jitter Min', 'min', self._idlejitter_min_threshold, np.min),
-            ('IDLE Jitter Max', 'max', self._idlejitter_max_threshold, np.max),
-            ('IDLE Jitter Average', 'average', self._idlejitter_average_threshold, np.mean),
-        ]
-
-        for metric_label, metric_key, metric_threshold, aggregate_fnc in metric_list:
-            metric_aggreagte = 'N/A'
-            if netdata is not None and metric_key in netdata:
-                metric_data = netdata[metric_key]
-                if metric_data is not None:
-                    metric_aggreagte = aggregate_fnc(metric_data)
-
-                    if metric_aggreagte > metric_threshold:
-                        jitter_level = DiagnosticStatus.WARN
-            else:
+        try:
+            netdata, error = query_netdata('system.idlejitter', interval)
+            if not netdata:
                 jitter_level = DiagnosticStatus.ERROR
+                jitter_msg = 'IDLE Jitter Error'
+                jitter_vals = [ KeyValue(key = 'Core Throttling Error', value = 'Could not fetch data from netdata'),
+                                KeyValue(key = 'Output', value = netdata),
+                                KeyValue(key = 'Error', value= error) ]
+                return (jitter_vals, jitter_msg, jitter_level)
 
-            jitter_vals.append(KeyValue(key=metric_label, value=str(metric_aggreagte)))
-            jitter_vals.append(KeyValue(key=metric_label + ' Threshold', value=str(metric_threshold)))
+            metric_list = [
+                ('IDLE Jitter Min', 'min', self._idlejitter_min_threshold, np.min),
+                ('IDLE Jitter Max', 'max', self._idlejitter_max_threshold, np.max),
+                ('IDLE Jitter Average', 'average', self._idlejitter_average_threshold, np.mean),
+            ]
 
-        jitter_vals.insert(0, KeyValue(key='IDLE Jitter Status', value=jitter_dict[jitter_level]))
+            for metric_label, metric_key, metric_threshold, aggregate_fnc in metric_list:
+                metric_aggreagte = 'N/A'
+                if netdata is not None and metric_key in netdata:
+                    metric_data = netdata[metric_key]
+                    if metric_data is not None:
+                        metric_aggreagte = aggregate_fnc(metric_data)
 
-        return jitter_vals, jitter_dict[jitter_level], jitter_level
+                        if metric_aggreagte > metric_threshold:
+                            jitter_level = DiagnosticStatus.WARN
+                else:
+                    jitter_level = DiagnosticStatus.ERROR
+
+                jitter_vals.append(KeyValue(key=metric_label, value=str(metric_aggreagte)))
+                jitter_vals.append(KeyValue(key=metric_label + ' Threshold', value=str(metric_threshold)))
+
+            jitter_vals.insert(0, KeyValue(key='IDLE Jitter Status', value=jitter_msg))
+            jitter_msg = jitter_dict[jitter_level]
+
+        except requests.ConnectionError as e:
+            jitter_level = DiagnosticStatus.ERROR
+            jitter_msg = 'IDLE Jitter Connection Error'
+            jitter_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
+
+        except Exception as e:
+            jitter_level = DiagnosticStatus.ERROR
+            jitter_msg = 'IDLE Jitter Exception'
+            jitter_vals = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
+
+        return jitter_vals, jitter_msg, jitter_level
 
 
     def check_info(self, event):
