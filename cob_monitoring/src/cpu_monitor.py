@@ -110,7 +110,7 @@ class CPUMonitor():
                 if netdata_core_temp:
                     break
             
-            netdata_module_name_err = f"{error_count} of {len(netdata_module_name_core_temps)} failed: {netdata_module_name_err}"
+            netdata_module_name_err = "{} of {} failed: {}".format(error_count, len(netdata_module_name_core_temps), netdata_module_name_err)
 
             if not netdata_core_temp:
                 diag_level = DiagnosticStatus.ERROR
@@ -169,13 +169,11 @@ class CPUMonitor():
 
             # get max freq
             netdata_info = query_netdata_info()
-
             if not netdata_info:
                 diag_level = DiagnosticStatus.ERROR
                 diag_msgs = [ 'Clock Speed Error' ]
                 diag_vals = [ KeyValue(key = 'Clock Speed Error', value = 'Could not fetch data from netdata'),
-                              KeyValue(key = 'Output', value = netdata_info),
-                              KeyValue(key = 'Error', value= error) ]
+                              KeyValue(key = 'Output', value = netdata_info) ]
                 return (diag_vals, diag_msgs, diag_level)
 
             max_cpu_freq = float(netdata_info['cpu_freq'])/1e6
@@ -363,8 +361,7 @@ class CPUMonitor():
                 diag_level = DiagnosticStatus.ERROR
                 diag_msg = 'CPU Usage Error'
                 diag_vals = [ KeyValue(key = 'CPU Usage Error', value = 'Could not fetch data from netdata'),
-                              KeyValue(key = 'Output', value = netdata_info),
-                              KeyValue(key = 'Error', value= error) ]
+                              KeyValue(key = 'Output', value = netdata_info) ]
                 return (diag_vals, diag_msg, diag_level)
 
             num_cores = int(netdata_info['cores_total'])
