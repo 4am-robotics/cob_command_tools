@@ -2,6 +2,28 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#327 <https://github.com/ipa320/cob_command_tools/issues/327>`_ from Deleh/fix/emergency_stop_monitor
+  Collect only error and stale messages as errors
+* collect only error and stale messages as errors
+* Merge pull request `#326 <https://github.com/ipa320/cob_command_tools/issues/326>`_ from fmessmer/debug/netdata
+  fix netdata queries
+* fix pylint
+* fix return types
+* harmonize Exception handling of cpu_monitor
+* raise error when netdata request failed; show failed chart names
+* include url in loginfo
+* Merge pull request `#325 <https://github.com/ipa320/cob_command_tools/issues/325>`_ from Deleh/fix/ntp_monitor
+  Fix NTP monitor
+* decode stderr
+* Merge pull request `#323 <https://github.com/ipa320/cob_command_tools/issues/323>`_ from pgehring/fix/paramiko_login
+  [kevin] disable unsupported algorithms of linksys router
+* fix pylint
+* paramiko version check
+* disable unsupported algorithms of linksys router
+* Contributors: Denis Lehmann, Felix Messmer, Florian Weisshardt, fmessmer, pgehring
+
 0.6.30 (2022-11-17)
 -------------------
 * Merge pull request `#322 <https://github.com/ipa320/cob_command_tools/issues/322>`_ from Deleh/fix/wlan_monitor_diagnostics

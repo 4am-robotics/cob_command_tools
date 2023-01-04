@@ -2,6 +2,15 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#324 <https://github.com/ipa320/cob_command_tools/issues/324>`_ from pgehring/reduce_logging
+  [kevin] throttle identical loginfo stream
+* fix pylint
+* only check diagnostics message if parameter true
+* throttle identical loginfo stream
+* Contributors: Felix Messmer, fmessmer, pgehring
+
 0.6.30 (2022-11-17)
 -------------------
 
