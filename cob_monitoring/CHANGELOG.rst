@@ -2,8 +2,8 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.31 (2023-01-04)
+-------------------
 * Merge pull request `#327 <https://github.com/ipa320/cob_command_tools/issues/327>`_ from Deleh/fix/emergency_stop_monitor
   Collect only error and stale messages as errors
 * collect only error and stale messages as errors
