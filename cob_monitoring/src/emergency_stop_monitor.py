@@ -109,7 +109,7 @@ class emergency_stop_monitor():
 		#all diagnostics that have warning/error/stale
 		for status in msg.status:
 			if "Safety" in status.name:
-				if status.level > DiagnosticStatus.OK:
+				if status.level > DiagnosticStatus.WARN:
 					diagnostics_errors.append(status)
 
 		#reduce list to most detailed description only
