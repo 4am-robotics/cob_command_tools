@@ -123,27 +123,39 @@ class IwConfigSSH(IwConfigParser):
             rospy.logerr(message)
 
     def connect(self):
-        try:
-            if version.parse(paramiko.__version__) < version.parse("2.11.0"):
-                self.ssh.connect(
-                    self.hostname,
-                    username=self.user,
-                    key_filename=self.ssh_key_file,
-                ) # no passwd needed
-            else:
-                self.ssh.connect(  # pylint: disable=unexpected-keyword-arg
-                    self.hostname,
-                    username=self.user,
-                    key_filename=self.ssh_key_file,
-                    disabled_algorithms={"pubkeys": ["rsa-sha2-256", "rsa-sha2-512"]}
-                ) # no passwd needed
-        except Exception as e:
-            rospy.logerr("IwConfig connect exception: '%s'" % e)
+        if version.parse(paramiko.__version__) < version.parse("2.11.0"):
+            self.ssh.connect(
+                self.hostname,
+                username=self.user,
+                key_filename=self.ssh_key_file,
+            ) # no passwd needed
+        else:
+            self.ssh.connect(  # pylint: disable=unexpected-keyword-arg
+                self.hostname,
+                username=self.user,
+                key_filename=self.ssh_key_file,
+                disabled_algorithms={"pubkeys": ["rsa-sha2-256", "rsa-sha2-512"]}
+            ) # no passwd needed
 
     def update(self):
         self.stat.level = DiagnosticStatus.OK
         self.stat.message = "OK"
         self.stat.values = []
+
+        # Reconnect if connection is not active
+        if self.ssh.get_transport() is None or not self.ssh.get_transport().is_active():
+            try:
+                self.connect()
+            except Exception as e:
+                message = "IwConfigSSH update exception: %s" % e
+                self.stat.level = DiagnosticStatus.ERROR
+                self.stat.message = message
+                self.stat.values = [ KeyValue(key="ssh_connection_active", value="False"), KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
+                rospy.logerr(message)
+                return
+
+        self.stat.values.append(KeyValue(key="ssh_connection_active", value="True"))
+
         for interface in self.interfaces:
             self.stat.values.append(KeyValue(key = str(interface), value = "======================="))
             try:
@@ -156,10 +168,6 @@ class IwConfigSSH(IwConfigParser):
                 self.stat.message = message
                 self.stat.values = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
                 rospy.logerr(message)
-
-                # Reconnect if connection is not active
-                if self.ssh.get_transport() is None or not self.ssh.get_transport().is_active():
-                    self.connect()
 
 class WlanMonitor():
     def __init__(self):
