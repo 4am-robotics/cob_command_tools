@@ -147,14 +147,12 @@ class IwConfigSSH(IwConfigParser):
             try:
                 self.connect()
             except Exception as e:
-                message = "IwConfigSSH update exception: %s" % e
+                message = "IwConfigSSH connect exception: %s" % e
                 self.stat.level = DiagnosticStatus.ERROR
                 self.stat.message = message
-                self.stat.values = [ KeyValue(key="ssh_connection_active", value="False"), KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
+                self.stat.values = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
                 rospy.logerr(message)
                 return
-
-        self.stat.values.append(KeyValue(key="ssh_connection_active", value="True"))
 
         for interface in self.interfaces:
             self.stat.values.append(KeyValue(key = str(interface), value = "======================="))
