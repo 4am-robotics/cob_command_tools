@@ -96,24 +96,15 @@ class IwConfigLocal(IwConfigParser):
 class IwConfigSSH(IwConfigParser):
     def __init__(self, hostname, user, password):
         IwConfigParser.__init__(self)
+
+        self.hostname = str(hostname)
+        self.user = user
+        self.password = password
         self.ssh = paramiko.SSHClient()
         self.ssh.load_system_host_keys()
-        ssh_key_file   = os.getenv("HOME")+'/.ssh/id_rsa.pub'
+        self.ssh_key_file = os.getenv("HOME")+'/.ssh/id_rsa.pub'
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())# no known_hosts error
-        if version.parse(paramiko.__version__) < version.parse("2.11.0"):
-            self.ssh.connect(
-                str(hostname),
-                username=user,
-                key_filename=ssh_key_file,
-            ) # no passwd needed
-        else:
-            self.ssh.connect(  # pylint: disable=unexpected-keyword-arg
-                str(hostname),
-                username=user,
-                key_filename=ssh_key_file,
-                disabled_algorithms={"pubkeys": ["rsa-sha2-256", "rsa-sha2-512"]}
-            ) # no passwd needed
-        #self.ssh.connect(str(hostname), username=user, password=password)
+        self.connect()
 
         self.interfaces = []
         self.stat = DiagnosticStatus()
@@ -131,6 +122,24 @@ class IwConfigSSH(IwConfigParser):
             self.stat.values = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
             rospy.logerr(message)
 
+    def connect(self):
+        try:
+            if version.parse(paramiko.__version__) < version.parse("2.11.0"):
+                self.ssh.connect(
+                    self.hostname,
+                    username=self.user,
+                    key_filename=self.ssh_key_file,
+                ) # no passwd needed
+            else:
+                self.ssh.connect(  # pylint: disable=unexpected-keyword-arg
+                    self.hostname,
+                    username=self.user,
+                    key_filename=self.ssh_key_file,
+                    disabled_algorithms={"pubkeys": ["rsa-sha2-256", "rsa-sha2-512"]}
+                ) # no passwd needed
+        except Exception as e:
+            rospy.logerr("IwConfig connect exception: '%s'" % e)
+
     def update(self):
         self.stat.level = DiagnosticStatus.OK
         self.stat.message = "OK"
@@ -138,8 +147,7 @@ class IwConfigSSH(IwConfigParser):
         for interface in self.interfaces:
             self.stat.values.append(KeyValue(key = str(interface), value = "======================="))
             try:
-                (stdin, stdout, stderr) = self.ssh.exec_command("iwconfig %s"%interface)
-
+                (stdin, stdout, stderr) = self.ssh.exec_command("iwconfig %s" % interface)
                 output = ''.join(stdout.readlines())
                 self.stat.values += self._parse_info(output)
             except Exception as e:
@@ -148,6 +156,10 @@ class IwConfigSSH(IwConfigParser):
                 self.stat.message = message
                 self.stat.values = [ KeyValue(key = 'Exception', value = str(e)), KeyValue(key = 'Traceback', value = str(traceback.format_exc())) ]
                 rospy.logerr(message)
+
+                # Reconnect if connection is not active
+                if self.ssh.get_transport() is None or not self.ssh.get_transport().is_active():
+                    self.connect()
 
 class WlanMonitor():
     def __init__(self):
