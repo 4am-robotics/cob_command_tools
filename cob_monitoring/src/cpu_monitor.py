@@ -28,12 +28,14 @@ import requests
 import rospy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
-from netdata_tools.netdata_tools import query_netdata_info, query_netdata
+from netdata_interface.netdata_interface import NetdataInterface
 
 stat_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'Warning', DiagnosticStatus.ERROR: 'Error', DiagnosticStatus.STALE: 'Stale' }
 
 class CPUMonitor():
     def __init__(self, hostname, diag_hostname):
+        self._netdata_interface = NetdataInterface()
+
         self._check_core_temps = rospy.get_param('~check_core_temps', False)
         self._core_load_warn = rospy.get_param('~core_load_warn', 90)
         self._core_load_error = rospy.get_param('~core_load_error', 110)
@@ -96,7 +98,7 @@ class CPUMonitor():
             netdata_module_name_err = ''
             for name in netdata_module_name_core_temps:
                 try:
-                    netdata_core_temp, error = query_netdata(name, interval)
+                    netdata_core_temp, error = self._netdata_interface.query_netdata(name, interval)
 
                 # count individual connection errors for mutliple chart names (different netdata versions)
                 except requests.ConnectionError as err:
@@ -109,11 +111,11 @@ class CPUMonitor():
 
                 if netdata_core_temp:
                     break
-            
+
             netdata_module_name_err = "{} of {} failed: {}".format(error_count, len(netdata_module_name_core_temps), netdata_module_name_err)
 
             if not netdata_core_temp:
-                diag_level = DiagnosticStatus.ERROR
+                diag_level = DiagnosticStatus.WARN
                 diag_msgs = [ 'Core Temp Error' ]
                 diag_vals = [ KeyValue(key = 'Core Temp Error', value = 'Could not fetch data from netdata'),
                               KeyValue(key = 'Failed Chart Names', value = netdata_module_name_err),
@@ -153,9 +155,9 @@ class CPUMonitor():
         diag_level = DiagnosticStatus.OK
 
         try:
-            netdata_cpu_freq, error = query_netdata('cpu.cpufreq', interval)
+            netdata_cpu_freq, error = self._netdata_interface.query_netdata('cpu.cpufreq', interval)
             if not netdata_cpu_freq:
-                diag_level = DiagnosticStatus.ERROR
+                diag_level = DiagnosticStatus.WARN
                 diag_msgs = [ 'Clock Speed Error' ]
                 diag_vals = [ KeyValue(key = 'Clock Speed Error', value = 'Could not fetch data from netdata'),
                               KeyValue(key = 'Output', value = netdata_cpu_freq),
@@ -168,9 +170,9 @@ class CPUMonitor():
                 diag_vals.append(KeyValue(key = 'Core %d (MHz)' % int(cpu_name[-1]), value = str(np.mean(values))))
 
             # get max freq
-            netdata_info = query_netdata_info()
+            netdata_info = self._netdata_interface.query_netdata_info()
             if not netdata_info:
-                diag_level = DiagnosticStatus.ERROR
+                diag_level = DiagnosticStatus.WARN
                 diag_msgs = [ 'Clock Speed Error' ]
                 diag_vals = [ KeyValue(key = 'Clock Speed Error', value = 'Could not fetch data from netdata'),
                               KeyValue(key = 'Output', value = netdata_info) ]
@@ -198,9 +200,9 @@ class CPUMonitor():
         diag_level = DiagnosticStatus.OK
 
         try:
-            netdata_uptime, error = query_netdata('system.uptime', interval)
+            netdata_uptime, error = self._netdata_interface.query_netdata('system.uptime', interval)
             if not netdata_uptime:
-                diag_level = DiagnosticStatus.ERROR
+                diag_level = DiagnosticStatus.WARN
                 diag_msg = 'Uptime Error'
                 diag_vals = [ KeyValue(key = 'Uptime Error', value = 'Could not fetch data from netdata'),
                               KeyValue(key = 'Output', value = netdata_uptime),
@@ -232,9 +234,9 @@ class CPUMonitor():
         load_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'High Load', DiagnosticStatus.ERROR: 'Very High Load' }
 
         try:
-            netdata_cpu_load, error = query_netdata('system.load', interval)
+            netdata_cpu_load, error = self._netdata_interface.query_netdata('system.load', interval)
             if not netdata_cpu_load:
-                diag_level = DiagnosticStatus.ERROR
+                diag_level = DiagnosticStatus.WARN
                 diag_msg = 'Load Error'
                 diag_vals = [ KeyValue(key = 'Load Error', value = 'Could not fetch data from netdata'),
                               KeyValue(key = 'Output', value = netdata_cpu_load),
@@ -282,9 +284,9 @@ class CPUMonitor():
         mem_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'Low Memory', DiagnosticStatus.ERROR: 'Very Low Memory' }
 
         try:
-            netdata_mem, error = query_netdata('system.ram', interval)
+            netdata_mem, error = self._netdata_interface.query_netdata('system.ram', interval)
             if not netdata_mem:
-                diag_level = DiagnosticStatus.ERROR
+                diag_level = DiagnosticStatus.WARN
                 diag_msg = 'Memory Usage Error'
                 diag_vals = [ KeyValue(key = 'Memory Usage Error', value = 'Could not fetch data from netdata'),
                               KeyValue(key = 'Output', value = netdata_mem),
@@ -312,9 +314,9 @@ class CPUMonitor():
             diag_vals.append(KeyValue(key = 'Mem Free', value = str(free_mem)))
             diag_vals.append(KeyValue(key = 'Mem Buff/Cache', value = str(cache_mem)))
 
-            netdata_swp, error = query_netdata('system.swap', interval)
+            netdata_swp, error = self._netdata_interface.query_netdata('system.swap', interval)
             if not netdata_swp:
-                diag_level = DiagnosticStatus.ERROR
+                diag_level = DiagnosticStatus.WARN
                 diag_msg = 'Swap Usage Error'
                 diag_vals = [ KeyValue(key = 'Swap Usage Error', value = 'Could not fetch data from netdata'),
                               KeyValue(key = 'Output', value = netdata_swp),
@@ -356,26 +358,26 @@ class CPUMonitor():
         load_dict = { DiagnosticStatus.OK: 'OK', DiagnosticStatus.WARN: 'High Load', DiagnosticStatus.ERROR: 'Error' }
 
         try:
-            netdata_info = query_netdata_info()
+            netdata_info = self._netdata_interface.query_netdata_info()
             if not netdata_info:
-                diag_level = DiagnosticStatus.ERROR
+                diag_level = DiagnosticStatus.WARN
                 diag_msg = 'CPU Usage Error'
                 diag_vals = [ KeyValue(key = 'CPU Usage Error', value = 'Could not fetch data from netdata'),
                               KeyValue(key = 'Output', value = netdata_info) ]
                 return (diag_vals, diag_msg, diag_level)
 
             num_cores = int(netdata_info['cores_total'])
-            netdata_system_cpu, error = query_netdata('system.cpu', interval)
+            netdata_system_cpu, error = self._netdata_interface.query_netdata('system.cpu', interval)
             if not netdata_system_cpu:
-                diag_level = DiagnosticStatus.ERROR
+                diag_level = DiagnosticStatus.WARN
                 diag_msg = 'CPU Usage Error'
                 diag_vals = [ KeyValue(key = 'CPU Usage Error', value = 'Could not fetch data from netdata'),
                               KeyValue(key = 'Output', value = netdata_system_cpu),
                               KeyValue(key = 'Error', value= error) ]
                 return (diag_vals, diag_msg, diag_level)
 
-            netdata_cpu_util = [query_netdata('cpu.cpu%d' % i, interval) for i in range(num_cores)]
-            netdata_cpu_idle = [query_netdata('cpu.cpu%d_cpuidle' % i, interval) for i in range(num_cores)]
+            netdata_cpu_util = [self._netdata_interface.query_netdata('cpu.cpu%d' % i, interval) for i in range(num_cores)]
+            netdata_cpu_idle = [self._netdata_interface.query_netdata('cpu.cpu%d_cpuidle' % i, interval) for i in range(num_cores)]
 
             if any([data == None for data, error in netdata_cpu_util]):
                 diag_level = DiagnosticStatus.ERROR
@@ -441,9 +443,9 @@ class CPUMonitor():
         throt_vals = []
 
         try:
-            netdata, error = query_netdata('cpu.core_throttling', interval)
+            netdata, error = self._netdata_interface.query_netdata('cpu.core_throttling', interval)
             if not netdata:
-                throt_level = DiagnosticStatus.ERROR
+                throt_level = DiagnosticStatus.WARN
                 throt_msg = 'Core Throttling Error'
                 throt_vals = [ KeyValue(key = 'Core Throttling Error', value = 'Could not fetch data from netdata'),
                                 KeyValue(key = 'Output', value = netdata),
@@ -466,7 +468,7 @@ class CPUMonitor():
                     throt_level = DiagnosticStatus.ERROR
 
                 throt_vals.append(KeyValue(key=lbl, value='%r' % core_mean))
-            
+
             throt_vals.insert(0, KeyValue(key='Thermal Throttling Status', value=throt_msg))
             throt_vals.append(KeyValue(key='Thermal Throttling Threshold', value=str(self._thermal_throttling_threshold)))
 
@@ -494,9 +496,9 @@ class CPUMonitor():
         jitter_vals = []
 
         try:
-            netdata, error = query_netdata('system.idlejitter', interval)
+            netdata, error = self._netdata_interface.query_netdata('system.idlejitter', interval)
             if not netdata:
-                jitter_level = DiagnosticStatus.ERROR
+                jitter_level = DiagnosticStatus.WARN
                 jitter_msg = 'IDLE Jitter Error'
                 jitter_vals = [ KeyValue(key = 'Core Throttling Error', value = 'Could not fetch data from netdata'),
                                 KeyValue(key = 'Output', value = netdata),
