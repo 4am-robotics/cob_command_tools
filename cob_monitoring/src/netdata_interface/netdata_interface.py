@@ -4,7 +4,7 @@ import numpy
 
 
 class NetdataInterface:
-    def __init__(self, base_url: str = "http://127.0.0.1:19999/api/v1") -> None:
+    def __init__(self, base_url="http://127.0.0.1:19999/api/v1"):
         """Create a new NetData interface.
 
         :param base_url: Base URL of the NetData interface
@@ -12,7 +12,7 @@ class NetdataInterface:
         self._base_url = base_url
         self._failed_counter_dict = {}
 
-    def _request_data(self, url: str):
+    def _request_data(self, url):
         res = requests.get(url)
 
         if res.status_code != 200:
@@ -23,7 +23,7 @@ class NetdataInterface:
 
         return res.json()
 
-    def _reset_failed_counter(self, chart: str, label: str) -> None:
+    def _reset_failed_counter(self, chart, label):
         """Reset the failed counter for given label in chart.
 
         :param chart: Chart
@@ -34,7 +34,7 @@ class NetdataInterface:
 
         self._failed_counter_dict[chart][label] = 0
 
-    def _increase_failed_counter(self, chart: str, label: str) -> None:
+    def _increase_failed_counter(self, chart, label):
         """Increase the failed counter for given label in chart.
 
         Throws an exception if failed counter is greater or equal 5.
@@ -57,14 +57,14 @@ class NetdataInterface:
                 )
             )
 
-    def query_netdata_info(self) -> None:
+    def query_netdata_info(self):
         """Get NetData information."""
         url = "{}/info".format(self._base_url)
         res = self._request_data(url)
 
         return res
 
-    def query_netdata(self, chart: str, after: int) -> None:
+    def query_netdata(self, chart, after):
         """Get data from NetData chart after a certain time.
 
         :param chart: Chart identifier
