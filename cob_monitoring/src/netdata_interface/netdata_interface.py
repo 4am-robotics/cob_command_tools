@@ -16,7 +16,9 @@ class NetdataInterface:
         res = requests.get(url)
 
         if res.status_code != 200:
-            msg = f"NetData request not successful (url='{url}', status_code={res.status_code})"
+            msg = "NetData request not successful (url='{}', status_code={})".format(
+                url, res.status_code
+            )
             raise requests.ConnectionError(msg)
 
         return res.json()
@@ -50,12 +52,14 @@ class NetdataInterface:
 
         if self._failed_counter_dict[chart][label] >= 5:
             raise Exception(
-                f"Data from NetData was malformed {self._failed_counter_dict[chart][label]} times (chart='{chart}', label='{label}')"
+                "Data from NetData was malformed {} times (chart='{}', label='{}')".format(
+                    self._failed_counter_dict[chart][label], chart, label
+                )
             )
 
     def query_netdata_info(self) -> None:
         """Get NetData information."""
-        url = f"{self._base_url}/info"
+        url = "{}/info".format(self._base_url)
         res = self._request_data(url)
 
         return res
@@ -66,7 +70,9 @@ class NetdataInterface:
         :param chart: Chart identifier
         :param after: Timedelta in seconds
         """
-        url = f"{self._base_url}/data?chart={chart}&format=json&after=-{after}"
+        url = "{}/data?chart={}&format=json&after=-{}".format(
+            self._base_url, chart, after
+        )
         res = self._request_data(url)
 
         sdata = list(zip(*res["data"]))
@@ -75,9 +81,11 @@ class NetdataInterface:
         for idx, label in enumerate(res["labels"]):
             np_array = numpy.array(sdata[idx])
             if np_array.dtype == object or (np_array == None).any():
-                msg = f"Data from NetData malformed: {label}"
+                msg = "Data from NetData malformed: {}".format(label)
                 rospy.logwarn(msg)
-                rospy.logwarn(f"... malformed data for Label <{label}>: {np_array}")
+                rospy.logwarn(
+                    "... malformed data for Label <{}>: {}".format(label, np_array)
+                )
                 self._increase_failed_counter(chart, label)
                 return None, msg
             data[label] = np_array
