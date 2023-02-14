@@ -10,7 +10,6 @@ class NetdataInterface:
         :param base_url: Base URL of the NetData interface
         """
         self._base_url = base_url
-        self._failed_counter_dict = {}
 
     def _request_data(self, url):
         res = requests.get(url)
@@ -22,40 +21,6 @@ class NetdataInterface:
             raise requests.ConnectionError(msg)
 
         return res.json()
-
-    def _reset_failed_counter(self, chart, label):
-        """Reset the failed counter for given label in chart.
-
-        :param chart: Chart
-        :param label: Label
-        """
-        if chart not in self._failed_counter_dict:
-            self._failed_counter_dict[chart] = {}
-
-        self._failed_counter_dict[chart][label] = 0
-
-    def _increase_failed_counter(self, chart, label):
-        """Increase the failed counter for given label in chart.
-
-        Throws an exception if failed counter is greater or equal 5.
-
-        :param chart: Chart
-        :param label: Label
-        """
-        if chart not in self._failed_counter_dict:
-            self._failed_counter_dict[chart] = {}
-
-        if label not in self._failed_counter_dict[chart]:
-            self._failed_counter_dict[chart][label] = 1
-        else:
-            self._failed_counter_dict[chart][label] += 1
-
-        if self._failed_counter_dict[chart][label] >= 5:
-            raise Exception(
-                "Data from NetData was malformed {} times (chart='{}', label='{}')".format(
-                    self._failed_counter_dict[chart][label], chart, label
-                )
-            )
 
     def query_netdata_info(self):
         """Get NetData information."""
@@ -86,9 +51,7 @@ class NetdataInterface:
                 rospy.logwarn(
                     "... malformed data for Label <{}>: {}".format(label, np_array)
                 )
-                self._increase_failed_counter(chart, label)
                 return None, msg
             data[label] = np_array
-            self._reset_failed_counter(chart, label)
 
         return data, None
