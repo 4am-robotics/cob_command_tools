@@ -2,8 +2,8 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.32 (2023-04-29)
+-------------------
 * Merge pull request `#329 <https://github.com/ipa320/cob_command_tools/issues/329>`_ from Deleh/fix/netdata_diagnostics_level
   Change NetData malformed data diagnostics level from ERROR to WARN
 * remove type hints
