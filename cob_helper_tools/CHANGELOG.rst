@@ -2,6 +2,9 @@
 Changelog for package cob_helper_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.32 (2023-04-29)
+-------------------
+
 0.6.31 (2023-01-04)
 -------------------
 * Merge pull request `#324 <https://github.com/ipa320/cob_command_tools/issues/324>`_ from pgehring/reduce_logging
