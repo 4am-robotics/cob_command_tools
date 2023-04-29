@@ -2,6 +2,21 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#329 <https://github.com/ipa320/cob_command_tools/issues/329>`_ from Deleh/fix/netdata_diagnostics_level
+  Change NetData malformed data diagnostics level from ERROR to WARN
+* remove type hints
+* adjust string formatting syntax
+* move netdata communication to interface class
+* change netdata malformed data diagnostic level
+* Merge pull request `#328 <https://github.com/ipa320/cob_command_tools/issues/328>`_ from Deleh/feature/wlan_monitor_reconnect
+  Reconnect if SSH session is inactive
+* finalize
+* add ssh_connection_state to diagnostics
+* reconnect if session is inactive
+* Contributors: Denis Lehmann, Felix Messmer, fmessmer
+
 0.6.31 (2023-01-04)
 -------------------
 * Merge pull request `#327 <https://github.com/ipa320/cob_command_tools/issues/327>`_ from Deleh/fix/emergency_stop_monitor
