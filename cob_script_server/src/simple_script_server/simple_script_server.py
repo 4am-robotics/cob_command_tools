@@ -937,7 +937,7 @@ class simple_script_server:
 			ah.set_failed(3, message)
 			return ah
 		max_rel_trans_step = 1.0 # [m]
-		max_rel_rot_step = math.pi/2 # [rad]
+		max_rel_rot_step = math.pi*2+0.1 # [rad]
 		if math.sqrt(parameter_name[0]**2 + parameter_name[1]**2) > max_rel_trans_step:
 			message = "Parameter " + str(parameter_name) + " exceeds maximal relative translation step (" + str(max_rel_trans_step) + "), aborting move_base_rel"
 			rospy.logerr(message)
