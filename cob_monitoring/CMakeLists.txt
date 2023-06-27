@@ -22,6 +22,7 @@ catkin_install_python(PROGRAMS
           src/emergency_stop_monitor.py
           src/hd_monitor.py
           src/hz_monitor.py
+          src/motion_monitor.py
           src/net_monitor.py
           src/ntp_monitor.py
           src/wifi_monitor.py
