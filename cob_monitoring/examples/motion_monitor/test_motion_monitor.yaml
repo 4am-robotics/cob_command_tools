@@ -1,0 +1,5 @@
+path_topic: /path
+distance_threshold_m: 2.0 # [m]
+angle_threshold_rad: 0.52 # [rad]
+target_frame_id: base_link
+motion_monitor_marker_topic: /motion_monitor/motion_monitor_marker

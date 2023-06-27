@@ -1,0 +1,17 @@
+rosbag_play_frequency: 1 # hz
+test_data_publish_rate: 1 # hz
+
+# frames
+path_frame_id: map
+
+# tf map to base_link ground truth
+# run in terminal: rosrun tf2_tools echo.py map base_link -t 0
+map_base_link_xyz_quat: [-11.023, 5.422, 0.000, 0.000, 0.000, 0.694, 0.719]
+
+# interactive marker
+interactive_marker_server: interactive_marker
+interactive_marker_name: path_marker
+interactive_marker_description: "Drag to create path"
+
+# parsed via launch:
+# - map_bag_file

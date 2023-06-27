@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="motion_monitor_folder" default="$(find cob_monitoring)/examples/motion_monitor"/>
+    <arg name="motion_monitor_yaml_file" default="$(arg motion_monitor_folder)/test_motion_monitor.yaml"/>
+
+    <arg name="rviz_config" default="$(arg motion_monitor_folder)/test_motion_monitor.rviz" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rviz_config)" />
+
+    <node pkg="cob_monitoring" type="interactive_path_publisher.py" name="interactive_path_publisher" output="screen">
+        <rosparam command="load" file="$(arg motion_monitor_yaml_file)" />
+        <rosparam command="load" file="$(arg motion_monitor_folder)/interactive_path_publisher.yaml" />
+        <param name="map_bag_file" value="$(arg motion_monitor_folder)/bag_files/map.bag"/>
+    </node>
+
+    <node pkg="cob_monitoring" type="motion_monitor.py" name="motion_monitor" output="screen">
+        <rosparam command="load" file="$(arg motion_monitor_yaml_file)" />
+    </node>
+</launch>

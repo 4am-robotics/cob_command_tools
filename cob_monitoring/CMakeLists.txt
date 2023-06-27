@@ -26,6 +26,7 @@ catkin_install_python(PROGRAMS
           src/ntp_monitor.py
           src/wifi_monitor.py
           src/wlan_monitor.py
+          examples/motion_monitor/interactive_path_publisher.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
