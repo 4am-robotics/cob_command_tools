@@ -2,4 +2,11 @@ path_topic: /path
 distance_threshold_m: 2.0 # [m]
 angle_threshold_rad: 0.52 # [rad]
 target_frame_id: base_link
+process_path_rate: 5.0 # [Hz]
+max_path_age: 0.5 # [s] Maximum age of the path message in seconds
+
+# marker related params
 motion_monitor_marker_topic: /motion_monitor/motion_monitor_marker
+should_publish_marker: true
+marker_position_xyz: [0, 0, 0.1]
+marker_scale_xyz: [1.5, 0.2, 0.2]
