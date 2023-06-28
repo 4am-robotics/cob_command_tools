@@ -16,11 +16,27 @@ from visualization_msgs.msg import Marker
 
 
 @dataclass
+class AngleInterval:
+    min_angle: float
+    max_angle: float
+
+    def __post_init__(self):
+        if self.min_angle >= self.max_angle:
+            raise ValueError("min_angle should be less than max_angle")
+
+
+@dataclass
 class MotionCategory:
     name: str
-    ranges: List[Tuple[float, float]]  # min max angles for range [-pi, pi], e.g. atan2
-    color: ColorRGBA
-    yaw: float
+    angle_intervals: List[AngleInterval]
+    display_color: ColorRGBA
+    display_yaw: float
+
+    def is_angle_in_intervals(self, target_angle: float) -> bool:
+        return any(
+            interval.min_angle < target_angle < interval.max_angle
+            for interval in self.angle_intervals
+        )
 
 
 class MotionMonitor():
@@ -87,9 +103,7 @@ class MotionMonitor():
     def get_valid_category(self, target_yaw: float) -> MotionCategory:
         """Return the motion category that the target_yaw angle falls into."""
         for category in self.motion_categories:
-            valid_category = any([min_angle < target_yaw and target_yaw < max_angle
-                                  for min_angle, max_angle in category.ranges])
-            if valid_category:
+            if category.is_angle_in_intervals(target_yaw):
                 return category
         return None
 
@@ -123,7 +137,7 @@ class MotionMonitor():
                     category = self.get_valid_category(target_yaw)
                     if category:
                         rospy.loginfo(f"Motion category: {category.name}")
-                        self.publish_direction_marker(category.color, category.yaw)
+                        self.publish_direction_marker(category.display_color, category.display_yaw)
                         break
             else:
                 rospy.loginfo(
@@ -137,31 +151,35 @@ class MotionMonitor():
         return [
             MotionCategory(
                 "forward",
-                [(-angle_threshold_rad, angle_threshold_rad)],
+                [AngleInterval(-angle_threshold_rad, angle_threshold_rad)],
                 ColorRGBA(0, 1, 0, 1),
                 0),
             MotionCategory(
                 "forward-left",
-                [(angle_threshold_rad, math.pi / 2)],
+                [AngleInterval(angle_threshold_rad, math.pi / 2)],
                 ColorRGBA(0, 0, 1, 1),
                 angle_threshold_rad),
             MotionCategory(
-                "forward-right", [(-math.pi/2, -angle_threshold_rad)],
-                ColorRGBA(1, 0, 1, 1), -angle_threshold_rad),
+                "forward-right",
+                [AngleInterval(-math.pi/2, -angle_threshold_rad)],
+                ColorRGBA(1, 0, 1, 1),
+                -angle_threshold_rad),
             MotionCategory(
                 "backward",
-                [(math.pi - angle_threshold_rad, math.pi),
-                 (-math.pi, -math.pi + angle_threshold_rad)],
+                [AngleInterval(math.pi - angle_threshold_rad, math.pi),
+                 AngleInterval(-math.pi, -math.pi + angle_threshold_rad)],
                 ColorRGBA(1, 0, 0, 1),
                 math.pi),
             MotionCategory(
                 "backward-left",
-                [(-math.pi + angle_threshold_rad, -math.pi/2)],
+                [AngleInterval(-math.pi + angle_threshold_rad, -math.pi/2)],
                 ColorRGBA(0, 1, 1, 1),
                 -math.pi + angle_threshold_rad),
             MotionCategory(
-                "backward-right", [(math.pi/2, math.pi - angle_threshold_rad)],
-                ColorRGBA(1, 0.5, 0, 1), math.pi - angle_threshold_rad)
+                "backward-right",
+                [AngleInterval(math.pi/2, math.pi - angle_threshold_rad)],
+                ColorRGBA(1, 0.5, 0, 1),
+                math.pi - angle_threshold_rad)
         ]
 
     @staticmethod
