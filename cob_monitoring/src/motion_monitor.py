@@ -47,7 +47,7 @@ class MotionMonitor():
         )
         self.marker_pub = rospy.Publisher(motion_monitor_marker_topic, Marker, queue_size=10)
 
-        self.categories = MotionMonitor.get_motion_categories(self.angle_threshold_rad)
+        self.motion_categories = MotionMonitor.get_motion_categories(self.angle_threshold_rad)
 
         self.last_path = None
         self.last_path_mutex = threading.Lock()
@@ -59,17 +59,19 @@ class MotionMonitor():
             rospy.Duration(1.0 / process_path_rate), self.process_path
         )
 
-    def path_callback(self, path: Path):
+    def path_callback(self, path: Path) -> None:
         with self.last_path_mutex:
             self.last_path = path
 
-    def publish_direction_marker(self, color: ColorRGBA, yaw: float):
+    def publish_direction_marker(self, color: ColorRGBA, yaw: float) -> None:
+        """Publish a marker showing the direction of motion."""
         if self.should_publish_marker:
             self.direction_marker.color = color
             self.direction_marker.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, yaw))
             self.marker_pub.publish(self.direction_marker)
 
     def get_transform(self, target_frame: str, source_frame: str):
+        """Look up the most recent transform between target_frame and source_frame."""
         try:
             return self.tf_buffer.lookup_transform(
                 target_frame, source_frame, rospy.Time(0)
@@ -83,20 +85,22 @@ class MotionMonitor():
             return None
 
     def get_valid_category(self, target_yaw: float) -> MotionCategory:
-        for category in self.categories:
+        """Return the motion category that the target_yaw angle falls into."""
+        for category in self.motion_categories:
             valid_category = any([min_angle < target_yaw and target_yaw < max_angle
                                   for min_angle, max_angle in category.ranges])
             if valid_category:
                 return category
         return None
 
-    def process_path(self, _: rospy.timer.TimerEvent):
+    def process_path(self, _: rospy.timer.TimerEvent) -> None:
+        """Timer callback method to process the latest path message."""
         with self.last_path_mutex:
             if not self.last_path:
                 return
 
-            path_age = rospy.Time.now() - self.last_path.header.stamp
-            if path_age > rospy.Duration(self.max_path_age):
+            path_timestamp_diff = rospy.Time.now() - self.last_path.header.stamp
+            if path_timestamp_diff > rospy.Duration(self.max_path_age):
                 return
 
             transform_target_path = self.get_transform(
@@ -107,12 +111,12 @@ class MotionMonitor():
 
             for pose in self.last_path.poses:
                 # Transform pose to target frame
-                pose_in_target_frame = do_transform_pose(pose, transform_target_path)
+                pose_stamped_in_target_frame = do_transform_pose(pose, transform_target_path)
 
-                distance = MotionMonitor.get_distance(pose_in_target_frame.pose)
+                distance = MotionMonitor.get_distance(pose_stamped_in_target_frame.pose)
                 if distance > self.distance_threshold_m:
-                    target_yaw = math.atan2(pose_in_target_frame.pose.position.y,
-                                            pose_in_target_frame.pose.position.x)
+                    target_yaw = math.atan2(pose_stamped_in_target_frame.pose.position.y,
+                                            pose_stamped_in_target_frame.pose.position.x)
 
                     rospy.loginfo(f"distance: {distance:.2f}m, target_yaw: {target_yaw:.2f}rad")
 
@@ -129,6 +133,7 @@ class MotionMonitor():
 
     @staticmethod
     def get_motion_categories(angle_threshold_rad) -> List[MotionCategory]:
+        """Return a list of motion categories split by the specified angle."""
         return [
             MotionCategory(
                 "forward",
@@ -160,11 +165,13 @@ class MotionMonitor():
         ]
 
     @staticmethod
-    def get_distance(pose: Pose):
+    def get_distance(pose: Pose) -> float:
+        """Return the Euclidean distance from the origin to the pose's position."""
         return math.sqrt(pose.position.x**2 + pose.position.y**2)
 
     @staticmethod
-    def get_direction_marker(frame_id: str, scale: Vector3, positon: Point):
+    def get_direction_marker(frame_id: str, scale: Vector3, positon: Point) -> Marker:
+        """Return a Marker message of type ARROW, which points in the direction of motion."""
         marker = Marker()
         marker.header.frame_id = frame_id
         marker.type = Marker.ARROW

@@ -15,6 +15,13 @@ from visualization_msgs.msg import (
 
 
 class InteractivePathPublisher():
+    """
+    A class to publish an interactive marker and a path in ROS.
+
+    The path is updated whenever the interactive marker is moved.
+    The transform between a target frame and the path frame is also broadcasted.
+    """
+
     def __init__(self):
         self.tf_broadcaster = tf2_ros.TransformBroadcaster()
         path_target_xyz_quat = rospy.get_param("~path_target_xyz_quat")
@@ -43,7 +50,7 @@ class InteractivePathPublisher():
         interactive_marker_orientation_quat = rospy.get_param(
             "~interactive_marker_orientation_quat", [0, 0.7071, 0, 0.7071]
         )
-        self.server = InteractiveMarkerServer(interactive_marker_server)
+        self.interactive_marker_server = InteractiveMarkerServer(interactive_marker_server)
         self.init_interactive_marker(
             name=interactive_marker_name,
             description=interactive_marker_description,
@@ -66,6 +73,7 @@ class InteractivePathPublisher():
         self, name: str, description: str, frame_id: str, init_position: Vector3,
         scale: Vector3, color: ColorRGBA, orientation: Quaternion
     ) -> None:
+        """Initialize an interactive marker with given parameters."""
         int_marker = InteractiveMarker()
         int_marker.header.frame_id = frame_id
         int_marker.name = name
@@ -84,10 +92,10 @@ class InteractivePathPublisher():
         control.interaction_mode = InteractiveMarkerControl.MOVE_PLANE
         int_marker.controls.append(control)
 
-        self.server.insert(int_marker, self.marker_callback)
-        self.server.applyChanges()
+        self.interactive_marker_server.insert(int_marker, self.interactive_marker_callback)
+        self.interactive_marker_server.applyChanges()
 
-    def marker_callback(self, feedback: InteractiveMarkerFeedback) -> None:
+    def interactive_marker_callback(self, feedback: InteractiveMarkerFeedback) -> None:
         if feedback.event_type == InteractiveMarkerFeedback.POSE_UPDATE:
             self.publish_path(feedback.pose)
 
@@ -107,6 +115,7 @@ class InteractivePathPublisher():
 
     @staticmethod
     def get_path(path_frame_id: str) -> Path:
+        """Return a Path message with the given frame id."""
         path = Path()
         path.header.frame_id = path_frame_id
         return path
@@ -115,6 +124,7 @@ class InteractivePathPublisher():
     def get_transform_from_pose_xyz_quat(
             frame_id: str, child_frame_id: str, xyz_quat: list
     ) -> TransformStamped:
+        """Return a TransformStamped message with the given frames and pose."""
         transform = TransformStamped()
         transform.header.stamp = rospy.Time.now()
         transform.header.frame_id = frame_id
