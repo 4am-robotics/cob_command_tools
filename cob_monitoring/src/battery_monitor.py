@@ -45,6 +45,39 @@ class battery_monitor():
 
         self.enable_light = rospy.get_param("~enable_light", True)
         self.num_leds = rospy.get_param("~num_leds", 1)
+
+        if rospy.has_param("~color_charging"):
+            charging_color_param = rospy.get_param("~color_charging")
+        else:
+            # set to cyan as default
+            charging_color_param = [0.0, 1.0, 0.7, 0.4]
+        self.color_charging = ColorRGBA(*charging_color_param)
+
+        if rospy.has_param("~color_warning"):
+            color_warning_param = rospy.get_param("~color_warning")
+        else:
+            # set to cyan as default
+            color_warning_param = [1.0, 1.0, 0.0, 1.0]
+        self.color_warning = ColorRGBA(*color_warning_param)
+
+        if rospy.has_param("~color_error"):
+            color_error_param = rospy.get_param("~color_error")
+        else:
+            # set to cyan as default
+            color_error_param = [1.0, 0.0, 0.0, 1.0]
+        self.color_error = ColorRGBA(*color_error_param)
+
+        if rospy.has_param("~color_critical"):
+            color_critical_param = rospy.get_param("~color_critical")
+        else:
+            # set to cyan as default
+            color_critical_param = [1.0, 0.0, 0.0, 1.0]
+        self.color_critical = ColorRGBA(*color_critical_param)
+
+        self.interval_duration_warning = rospy.get_param("~interval_duration_warning", 30.0)
+        self.interval_duration_error = rospy.get_param("~interval_duration_error", 30.0)
+        self.interval_duration_critical = rospy.get_param("~interval_duration_critical", 30.0)
+
         self.track_id_light = {}
         if self.enable_light:
             if not rospy.has_param("~light_components"):
@@ -123,36 +156,36 @@ class battery_monitor():
         # warn if battery is empty
         if not self.is_charging:
             # 5%
-            if self.power_state.relative_remaining_capacity <= self.threshold_critical and (rospy.get_time() - self.last_time_warned) > 5:
+            if self.power_state.relative_remaining_capacity <= self.threshold_critical and (rospy.get_time() - self.last_time_warned) > self.interval_duration_critical:
                 self.last_time_warned = rospy.get_time()
                 mode = copy.copy(self.mode)
                 mode.mode = LightModes.FLASH
-                color = ColorRGBA(1, 0, 0, 1)
+                color = self.color_critical
                 mode.colors = []
                 mode.colors.append(color)
-                mode.frequency = 5
-                mode.pulses = 4
+                mode.frequency = 4
+                mode.pulses = 8
                 self.set_light(mode)
 
                 self.say(self.sound_critical)
 
             # 10%
-            elif self.power_state.relative_remaining_capacity <= self.threshold_error and (rospy.get_time() - self.last_time_warned) > 15:
+            elif self.power_state.relative_remaining_capacity <= self.threshold_error and (rospy.get_time() - self.last_time_warned) > self.interval_duration_error:
                 self.last_time_warned = rospy.get_time()
                 mode = copy.copy(self.mode)
                 mode.mode = LightModes.FLASH
-                color = ColorRGBA(1, 0, 0, 1)
+                color = self.color_error
                 mode.colors = []
                 mode.colors.append(color)
                 mode.frequency = 2
                 mode.pulses = 2
                 self.set_light(mode)
             # 20%
-            elif self.power_state.relative_remaining_capacity <= self.threshold_warning and (rospy.get_time() - self.last_time_warned) > 30:
+            elif self.power_state.relative_remaining_capacity <= self.threshold_warning and (rospy.get_time() - self.last_time_warned) > self.interval_duration_warning:
                 self.last_time_warned = rospy.get_time()
                 mode = copy.copy(self.mode)
                 mode.mode = LightModes.FLASH
-                color = ColorRGBA(1, 1, 0, 1)
+                color = self.color_warning
                 mode.colors = []
                 mode.colors.append(color)
                 mode.frequency = 2
@@ -180,7 +213,7 @@ class battery_monitor():
                     mode.mode = LightModes.CIRCLE_COLORS
                     mode.frequency = 60.0
                     mode.colors = []
-                    color = ColorRGBA(0.0, 1.0, 0.7, 0.4)
+                    color = self.color_charging
                     for _ in range(leds):
                         mode.colors.append(color)
                 else:
