@@ -75,8 +75,8 @@ class battery_monitor():
         self.color_critical = ColorRGBA(*color_critical_param)
 
         self.interval_duration_warning = rospy.get_param("~interval_duration_warning", 30.0)
-        self.interval_duration_error = rospy.get_param("~interval_duration_error", 30.0)
-        self.interval_duration_critical = rospy.get_param("~interval_duration_critical", 30.0)
+        self.interval_duration_error = rospy.get_param("~interval_duration_error", 15.0)
+        self.interval_duration_critical = rospy.get_param("~interval_duration_critical", 5.0)
 
         self.track_id_light = {}
         if self.enable_light:
