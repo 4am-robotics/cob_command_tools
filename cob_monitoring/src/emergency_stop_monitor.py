@@ -261,15 +261,20 @@ class emergency_stop_monitor():
 	## Topic Monitoring
 	def emergency_stop_callback(self, msg):
 		if msg.emergency_button_stop:
-			rospy.logwarn("Emergency stop button has been issued!")
+			if not self.em_state == EMState.EM_BUTTON:
+				rospy.logwarn("Emergency stop button has been issued!")
+			self.em_state = EMState.EM_BUTTON
 			self.set_light(self.color_error)
 
 		if msg.scanner_stop:
-			rospy.logwarn("Scanner stop has been issued!")
+			if not self.em_state == EMState.EM_LASER:
+				rospy.logwarn("Scanner stop has been issued!")
+			self.em_state = EMState.EM_LASER
 			self.set_light(self.color_error)
 
 		# reset light when emergency has been released
 		if not msg.emergency_button_stop and not msg.scanner_stop:
+			self.em_state = EMState.EM_FREE
 			self.stop_light()
 
 
