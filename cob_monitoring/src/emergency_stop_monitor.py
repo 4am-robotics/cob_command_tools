@@ -264,7 +264,7 @@ class emergency_stop_monitor():
 				self.set_light(self.color_warn, True)
 
 	## Topic Monitoring
-	def emergency_stop_callback(self, msg: EmergencyStopState):
+	def emergency_stop_callback(self, msg):
 		if msg.emergency_state == EmergencyStopState.EMSTOP:
 			if not self.last_em_topic_state == msg.emergency_state:
 				if msg.emergency_button_stop:
