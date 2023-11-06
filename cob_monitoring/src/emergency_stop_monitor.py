@@ -49,6 +49,7 @@ class emergency_stop_monitor():
 		self.enable_light = rospy.get_param("~enable_light", False)
 		self.diagnostics_based = rospy.get_param("~diagnostics_based", False)
 		self.motion_based = rospy.get_param("~motion_based", False)
+		self.topic_based = rospy.get_param("~topic_based", False)
 		self.track_id_light = None
 
 		if(self.enable_light):
@@ -82,10 +83,15 @@ class emergency_stop_monitor():
 		self.sound_em_internal_released = rospy.get_param("~sound_em_internal_released", "internal released")
 		self.sound_em_internal_issued = rospy.get_param("~sound_em_internal_issued", "internal issued")
 
-		rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.diagnostics_agg_callback, queue_size=1)
 		self.em_state = EMState.EM_UNKNOWN
+		self.last_em_topic_state = EmergencyStopState.EMFREE
 
-		self.diag_status = -1
+		if not self.topic_based:
+			self.diag_status = -1
+			rospy.Subscriber("/diagnostics_agg", DiagnosticArray, self.diagnostics_agg_callback, queue_size=1)
+		else:
+			self.diag_status = DiagnosticStatus.OK
+
 		if(self.diagnostics_based):
 			rospy.Subscriber("/diagnostics_toplevel_state", DiagnosticStatus, self.diagnostics_callback, queue_size=1)
 			self.last_diag = rospy.get_rostime()
@@ -94,6 +100,11 @@ class emergency_stop_monitor():
 		if(self.motion_based):
 			rospy.Subscriber("/joint_states", JointState, self.jointstate_callback, queue_size=1)
 			self.last_vel = rospy.get_rostime()
+
+		if(self.topic_based):
+			emergency_stop_topic = rospy.get_param("~emergency_stop_topic", "/emergency_stop_state")
+			rospy.Subscriber(emergency_stop_topic, EmergencyStopState, self.emergency_stop_callback, queue_size=1)
+			self.last_topic = rospy.get_rostime()
 
 		self.pub_em_button_released   = rospy.Publisher('em_button_released'  , Empty, queue_size=1)
 		self.pub_brake_released       = rospy.Publisher('brake_released'      , Empty, queue_size=1)
@@ -251,6 +262,28 @@ class emergency_stop_monitor():
 				self.stop_light()
 			else:	        # moving
 				self.set_light(self.color_warn, True)
+
+	## Topic Monitoring
+	def emergency_stop_callback(self, msg):
+		if msg.emergency_state == EmergencyStopState.EMSTOP:
+			if not self.last_em_topic_state == msg.emergency_state:
+				if msg.emergency_button_stop:
+					self.em_state = EMState.EM_BUTTON
+					rospy.logwarn("Emergency stop button has been issued!")
+				elif msg.scanner_stop:
+					self.em_state = EMState.EM_LASER
+					rospy.logwarn("Scanner stop has been issued!")
+				else:
+					self.em_state = EMState.EM_UNKNOWN
+				self.set_light(self.color_error)
+				self.last_em_topic_state = msg.emergency_state
+
+		if msg.emergency_state == EmergencyStopState.EMFREE:
+			if not self.last_em_topic_state == msg.emergency_state:
+				rospy.loginfo("Emergency stop released")
+				self.em_state = EMState.EM_FREE
+				self.stop_light()
+				self.last_em_topic_state = msg.emergency_state
 
 
 	## set light
