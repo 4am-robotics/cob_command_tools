@@ -2,6 +2,13 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#331 <https://github.com/ipa320/cob_command_tools/issues/331>`_ from benmaidel/feature/allow_bigger_rel_rotation
+  allow max relative rotation of pi*2+0.1
+* allow max relative rotation of pi*2+0.1
+* Contributors: Felix Messmer, bnm@mrl-2
+
 0.6.32 (2023-04-29)
 -------------------
 

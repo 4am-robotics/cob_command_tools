@@ -2,6 +2,22 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#335 <https://github.com/ipa320/cob_command_tools/issues/335>`_ from benmaidel/fix/em_topic_based_em_stop_mon
+  fixed em topic based emergency_stop_monitor
+* fix melodic compatibility
+* fixed em topic based emergency_stop_monitor
+* Merge pull request `#334 <https://github.com/ipa320/cob_command_tools/issues/334>`_ from HannesBachter/feature/topic_emergency_stop_monitor
+  set light based on emergency stop topic
+* log em-stop only after issuing
+* set light based on emergency stop topic
+* Merge pull request `#333 <https://github.com/ipa320/cob_command_tools/issues/333>`_ from benmaidel/feature/battery_monitor_params
+  extend battery_monitor with additional rosparams
+* fix default values
+* extend battery_monitor with additional rosparams
+* Contributors: Benjamin Maidel, Felix Messmer, HannesBachter
+
 0.6.32 (2023-04-29)
 -------------------
 * Merge pull request `#329 <https://github.com/ipa320/cob_command_tools/issues/329>`_ from Deleh/fix/netdata_diagnostics_level
