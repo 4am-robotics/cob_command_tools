@@ -2,8 +2,8 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.33 (2023-11-06)
+-------------------
 * Merge pull request `#335 <https://github.com/ipa320/cob_command_tools/issues/335>`_ from benmaidel/fix/em_topic_based_em_stop_mon
   fixed em topic based emergency_stop_monitor
 * fix melodic compatibility
