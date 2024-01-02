@@ -24,6 +24,9 @@ from std_msgs.msg import ColorRGBA
 from cob_msgs.msg import PowerState
 from cob_light.msg import LightMode, LightModes, SetLightModeAction, SetLightModeGoal
 from cob_light.srv import StopLightMode, StopLightModeRequest
+from mojin_msgs.msg import HornMode
+from mojin_msgs.srv import (SetHornMode, SetHornModeRequest)
+
 
 from simple_script_server import *
 sss = simple_script_server()
@@ -43,6 +46,10 @@ class battery_monitor():
         self.threshold_error = rospy.get_param("~threshold_error", 10.0)     # % of battery level
         self.threshold_critical = rospy.get_param("~threshold_critical", 5.0)# % of battery level
 
+        self.enable_sound = rospy.get_param("~enable_sound", True)
+        self.enable_horn = rospy.get_param("~enable_horn", True)
+
+        ### light parameter ###
         self.enable_light = rospy.get_param("~enable_light", True)
         self.num_leds = rospy.get_param("~num_leds", 1)
 
@@ -78,6 +85,19 @@ class battery_monitor():
         self.interval_duration_error = rospy.get_param("~interval_duration_error", 15.0)
         self.interval_duration_critical = rospy.get_param("~interval_duration_critical", 5.0)
 
+        if self.enable_horn:
+            self.set_horn_service = rospy.get_param("~set_horn_service")
+            self.horn_frequency = rospy.get_param("~horn_frequency")
+            self.horn_pulses = rospy.get_param("~horn_pulses")
+            self.horn_timeout = rospy.get_param("~horn_timeout")
+
+            self.horn_interval_duration_warning = rospy.get_param("~horn_interval_duration_warning", 1200.0)    # default: 20 minutes
+            self.horn_interval_duration_error = rospy.get_param("~horn_interval_duration_error", 600.0)         # default: 10 minutes
+            self.horn_interval_duration_critical = rospy.get_param("~horn_interval_duration_critical", 300.0)   # default: 5 minutes
+
+            self.srv_set_horn = rospy.ServiceProxy(self.set_horn_service, SetHornMode)
+            self.last_horn_time = 0
+
         self.track_id_light = {}
         if self.enable_light:
             if not rospy.has_param("~light_components"):
@@ -89,7 +109,6 @@ class battery_monitor():
             self.mode = LightMode()
             self.mode.priority = 8
 
-        self.enable_sound = rospy.get_param("~enable_sound", True)
         self.sound_components = {}
         if self.enable_sound:
             if not rospy.has_param("~sound_components"):
@@ -152,47 +171,91 @@ class battery_monitor():
             for component in self.sound_components:
                 sss.say(component, [text])
 
+    def trigger_horn(self):
+        # if self.enable_sound:
+            # for component in self.sound_components:
+
+                # horn_mode = HornMode()
+                # horn_mode.mode = HornMode.FLASH
+                # horn_mode.frequency = 4.0
+                # horn_mode.pulses = 5
+                # horn_mode.timeout = 5.0
+                # try:
+                #     self.srv_set_horn(horn_mode)
+                # except rospy.ServiceException as e:
+                #     rospy.logerr("Service call failed: %s", e)
+        if self.enable_horn != True:
+            raise ValueError(f"could not signal horn in component '{self.name}', not enabled")
+        # self.horn_frequency = 4.0
+        # self.horn_pulses = 5
+        # self.horn_timeout = 5.0
+
+        req = SetHornModeRequest()
+        req.mode.mode = HornMode.FLASH
+        req.mode.frequency = self.horn_frequency
+        req.mode.pulses = self.horn_pulses
+        req.mode.timeout = self.horn_timeout
+        try:
+            self.srv_set_horn.call(req)
+        except (TypeError, rospy.ServiceException) as e:
+            rospy.logwarn(f"Received exception when calling '{self.set_horn_service}' in component '{self.name}': {e}")
+            return
+
     def timer_callback(self, event):
         # warn if battery is empty
         if not self.is_charging:
-            # 5%
-            if self.power_state.relative_remaining_capacity <= self.threshold_critical and (rospy.get_time() - self.last_time_warned) > self.interval_duration_critical:
-                self.last_time_warned = rospy.get_time()
-                mode = copy.copy(self.mode)
-                mode.mode = LightModes.FLASH
-                color = self.color_critical
-                mode.colors = []
-                mode.colors.append(color)
-                mode.frequency = 4
-                mode.pulses = 8
-                self.set_light(mode)
 
-                self.say(self.sound_critical)
+            # 5%
+            if self.power_state.relative_remaining_capacity <= self.threshold_critical:
+                if (rospy.get_time() - self.last_time_warned) > self.interval_duration_critical:
+                    self.last_time_warned = rospy.get_time()
+                    mode = copy.copy(self.mode)
+                    mode.mode = LightModes.FLASH
+                    color = self.color_critical
+                    mode.colors = []
+                    mode.colors.append(color)
+                    mode.frequency = 4
+                    mode.pulses = 8
+                    self.set_light(mode)
+                    self.say(self.sound_critical)
+                if (rospy.get_time() - self.last_horn_time) > self.horn_interval_duration_critical:
+                    self.last_horn_time = rospy.get_time()
+                    self.trigger_horn()
 
             # 10%
-            elif self.power_state.relative_remaining_capacity <= self.threshold_error and (rospy.get_time() - self.last_time_warned) > self.interval_duration_error:
-                self.last_time_warned = rospy.get_time()
-                mode = copy.copy(self.mode)
-                mode.mode = LightModes.FLASH
-                color = self.color_error
-                mode.colors = []
-                mode.colors.append(color)
-                mode.frequency = 2
-                mode.pulses = 2
-                self.set_light(mode)
-            # 20%
-            elif self.power_state.relative_remaining_capacity <= self.threshold_warning and (rospy.get_time() - self.last_time_warned) > self.interval_duration_warning:
-                self.last_time_warned = rospy.get_time()
-                mode = copy.copy(self.mode)
-                mode.mode = LightModes.FLASH
-                color = self.color_warning
-                mode.colors = []
-                mode.colors.append(color)
-                mode.frequency = 2
-                mode.pulses = 2
-                self.set_light(mode)
+            elif self.power_state.relative_remaining_capacity <= self.threshold_error:
+                if (rospy.get_time() - self.last_time_warned) > self.interval_duration_error:
+                    self.last_time_warned = rospy.get_time()
+                    mode = copy.copy(self.mode)
+                    mode.mode = LightModes.FLASH
+                    color = self.color_error
+                    mode.colors = []
+                    mode.colors.append(color)
+                    mode.frequency = 2
+                    mode.pulses = 2
+                    self.set_light(mode)
+                    self.trigger_horn()
+                    self.say(self.sound_critical)
+                if (rospy.get_time() - self.last_horn_time > self.horn_interval_duration_error):
+                    self.last_horn_time = rospy.get_time()
+                    self.trigger_horn()
 
-                self.say(self.sound_warning)
+            # 20%
+            elif self.power_state.relative_remaining_capacity <= self.threshold_warning:
+                if (rospy.get_time() - self.last_time_warned) > self.interval_duration_warning:
+                    self.last_time_warned = rospy.get_time()
+                    mode = copy.copy(self.mode)
+                    mode.mode = LightModes.FLASH
+                    color = self.color_warning
+                    mode.colors = []
+                    mode.colors.append(color)
+                    mode.frequency = 2
+                    mode.pulses = 2
+                    self.set_light(mode)
+                    self.say(self.sound_warning)
+                if (rospy.get_time() - self.last_horn_time > self.horn_interval_duration_warning):
+                    self.last_horn_time = rospy.get_time()
+                    self.trigger_horn()
 
         if self.is_charging == False and self.power_state.charging == True:
             self.is_charging = True
