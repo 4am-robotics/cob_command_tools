@@ -91,6 +91,7 @@ class battery_monitor():
             self.horn_pulses_warning = rospy.get_param("~horn_pulses_warning")
             self.horn_pulses_error = rospy.get_param("~horn_pulses_error")
             self.horn_pulses_critical = rospy.get_param("~horn_pulses_critical")
+            self.horn_pulses = self.horn_pulses_critical    #default value
             self.horn_timeout = rospy.get_param("~horn_timeout")
 
             self.horn_interval_duration_warning = rospy.get_param("~horn_interval_duration_warning", 1200.0)    # default: 20 minutes
@@ -176,7 +177,7 @@ class battery_monitor():
     def trigger_horn(self):
 
         if self.enable_horn != True:
-            raise ValueError(f"could not signal horn in component '{self.name}', not enabled")
+            raise ValueError(f"could not signal horn, not enabled")
 
         req = SetHornModeRequest()
         req.mode.mode = HornMode.FLASH
@@ -186,7 +187,7 @@ class battery_monitor():
         try:
             self.srv_set_horn.call(req)
         except (TypeError, rospy.ServiceException) as e:
-            rospy.logwarn(f"Received exception when calling '{self.set_horn_service}' in component '{self.name}': {e}")
+            rospy.logwarn(f"Received exception when calling '{self.set_horn_service}': {e}")
             return
 
     def timer_callback(self, event):
@@ -250,8 +251,7 @@ class battery_monitor():
         if self.is_charging == False and self.power_state.charging == True:
             self.is_charging = True
 
-        if self.is_charging == True and (self.power_state.charging == False
-                                    or (rospy.get_time() - self.last_time_power_received) > 2):
+        if self.is_charging == True and (self.power_state.charging == False or (rospy.get_time() - self.last_time_power_received) > 2):
             self.is_charging = False
             self.relative_remaining_capacity = 0.0
             self.stop_light()
