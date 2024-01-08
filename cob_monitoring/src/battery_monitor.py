@@ -86,13 +86,12 @@ class battery_monitor():
         self.interval_duration_critical = rospy.get_param("~interval_duration_critical", 5.0)
 
         if self.enable_horn:
-            self.set_horn_service = rospy.get_param("~set_horn_service")
-            self.horn_frequency = rospy.get_param("~horn_frequency")
-            self.horn_pulses_warning = rospy.get_param("~horn_pulses_warning")
-            self.horn_pulses_error = rospy.get_param("~horn_pulses_error")
-            self.horn_pulses_critical = rospy.get_param("~horn_pulses_critical")
-            self.horn_pulses = self.horn_pulses_critical    #default value
-            self.horn_timeout = rospy.get_param("~horn_timeout")
+            self.set_horn_service = rospy.get_param("~set_horn_service", "/mojin_horn/set_horn_mode")
+            self.horn_frequency = rospy.get_param("~horn_frequency", 1.0)
+            self.horn_pulses_warning = rospy.get_param("~horn_pulses_warning", 1)
+            self.horn_pulses_error = rospy.get_param("~horn_pulses_error", 2)
+            self.horn_pulses_critical = rospy.get_param("~horn_pulses_critical", 3)
+            self.horn_timeout = rospy.get_param("~horn_timeout", 5.0)
 
             self.horn_interval_duration_warning = rospy.get_param("~horn_interval_duration_warning", 1200.0)    # default: 20 minutes
             self.horn_interval_duration_error = rospy.get_param("~horn_interval_duration_error", 600.0)         # default: 10 minutes
@@ -174,15 +173,16 @@ class battery_monitor():
             for component in self.sound_components:
                 sss.say(component, [text])
 
-    def trigger_horn(self):
+    def trigger_horn(self, horn_pulses):
 
         if self.enable_horn != True:
-            raise ValueError(f"could not signal horn, not enabled")
+            rospy.logdebug(f"could not signal horn, not enabled")
+            return
 
         req = SetHornModeRequest()
         req.mode.mode = HornMode.FLASH
         req.mode.frequency = self.horn_frequency
-        req.mode.pulses = self.horn_pulses
+        req.mode.pulses = horn_pulses
         req.mode.timeout = self.horn_timeout
         try:
             self.srv_set_horn.call(req)
@@ -209,8 +209,7 @@ class battery_monitor():
                     self.say(self.sound_critical)
                 if (rospy.get_time() - self.last_horn_time) > self.horn_interval_duration_critical:
                     self.last_horn_time = rospy.get_time()
-                    self.horn_pulses = self.horn_pulses_critical
-                    self.trigger_horn()
+                    self.trigger_horn(self.horn_pulses_critical)
 
             # 10%
             elif self.power_state.relative_remaining_capacity <= self.threshold_error:
@@ -227,8 +226,7 @@ class battery_monitor():
                     self.say(self.sound_critical)
                 if (rospy.get_time() - self.last_horn_time > self.horn_interval_duration_error):
                     self.last_horn_time = rospy.get_time()
-                    self.horn_pulses = self.horn_pulses_error
-                    self.trigger_horn()
+                    self.trigger_horn(self.horn_pulses_error)
 
             # 20%
             elif self.power_state.relative_remaining_capacity <= self.threshold_warning:
@@ -245,8 +243,7 @@ class battery_monitor():
                     self.say(self.sound_warning)
                 if (rospy.get_time() - self.last_horn_time > self.horn_interval_duration_warning):
                     self.last_horn_time = rospy.get_time()
-                    self.horn_pulses = self.horn_pulses_warning
-                    self.trigger_horn()
+                    self.trigger_horn(self.horn_pulses_warning)
 
         if self.is_charging == False and self.power_state.charging == True:
             self.is_charging = True
