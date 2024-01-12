@@ -314,13 +314,34 @@ class CPUMonitor():
             diag_vals.append(KeyValue(key = 'Mem Free', value = str(free_mem)))
             diag_vals.append(KeyValue(key = 'Mem Buff/Cache', value = str(cache_mem)))
 
-            netdata_swp, error = self._netdata_interface.query_netdata('system.swap', interval)
+            # Netdata versions differ in chart names
+            netdata_swap_charts = ['mem.swap', 'system.swap']
+            error_count = 0
+            netdata_chart_err = ''
+            for chart in netdata_swap_charts:
+                try:
+                    netdata_swp, error = self._netdata_interface.query_netdata(chart, interval)
+
+                # Count individual connection errors for mutliple chart names
+                except requests.ConnectionError as err:
+                    error_count += 1
+                    netdata_chart_err += chart + ' '
+
+                    netdata_swp = None
+                    error = str(err)
+
+                if netdata_swp:
+                    break
+
+            netdata_chart_err = "{} of {} failed: {}".format(error_count, len(netdata_swap_charts), netdata_chart_err)
+
             if not netdata_swp:
                 diag_level = DiagnosticStatus.WARN
                 diag_msg = 'Swap Usage Error'
-                diag_vals = [ KeyValue(key = 'Swap Usage Error', value = 'Could not fetch data from netdata'),
-                              KeyValue(key = 'Output', value = netdata_swp),
-                              KeyValue(key = 'Error', value= error) ]
+                diag_vals = [ KeyValue(key='Swap Usage Error', value='Could not fetch data from netdata'),
+                              KeyValue(key='Failed Chart Names', value=netdata_chart_err),
+                              KeyValue(key='Output', value=netdata_swp),
+                              KeyValue(key='Error', value=error) ]
                 return (diag_vals, diag_msg, diag_level)
 
             del netdata_swp['time']
