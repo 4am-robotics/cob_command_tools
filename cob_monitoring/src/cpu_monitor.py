@@ -56,6 +56,8 @@ class CPUMonitor():
 
         self._num_cores = rospy.get_param('~num_cores', psutil.cpu_count())
 
+        self._netdata_version = None
+
         # CPU stats
         self._info_stat = DiagnosticStatus()
         self._info_stat.name = '%s CPU Info' % diag_hostname
@@ -567,6 +569,11 @@ class CPUMonitor():
         diag_vals = []
         diag_msgs = []
         diag_level = DiagnosticStatus.OK
+
+        if self._netdata_version is None:
+            self._netdata_version = self._netdata_interface.query_netdata_info()['version']
+
+        diag_vals.append(KeyValue(key='Netdata version', value=self._netdata_version))
 
         if self._check_core_temps:
             interval = math.ceil(self._usage_timer._period.to_sec())
