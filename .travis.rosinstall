@@ -1,0 +1,4 @@
+- git:
+    local-name: cob_common
+    uri: git@github.com:stffnb/cob_common.git
+    version: ROS1_add_HornMode

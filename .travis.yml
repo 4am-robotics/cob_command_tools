@@ -15,6 +15,7 @@ env:
     - PYLINT_ARGS="--output-format=parseable --errors-only --ignored-modules=catkin_pkg,cv2,itertools,gi,gtk,gtk.gdk,mechanize,numpy,paramiko,psutil,pygraphviz,pygtk,python_qt_binding,python_qt_binding.QtCore,requests,setuptools"
     - PYLINT_CHECK=true
     - ROS_REPO=main
+    - UPSTREAM_WORKSPACE=file
   matrix:
     - ROS_DISTRO=melodic
     - ROS_DISTRO=noetic
