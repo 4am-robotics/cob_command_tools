@@ -21,11 +21,10 @@ import copy
 import actionlib
 
 from std_msgs.msg import ColorRGBA
-from cob_msgs.msg import PowerState
+from cob_msgs.msg import PowerState, HornMode
+from cob_msgs.srv import SetHornMode, SetHornModeRequest
 from cob_light.msg import LightMode, LightModes, SetLightModeAction, SetLightModeGoal
 from cob_light.srv import StopLightMode, StopLightModeRequest
-from mojin_msgs.msg import HornMode
-from mojin_msgs.srv import (SetHornMode, SetHornModeRequest)
 
 
 from simple_script_server import *
