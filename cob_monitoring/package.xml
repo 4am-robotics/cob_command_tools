@@ -28,6 +28,7 @@
   <exec_depend>cob_light</exec_depend>
   <exec_depend>cob_msgs</exec_depend>
   <exec_depend>cob_script_server</exec_depend>
+  <exec_depend>cob_srvs</exec_depend>
   <exec_depend>diagnostic_msgs</exec_depend>
   <exec_depend>ifstat</exec_depend>
   <exec_depend>ipmitool</exec_depend>
