@@ -56,6 +56,8 @@ class CPUMonitor():
 
         self._num_cores = rospy.get_param('~num_cores', psutil.cpu_count())
 
+        self._netdata_version = None
+
         # CPU stats
         self._info_stat = DiagnosticStatus()
         self._info_stat.name = '%s CPU Info' % diag_hostname
@@ -314,13 +316,34 @@ class CPUMonitor():
             diag_vals.append(KeyValue(key = 'Mem Free', value = str(free_mem)))
             diag_vals.append(KeyValue(key = 'Mem Buff/Cache', value = str(cache_mem)))
 
-            netdata_swp, error = self._netdata_interface.query_netdata('system.swap', interval)
+            # Netdata versions differ in chart names
+            netdata_swap_charts = ['mem.swap', 'system.swap']
+            error_count = 0
+            netdata_chart_err = ''
+            for chart in netdata_swap_charts:
+                try:
+                    netdata_swp, error = self._netdata_interface.query_netdata(chart, interval)
+
+                # Count individual connection errors for mutliple chart names
+                except requests.ConnectionError as err:
+                    error_count += 1
+                    netdata_chart_err += chart + ' '
+
+                    netdata_swp = None
+                    error = str(err)
+
+                if netdata_swp:
+                    break
+
+            netdata_chart_err = "{} of {} failed: {}".format(error_count, len(netdata_swap_charts), netdata_chart_err)
+
             if not netdata_swp:
                 diag_level = DiagnosticStatus.WARN
                 diag_msg = 'Swap Usage Error'
-                diag_vals = [ KeyValue(key = 'Swap Usage Error', value = 'Could not fetch data from netdata'),
-                              KeyValue(key = 'Output', value = netdata_swp),
-                              KeyValue(key = 'Error', value= error) ]
+                diag_vals = [ KeyValue(key='Swap Usage Error', value='Could not fetch data from netdata'),
+                              KeyValue(key='Failed Chart Names', value=netdata_chart_err),
+                              KeyValue(key='Output', value=netdata_swp),
+                              KeyValue(key='Error', value=error) ]
                 return (diag_vals, diag_msg, diag_level)
 
             del netdata_swp['time']
@@ -546,6 +569,11 @@ class CPUMonitor():
         diag_vals = []
         diag_msgs = []
         diag_level = DiagnosticStatus.OK
+
+        if self._netdata_version is None:
+            self._netdata_version = self._netdata_interface.query_netdata_info()['version']
+
+        diag_vals.append(KeyValue(key='Netdata version', value=self._netdata_version))
 
         if self._check_core_temps:
             interval = math.ceil(self._usage_timer._period.to_sec())
