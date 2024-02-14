@@ -18,7 +18,7 @@ jobs:
       CATKIN_LINT: pedantic
       CATKIN_LINT_ARGS: '--ignore description_boilerplate'
       CMAKE_ARGS: -DCMAKE_BUILD_TYPE=Release
-      PYLINT_ARGS: '--output-format=parseable --errors-only'
+      PYLINT_ARGS: '--output-format=parseable --errors-only --ignored-modules=gtk,mechanize,python_qt_binding'
       PYLINT_CHECK: true
       ROS_REPO: main
 
