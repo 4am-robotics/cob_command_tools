@@ -2,8 +2,8 @@
 Changelog for package cob_command_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.34 (2024-02-18)
+-------------------
 * Merge pull request `#341 <https://github.com/4am-robotics/cob_command_tools/issues/341>`_ from fmessmer/feature/optimize_workspace
   [WIP] optimize workspace
 * remove cob_interactive_teleop
