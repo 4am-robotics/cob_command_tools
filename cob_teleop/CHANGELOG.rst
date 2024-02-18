@@ -2,6 +2,13 @@
 Changelog for package cob_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#340 <https://github.com/4am-robotics/cob_command_tools/issues/340>`_ from fmessmer/migrate_ipa320
+  migrate ipa320
+* remove outdated readme
+* Contributors: Felix Messmer, fmessmer
+
 0.6.33 (2023-11-06)
 -------------------
 

@@ -2,6 +2,9 @@
 Changelog for package cob_script_server
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.6.33 (2023-11-06)
 -------------------
 * Merge pull request `#331 <https://github.com/ipa320/cob_command_tools/issues/331>`_ from benmaidel/feature/allow_bigger_rel_rotation
