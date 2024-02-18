@@ -4,7 +4,7 @@
   schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>cob_helper_tools</name>
-  <version>0.6.33</version>
+  <version>0.6.34</version>
   <description>Helper scripts for Care-O-bot</description>
 
   <maintainer email="felixmessmer@gmail.com">Felix Messmer</maintainer>

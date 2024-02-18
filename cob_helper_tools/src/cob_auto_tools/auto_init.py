@@ -27,6 +27,7 @@ class AutoInit():
   def __init__(self):
     self.components = rospy.get_param('~components', {})
     self.max_retries = rospy.get_param('~max_retries', 50)
+    self.retry_delay = rospy.get_param('~retry_delay', 1.0)
     self.em_state_ignore = rospy.get_param('~em_state_ignore', False)
     self.em_state = EmergencyStopState.EMSTOP
     rospy.Subscriber("/emergency_stop_state", EmergencyStopState, self.em_cb, queue_size=1)
@@ -56,8 +57,8 @@ class AutoInit():
             retries += 1
             handle = sss.init(component)
             if not (handle.get_error_code() == 0):
-              rospy.logerr("[auto_init]: Could not initialize %s. Retrying...(%s of %s)", component, str(retries), str(self.max_retries))
-              rospy.sleep(1.0)
+              rospy.logerr("[auto_init]: Could not initialize %s. Retrying...(%s of %s, waiting for %.1f s to retry...)", component, str(retries), str(self.max_retries), self.retry_delay)
+              rospy.sleep(self.retry_delay)
             else:
               rospy.loginfo("[auto_init]: Component %s initialized successfully", component)
               break
@@ -65,4 +66,3 @@ class AutoInit():
 
   def em_cb(self, msg):
     self.em_state = msg.emergency_state
-    

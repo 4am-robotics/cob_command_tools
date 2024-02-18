@@ -2,6 +2,17 @@
 Changelog for package cob_monitoring
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.34 (2024-02-18)
+-------------------
+* Merge pull request `#340 <https://github.com/4am-robotics/cob_command_tools/issues/340>`_ from fmessmer/migrate_ipa320
+  migrate ipa320
+* properly specify dependency
+* Merge pull request `#338 <https://github.com/4am-robotics/cob_command_tools/issues/338>`_ from Deleh/fix/netdata_swap_chart
+  Support New Netdata Swap Chart Name
+* add netdata version to cpu info
+* support new netdata swap chart name
+* Contributors: Denis Lehmann, Felix Messmer, fmessmer
+
 0.6.33 (2023-11-06)
 -------------------
 * Merge pull request `#335 <https://github.com/ipa320/cob_command_tools/issues/335>`_ from benmaidel/fix/em_topic_based_em_stop_mon

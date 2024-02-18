@@ -4,7 +4,7 @@
   schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>cob_monitoring</name>
-  <version>0.6.33</version>
+  <version>0.6.34</version>
   <description>cob_monitoring</description>
 
   <license>Apache 2.0</license>
@@ -37,7 +37,7 @@
   <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-paramiko</exec_depend>
   <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-paramiko</exec_depend>
   <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-mechanize</exec_depend>
-  <!--exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-mechanize</exec_depend--> <!-- commenting as python3-mechanize is not available for debian:buster (see https://github.com/ipa320/cob_command_tools/issues/289) -->
+  <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-mechanize</exec_depend>
   <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-psutil</exec_depend>
   <exec_depend condition="$ROS_PYTHON_VERSION == 3">python3-psutil</exec_depend>
   <exec_depend condition="$ROS_PYTHON_VERSION == 2">python-requests</exec_depend>
