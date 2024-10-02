@@ -2,8 +2,8 @@
 Changelog for package cob_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.6.35 (2024-04-18)
--------------------
+Forthcoming
+-----------
 
 0.7.36 (2024-08-05)
 -------------------
@@ -13,6 +13,9 @@ Changelog for package cob_teleop
 * 0.6.35
 * update changelogs
 * Contributors: fmessmer
+
+0.6.35 (2024-04-18)
+-------------------
 
 0.6.34 (2024-02-18)
 -------------------
