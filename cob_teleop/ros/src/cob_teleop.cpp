@@ -29,6 +29,7 @@
 #include <sensor_msgs/JoyFeedbackArray.h>
 #include <std_msgs/Float64MultiArray.h>
 #include <std_msgs/ColorRGBA.h>
+#include <std_msgs/Bool.h>
 #include <std_srvs/Trigger.h>
 #include <XmlRpcValue.h>
 
@@ -69,6 +70,12 @@ public:
   int up_down_button_;
   int right_left_button_;
   //mode 4: Twist controller
+
+  // free drive
+  int free_drive_button_;
+  ros::Publisher free_drive_publisher_;
+  std::string free_drive_topic_name_;
+  bool free_drive_active_;
 
   //common
   int deadman_button_;
@@ -123,6 +130,7 @@ public:
   void getConfigurationFromParameters();
   void init();
   void updateBase();
+  void updateArm();
   void say(std::string text, bool blocking);
   void setLight(int mode);
   void joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg);
@@ -262,6 +270,11 @@ void CobTeleop::getConfigurationFromParameters()
     vel_old_[i]=0;
     vel_req_[i]=0;
   }
+
+  n_.param<int>("free_drive_button", free_drive_button_, 2); // x button
+  n_.param<std::string>("free_drive_topic_name", free_drive_topic_name_, "/arm/driver/free_drive_mode");
+  free_drive_publisher_ = n_.advertise<std_msgs::Bool>(free_drive_topic_name_, 1);
+  free_drive_active_ = false;
 }
 
 sensor_msgs::JoyFeedbackArray CobTeleop::switch_mode()
@@ -369,6 +382,20 @@ void CobTeleop::updateBase()
   }
 }
 
+void CobTeleop::updateArm()
+{
+  if (joy_active_)
+  {
+    if (free_drive_active_)
+    {
+      std_msgs::Bool free_drive_msg;
+      free_drive_msg.data = true;
+      free_drive_publisher_.publish(free_drive_msg);
+      setLight(1);
+    }
+  }
+}
+
 void CobTeleop::say(std::string text, bool blocking)
 {
   if(enable_sound_)
@@ -426,6 +453,20 @@ void CobTeleop::joy_cb(const sensor_msgs::Joy::ConstPtr &joy_msg)
   {
     ROS_INFO("Switch mode button pressed");
     switch_mode();
+  }
+
+  if (free_drive_button_ >= 0 && free_drive_button_ < (int)joy_msg->buttons.size())
+  {
+    if (free_drive_active_ && joy_msg->buttons[free_drive_button_] == 0)
+    {
+      ROS_INFO("Free drive mode deactivated");
+      free_drive_active_ = false;
+    }
+    else if (!free_drive_active_ && joy_msg->buttons[free_drive_button_] == 1)
+    {
+      ROS_INFO("Free drive mode activated");
+      free_drive_active_ = true;
+    }
   }
 
   if(safety_button_>=0 && safety_button_<(int)joy_msg->buttons.size() && joy_msg->buttons[safety_button_]==1)
@@ -826,6 +867,7 @@ int main(int argc, char** argv)
   while(cob_teleop.n_.ok())
   {
     cob_teleop.updateBase();
+    cob_teleop.updateArm();
     ros::spinOnce();
     loop_rate.sleep();
   }
